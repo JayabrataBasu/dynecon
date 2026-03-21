@@ -7,6 +7,10 @@ import numpy.typing as npt
 
 from econkit.numerics._dispatch import resolve_backend
 from econkit.numerics._registry import register
+from econkit.numerics.backends.integration_numba import (
+    expectation_discrete_numba,
+    gauss_hermite_normal_numba,
+)
 from econkit.numerics.backends.integration_numpy import (
     expectation_discrete_numpy,
     gauss_hermite_normal_numpy,
@@ -18,6 +22,8 @@ Array = npt.NDArray[np.float64]
 register("gauss_hermite_normal", "numpy", gauss_hermite_normal_numpy)
 register("gauss_laguerre_exp", "numpy", gauss_laguerre_exp_numpy)
 register("expectation_discrete", "numpy", expectation_discrete_numpy)
+register("gauss_hermite_normal", "numba", gauss_hermite_normal_numba)
+register("expectation_discrete", "numba", expectation_discrete_numba)
 
 
 def gauss_hermite_normal(order: int, backend: str | None = None) -> tuple[Array, Array]:

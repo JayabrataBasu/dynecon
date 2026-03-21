@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from econkit.config import config
-from econkit.numerics.discretization import tauchen
+from econkit.numerics.discretization import rouwenhorst, tauchen
 from econkit.numerics.integration import expectation_discrete, gauss_hermite_normal
 from econkit.numerics.interpolation import linear_interp_1d
 
@@ -28,6 +28,8 @@ def test_linear_interp_numpy_numba_parity() -> None:
 
 
 def test_tauchen_backend_selection_matches_numpy_reference() -> None:
+    pytest.importorskip("numba")
+
     grid_numpy, trans_numpy = tauchen(0.9, 0.1, 5, backend="numpy")
     grid_numba, trans_numba = tauchen(0.9, 0.1, 5, backend="numba")
 
@@ -36,6 +38,8 @@ def test_tauchen_backend_selection_matches_numpy_reference() -> None:
 
 
 def test_gauss_hermite_and_expectation_match_under_backend_fallback() -> None:
+    pytest.importorskip("numba")
+
     nodes_numpy, weights_numpy = gauss_hermite_normal(7, backend="numpy")
     nodes_numba, weights_numba = gauss_hermite_normal(7, backend="numba")
 
@@ -50,10 +54,12 @@ def test_gauss_hermite_and_expectation_match_under_backend_fallback() -> None:
 
 
 def test_strict_backend_mode_rejects_unimplemented_backend() -> None:
+    pytest.importorskip("numba")
+
     original = config.strict_backend
     config.strict_backend = True
     try:
         with pytest.raises(ValueError):
-            tauchen(0.95, 0.1, 5, backend="numba")
+            rouwenhorst(0.95, 0.1, 5, backend="numba")
     finally:
         config.strict_backend = original

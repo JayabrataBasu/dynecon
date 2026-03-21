@@ -144,6 +144,39 @@ where \(H\) is the configured number of Howard policy-improvement steps.
 This can reduce outer Bellman iterations by doing extra work per iteration
 when policy evaluation is cheap relative to policy updates.
 
+\section{Canonical Consumption-Savings Helper (Implemented in Session 8)}
+For asset state \(a\), deterministic income \(y\), and gross return \(1+r\),
+the helper solves the standard one-dimensional Bellman problem on an asset grid:
+\begin{equation}
+    V(a) = \max_{a' \in \mathcal{A}} \left\{ u(c) + \beta V(a') \right\},
+\end{equation}
+subject to
+\begin{equation}
+    c = (1+r)a + y - a', \qquad c > 0.
+\end{equation}
+The implementation performs brute-force search over \(a'\) on a fixed grid to
+produce a robust baseline policy/value solution.
+
+\subsection{CRRA Utility}
+The utility specification is
+\begin{equation}
+u(c)=
+\begin{cases}
+\log(c), & \sigma = 1, \\
+\dfrac{c^{1-\sigma}-1}{1-\sigma}, & \sigma \neq 1.
+\end{cases}
+\end{equation}
+
+\subsection{Residual-History Summary Diagnostics}
+Beyond per-iteration residuals \(r_k\), Session 8 adds summary metrics over
+history \(\{r_0,\dots,r_{K-1}\}\):
+\begin{equation}
+    \text{avg-log-drop} = \frac{\log_{10}(\max(r_0,\epsilon)) -
+    \log_{10}(\max(r_{K-1},\epsilon))}{K-1},
+\end{equation}
+with machine-safe \(\epsilon\). This statistic gives an interpretable average
+orders-of-magnitude reduction per iteration.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

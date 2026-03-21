@@ -534,3 +534,84 @@ Progress scale:
 1. Add canonical consumption-savings solver helper using current model specs/grids.
 2. Introduce residual diagnostics history utilities (rolling convergence summaries, stopping diagnostics report).
 3. Add optional Numba implementations for selected integration/discretization kernels to turn fallback parity into true multi-backend parity.
+
+---
+
+## Session 08
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Canonical solver usability + residual-reporting diagnostics + selected true Numba numerics.
+- Reported overall Phase 1 progress: ~81%
+
+### Objectives
+
+1. Add a canonical consumption-savings solver helper on top of existing VFI infrastructure.
+2. Add residual-history summary/report utilities for convergence diagnostics.
+3. Introduce selected Numba backend implementations in discretization/integration.
+
+### What was implemented
+
+1. Canonical consumption-savings helper
+
+- Added `econkit/solvers/canonical.py`:
+: `solve_consumption_savings_vfi(...)` solving a one-asset deterministic consumption-savings Bellman problem,
+: CRRA utility handling with log case at \(\sigma=1\),
+: feasibility guard (`c > 0`) and policy returned on the asset grid,
+: metadata fields for canonical model type and asset grid properties.
+
+2. Diagnostics expansion
+
+- Extended `econkit/solvers/diagnostics.py`:
+: `ResidualHistorySummary` dataclass,
+: `summarize_residual_history(...)`,
+: `format_convergence_report(...)`.
+- Exported diagnostics via `econkit/solvers/__init__.py` and top-level `econkit/__init__.py`.
+
+3. Selected true Numba backend kernels
+
+- Added `econkit/numerics/backends/discretization_numba.py`:
+: `tauchen_numba(...)` with JIT-compiled loops.
+- Added `econkit/numerics/backends/integration_numba.py`:
+: `expectation_discrete_numba(...)` with JIT-compiled loops,
+: `gauss_hermite_normal_numba(...)` backend-specific wrapper.
+- Registered new backends in:
+: `econkit/numerics/discretization.py`
+: `econkit/numerics/integration.py`
+
+4. Test expansion
+
+- Added `tests/solvers/test_canonical.py` for canonical helper behavior and required-state validation.
+- Added `tests/solvers/test_diagnostics.py` for residual-summary/report correctness and invalid-input guards.
+- Updated `tests/cross_backend/test_interpolation_backend_parity.py` to reflect implemented Numba operations and strict-mode behavior for still-unimplemented operations.
+
+5. Documentation synchronization
+
+- Updated `README.md` status to include Session 8 deliverables.
+- Updated `docs/latex/econkit_math.tex` with canonical helper equations and residual-summary metric.
+
+### Architecture alignment
+
+- Section 7 Solver Framework: improved usability through a concrete canonical helper path.
+- Section 5.7 Backend Dispatch: selected operations now have actual Numba implementations, reducing reliance on fallback semantics.
+- Section 15 Testing Strategy: solver and diagnostics coverage expanded with domain-focused tests.
+
+### Verification performed
+
+- Local full quality gate run: `make format && make ci`.
+- Outcome: lint pass, typecheck pass, tests pass (`28 passed, 4 skipped`).
+
+### Risks / notes
+
+- Canonical helper currently assumes deterministic income and one asset state; stochastic-income canonical variants can be layered next.
+- Numba coverage is intentionally incremental; Rouwenhorst/Gauss-Laguerre Numba paths remain pending.
+
+### Session output summary
+
+- Result: Session 8 goals completed with implementation, tests, and docs fully synchronized.
+- Primary deliverables: canonical consumption-savings VFI entrypoint, residual reporting utilities, and selected true Numba kernels.
+
+### Next planned slice (Session 09 proposal)
+
+1. Add stochastic-income canonical helper variant using Tauchen/Rouwenhorst transitions and expected continuation values.
+2. Extend Numba backend coverage to Rouwenhorst and Gauss-Laguerre.
+3. Add solver diagnostics persistence helper (JSON-ready convergence artifacts).

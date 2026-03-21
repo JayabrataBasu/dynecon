@@ -7,12 +7,14 @@ import numpy.typing as npt
 
 from econkit.numerics._dispatch import resolve_backend
 from econkit.numerics._registry import register
+from econkit.numerics.backends.discretization_numba import tauchen_numba
 from econkit.numerics.backends.discretization_numpy import rouwenhorst_numpy, tauchen_numpy
 
 Array = npt.NDArray[np.float64]
 
 register("tauchen", "numpy", tauchen_numpy)
 register("rouwenhorst", "numpy", rouwenhorst_numpy)
+register("tauchen", "numba", tauchen_numba)
 
 
 def tauchen(

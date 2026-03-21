@@ -16,6 +16,7 @@ The repository now includes the initial implementation foundation:
 - Minimal model DSL and immutable compile pipeline (Session 5 vertical slice).
 - Solver foundation slice with VFI scaffold and Bellman residual diagnostics (Session 6).
 - Session 7 solver extensions: Howard-style policy-evaluation hook and compiled-model VFI adapter.
+- Session 8 additions: canonical consumption-savings VFI helper, residual-history reporting, and selected true Numba backend kernels.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start

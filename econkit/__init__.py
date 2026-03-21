@@ -4,11 +4,15 @@ from econkit.config import config
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
 from econkit.solvers import (
+    ResidualHistorySummary,
     VFIConfig,
     VFISolver,
     bellman_residual,
     build_compiled_bellman_operator,
+    format_convergence_report,
+    solve_consumption_savings_vfi,
     solve_compiled_model_vfi,
+    summarize_residual_history,
     value_function_iteration,
 )
 
@@ -26,5 +30,9 @@ __all__ = [
     "bellman_residual",
     "build_compiled_bellman_operator",
     "solve_compiled_model_vfi",
+    "solve_consumption_savings_vfi",
+    "ResidualHistorySummary",
+    "summarize_residual_history",
+    "format_convergence_report",
 ]
 __version__ = "0.1.0.dev0"
