@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from dataclasses import asdict
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -95,3 +97,26 @@ def format_convergence_report(history: list[float] | tuple[float, ...]) -> str:
         f"monotone_nonincreasing={summary.monotone_nonincreasing}, "
         f"avg_log10_drop_per_step={summary.avg_log10_drop_per_step:.3f}"
     )
+
+
+def build_convergence_artifact(
+    history: list[float] | tuple[float, ...],
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a JSON-serializable convergence artifact."""
+    summary = summarize_residual_history(history)
+    return {
+        "history": [float(x) for x in history],
+        "summary": asdict(summary),
+        "metadata": {} if metadata is None else dict(metadata),
+    }
+
+
+def convergence_artifact_to_json(
+    history: list[float] | tuple[float, ...],
+    metadata: dict[str, Any] | None = None,
+    indent: int = 2,
+) -> str:
+    """Serialize convergence artifact to JSON for persistence."""
+    artifact = build_convergence_artifact(history, metadata=metadata)
+    return json.dumps(artifact, indent=indent, sort_keys=True)

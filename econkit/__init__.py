@@ -8,8 +8,11 @@ from econkit.solvers import (
     VFIConfig,
     VFISolver,
     bellman_residual,
+    build_convergence_artifact,
     build_compiled_bellman_operator,
+    convergence_artifact_to_json,
     format_convergence_report,
+    solve_consumption_savings_stochastic_vfi,
     solve_consumption_savings_vfi,
     solve_compiled_model_vfi,
     summarize_residual_history,
@@ -31,8 +34,11 @@ __all__ = [
     "build_compiled_bellman_operator",
     "solve_compiled_model_vfi",
     "solve_consumption_savings_vfi",
+    "solve_consumption_savings_stochastic_vfi",
     "ResidualHistorySummary",
     "summarize_residual_history",
     "format_convergence_report",
+    "build_convergence_artifact",
+    "convergence_artifact_to_json",
 ]
 __version__ = "0.1.0.dev0"

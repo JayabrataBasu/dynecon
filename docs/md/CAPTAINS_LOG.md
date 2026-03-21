@@ -615,3 +615,84 @@ Progress scale:
 1. Add stochastic-income canonical helper variant using Tauchen/Rouwenhorst transitions and expected continuation values.
 2. Extend Numba backend coverage to Rouwenhorst and Gauss-Laguerre.
 3. Add solver diagnostics persistence helper (JSON-ready convergence artifacts).
+
+---
+
+## Session 09
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Stochastic canonical solving + broader Numba parity + diagnostics persistence artifacts.
+- Reported overall Phase 1 progress: ~88%
+
+### Objectives
+
+1. Add stochastic-income canonical consumption-savings helper.
+2. Extend Numba backend coverage for Rouwenhorst and Gauss-Laguerre.
+3. Add JSON-ready persistence helpers for convergence diagnostics.
+
+### What was implemented
+
+1. Stochastic canonical helper
+
+- Extended `econkit/solvers/canonical.py` with:
+: `solve_consumption_savings_stochastic_vfi(...)`,
+: support for `tauchen` or `rouwenhorst` discretization selection,
+: expected continuation calculation \(\sum_{z'}\Pi(z,z')V(a',z')\),
+: metadata fields for stochastic model diagnostics.
+
+2. Convergence persistence utilities
+
+- Extended `econkit/solvers/diagnostics.py` with:
+: `build_convergence_artifact(...)`,
+: `convergence_artifact_to_json(...)`.
+- Exported all new Session 9 APIs in:
+: `econkit/solvers/__init__.py`
+: `econkit/__init__.py`
+
+3. Numba backend coverage expansion
+
+- Extended `econkit/numerics/backends/discretization_numba.py`:
+: added `rouwenhorst_numba(...)`.
+- Extended `econkit/numerics/backends/integration_numba.py`:
+: added `gauss_laguerre_exp_numba(...)`.
+- Registered new implementations in:
+: `econkit/numerics/discretization.py`
+: `econkit/numerics/integration.py`
+
+4. Test suite expansion/adjustment
+
+- Extended `tests/solvers/test_canonical.py`:
+: stochastic helper success path,
+: required-income-shock validation.
+- Extended `tests/solvers/test_diagnostics.py`:
+: convergence artifact build and JSON round-trip tests.
+- Extended `tests/cross_backend/test_interpolation_backend_parity.py`:
+: Rouwenhorst and Gauss-Laguerre parity checks,
+: strict-backend unimplemented check moved to optimization backend (`brent_max` with numba).
+
+### Architecture alignment
+
+- Section 7 Solver Framework: canonical helper now supports stochastic-income setting with expected continuation operator.
+- Section 5.3 Numerical Integration / Discretization: backend parity extended to additional core routines.
+- Section 17 Documentation & Reproducibility intent: convergence diagnostics can now be persisted as structured artifacts.
+
+### Verification performed
+
+- Full local quality gate: `make format && make ci`.
+- Outcome: lint/type/tests all pass (`38 passed`).
+
+### Risks / notes
+
+- Stochastic canonical helper currently assumes a single stochastic income state and one asset dimension.
+- Numba Gauss-Laguerre node/weight generation remains delegated to NumPy polynomial routines (backend API parity achieved; deeper JIT path can be explored later).
+
+### Session output summary
+
+- Result: Session 9 completed with implementation, tests, and docs synchronized.
+- Primary deliverables: stochastic canonical solver helper, expanded backend coverage, and convergence artifact persistence layer.
+
+### Next planned slice (Session 10 proposal)
+
+1. Add two-asset or liquid/illiquid canonical helper prototype.
+2. Add optional policy monotonicity checks and diagnostics hooks.
+3. Introduce solver result export helper writing convergence artifacts to disk paths with schema versioning.

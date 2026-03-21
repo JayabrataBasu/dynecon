@@ -7,8 +7,12 @@ standard consumption-savings problems while preserving feasibility constraints.
 
 import numpy as np
 
-from econkit.model import Control, Model, Param, State
-from econkit.solvers import VFIConfig, solve_consumption_savings_vfi
+from econkit.model import AR1Shock, Control, Model, Param, State
+from econkit.solvers import (
+    VFIConfig,
+    solve_consumption_savings_stochastic_vfi,
+    solve_consumption_savings_vfi,
+)
 
 
 def test_canonical_helper_solves_and_returns_policy_grid() -> None:
@@ -59,3 +63,57 @@ def test_canonical_helper_requires_assets_state() -> None:
         assert "assets" in str(exc)
     else:
         raise AssertionError("expected canonical helper to reject missing assets state")
+
+
+def test_stochastic_canonical_helper_solves_and_returns_policy_grid() -> None:
+    model = Model(name="canonical_cs_stochastic")
+    model.params(
+        beta=Param(value=0.94),
+        sigma=Param(value=2.0),
+        r=Param(value=0.02),
+        y=Param(value=1.0),
+    )
+    model.add_state(State("assets", bounds=(0.0, 8.0), n_points=25))
+    model.add_state(State("income", shock=AR1Shock(rho=0.9, sigma_e=0.1, n_states=5)))
+    model.add_control(Control("consumption", bounds=(1e-8, None)))
+
+    @model.equation("bellman")
+    def bellman_placeholder(value: np.ndarray, params: dict[str, float]) -> np.ndarray:
+        del value, params
+        return np.zeros((25, 5), dtype=np.float64)
+
+    compiled = model.compile()
+    solution = solve_consumption_savings_stochastic_vfi(
+        compiled,
+        config=VFIConfig(tol=1e-6, max_iter=200),
+        discretization_method="tauchen",
+        shock_backend="numpy",
+    )
+
+    assert solution.converged
+    assert solution.policy is not None
+    assert solution.policy.shape == solution.value_function.shape
+    assert solution.value_function.shape == (25, 5)
+    assert solution.metadata["canonical_model"] == "consumption_savings_stochastic"
+    assert solution.metadata["discretization_method"] == "tauchen"
+
+
+def test_stochastic_helper_requires_income_shock() -> None:
+    model = Model(name="missing_income_shock")
+    model.params(beta=Param(value=0.95), sigma=Param(value=2.0), r=Param(value=0.02))
+    model.add_state(State("assets", bounds=(0.0, 8.0), n_points=10))
+    model.add_state(State("income", bounds=(0.0, 1.0), n_points=3))
+    model.add_control(Control("consumption", bounds=(0.0, 1.0)))
+
+    @model.equation("bellman")
+    def bellman_placeholder(value: np.ndarray, params: dict[str, float]) -> np.ndarray:
+        del params
+        return value
+
+    compiled = model.compile()
+    try:
+        solve_consumption_savings_stochastic_vfi(compiled)
+    except ValueError as exc:
+        assert "AR(1) shock" in str(exc)
+    else:
+        raise AssertionError("expected stochastic helper to reject missing income shock")

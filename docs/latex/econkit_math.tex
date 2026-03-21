@@ -177,6 +177,28 @@ history \(\{r_0,\dots,r_{K-1}\}\):
 with machine-safe \(\epsilon\). This statistic gives an interpretable average
 orders-of-magnitude reduction per iteration.
 
+\section{Stochastic-Income Canonical Helper and Persistence (Implemented in Session 9)}
+With income shock state \(z\) and transition matrix \(\Pi\), the stochastic
+consumption-savings Bellman problem is
+\begin{equation}
+    V(a,z)=\max_{a'\in\mathcal{A}}\left\{u(c)+\beta\sum_{z'}\Pi(z,z')V(a',z')\right\},
+\end{equation}
+with budget constraint
+\begin{equation}
+    c=(1+r)a + y(z) - a', \qquad c>0.
+\end{equation}
+EconKit's Session 9 canonical helper uses Tauchen or Rouwenhorst transitions
+to compute this expected continuation-value term on a product grid.
+
+\subsection{Convergence Artifact Persistence}
+Session 9 adds JSON-ready persistence for convergence diagnostics. Given history
+\(\{r_k\}\), the artifact stores:
+\begin{equation}
+    \texttt{artifact} = \{\texttt{history},\ \texttt{summary},\ \texttt{metadata}\},
+\end{equation}
+where \texttt{summary} includes count, endpoints, monotonicity flag, and average
+log-drop metric. This enables reproducible solver diagnostics across runs.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

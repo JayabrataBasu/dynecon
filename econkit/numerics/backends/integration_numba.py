@@ -8,7 +8,10 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from econkit.numerics.backends.integration_numpy import gauss_hermite_normal_numpy
+from econkit.numerics.backends.integration_numpy import (
+    gauss_hermite_normal_numpy,
+    gauss_laguerre_exp_numpy,
+)
 
 try:
     import numba
@@ -39,10 +42,17 @@ if numba is not None:
         # Node/weight generation is delegated to NumPy polynomial routines.
         return gauss_hermite_normal_numpy(order)
 
+    def gauss_laguerre_exp_numba(order: int) -> tuple[Array, Array]:
+        # Node/weight generation is delegated to NumPy polynomial routines.
+        return gauss_laguerre_exp_numpy(order)
+
 else:
 
     def expectation_discrete_numba(values: Array, probs: Array) -> float:  # pragma: no cover
         raise RuntimeError("numba backend requested but numba is not installed")
 
     def gauss_hermite_normal_numba(order: int) -> tuple[Array, Array]:  # pragma: no cover
+        raise RuntimeError("numba backend requested but numba is not installed")
+
+    def gauss_laguerre_exp_numba(order: int) -> tuple[Array, Array]:  # pragma: no cover
         raise RuntimeError("numba backend requested but numba is not installed")

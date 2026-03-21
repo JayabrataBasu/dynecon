@@ -10,8 +10,13 @@ import pytest
 
 from econkit.config import config
 from econkit.numerics.discretization import rouwenhorst, tauchen
-from econkit.numerics.integration import expectation_discrete, gauss_hermite_normal
+from econkit.numerics.integration import (
+    expectation_discrete,
+    gauss_hermite_normal,
+    gauss_laguerre_exp,
+)
 from econkit.numerics.interpolation import linear_interp_1d
+from econkit.numerics.optimize import brent_max
 
 
 def test_linear_interp_numpy_numba_parity() -> None:
@@ -53,6 +58,26 @@ def test_gauss_hermite_and_expectation_match_under_backend_fallback() -> None:
     assert abs(e_numpy - e_numba) < 1e-14
 
 
+def test_rouwenhorst_backend_selection_matches_numpy_reference() -> None:
+    pytest.importorskip("numba")
+
+    grid_numpy, trans_numpy = rouwenhorst(0.95, 0.05, 7, backend="numpy")
+    grid_numba, trans_numba = rouwenhorst(0.95, 0.05, 7, backend="numba")
+
+    np.testing.assert_allclose(grid_numpy, grid_numba, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(trans_numpy, trans_numba, rtol=1e-14, atol=1e-14)
+
+
+def test_gauss_laguerre_backend_selection_matches_numpy_reference() -> None:
+    pytest.importorskip("numba")
+
+    nodes_numpy, weights_numpy = gauss_laguerre_exp(10, backend="numpy")
+    nodes_numba, weights_numba = gauss_laguerre_exp(10, backend="numba")
+
+    np.testing.assert_allclose(nodes_numpy, nodes_numba, rtol=0.0, atol=0.0)
+    np.testing.assert_allclose(weights_numpy, weights_numba, rtol=0.0, atol=0.0)
+
+
 def test_strict_backend_mode_rejects_unimplemented_backend() -> None:
     pytest.importorskip("numba")
 
@@ -60,6 +85,6 @@ def test_strict_backend_mode_rejects_unimplemented_backend() -> None:
     config.strict_backend = True
     try:
         with pytest.raises(ValueError):
-            rouwenhorst(0.95, 0.1, 5, backend="numba")
+            brent_max(lambda x: -((x - 1.0) ** 2), 0.0, 2.0, backend="numba")
     finally:
         config.strict_backend = original

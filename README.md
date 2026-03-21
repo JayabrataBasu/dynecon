@@ -17,6 +17,7 @@ The repository now includes the initial implementation foundation:
 - Solver foundation slice with VFI scaffold and Bellman residual diagnostics (Session 6).
 - Session 7 solver extensions: Howard-style policy-evaluation hook and compiled-model VFI adapter.
 - Session 8 additions: canonical consumption-savings VFI helper, residual-history reporting, and selected true Numba backend kernels.
+- Session 9 additions: stochastic-income canonical helper, expanded Numba backend coverage, and JSON-ready convergence artifact persistence.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start

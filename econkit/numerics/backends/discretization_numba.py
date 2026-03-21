@@ -63,6 +63,53 @@ if numba is not None:
 
         return grid, transition
 
+    @numba.njit(cache=True)
+    def rouwenhorst_numba(
+        rho: float,
+        sigma_e: float,
+        n_states: int,
+    ) -> tuple[Array, Array]:
+        if n_states < 2:
+            raise ValueError("n_states must be >= 2")
+        if not (-1.0 < rho < 1.0):
+            raise ValueError("rho must lie in (-1, 1)")
+        if sigma_e <= 0.0:
+            raise ValueError("sigma_e must be positive")
+
+        p = (1.0 + rho) / 2.0
+        q = p
+        transition = np.empty((2, 2))
+        transition[0, 0] = p
+        transition[0, 1] = 1.0 - p
+        transition[1, 0] = 1.0 - q
+        transition[1, 1] = q
+
+        for n in range(3, n_states + 1):
+            prev = transition
+            transition = np.zeros((n, n))
+
+            for i in range(n - 1):
+                for j in range(n - 1):
+                    val = prev[i, j]
+                    transition[i, j] += p * val
+                    transition[i, j + 1] += (1.0 - p) * val
+                    transition[i + 1, j] += (1.0 - q) * val
+                    transition[i + 1, j + 1] += q * val
+
+            for i in range(1, n - 1):
+                for j in range(n):
+                    transition[i, j] *= 0.5
+
+        sigma_z = sigma_e / math.sqrt(1.0 - rho * rho)
+        psi = sigma_z * math.sqrt(n_states - 1)
+        grid = np.linspace(-psi, psi, n_states)
+
+        row_sums = transition.sum(axis=1)
+        for i in range(n_states):
+            transition[i, :] = transition[i, :] / row_sums[i]
+
+        return grid, transition
+
 else:
 
     def tauchen_numba(
@@ -70,5 +117,12 @@ else:
         sigma_e: float,
         n_states: int,
         m: float = 3.0,
+    ) -> tuple[Array, Array]:  # pragma: no cover
+        raise RuntimeError("numba backend requested but numba is not installed")
+
+    def rouwenhorst_numba(
+        rho: float,
+        sigma_e: float,
+        n_states: int,
     ) -> tuple[Array, Array]:  # pragma: no cover
         raise RuntimeError("numba backend requested but numba is not installed")
