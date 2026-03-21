@@ -68,3 +68,42 @@ def test_bellman_residual_norms() -> None:
 def test_bellman_residual_requires_shape_match() -> None:
     with pytest.raises(ValueError):
         bellman_residual(np.array([1.0]), np.array([1.0, 2.0]))
+
+
+def test_howard_policy_evaluation_steps_are_applied() -> None:
+    utility = np.linspace(0.5, 1.0, 5, dtype=np.float64)
+    expected = utility + 2.0
+
+    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        return utility + 0.5 * value, np.zeros_like(value)
+
+    def policy_evaluation(value: np.ndarray, policy: np.ndarray) -> np.ndarray:
+        del policy
+        return value + 1.0
+
+    solution = value_function_iteration(
+        initial_value=np.zeros_like(utility),
+        bellman_operator=bellman_operator,
+        policy_evaluation_operator=policy_evaluation,
+        config=VFIConfig(tol=10.0, max_iter=1, howard_policy_improvement_steps=2),
+    )
+
+    np.testing.assert_allclose(solution.value_function, expected, atol=1e-12)
+    assert solution.metadata["howard_policy_improvement_steps"] == 2
+
+
+def test_howard_policy_evaluation_shape_is_validated() -> None:
+    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        return value + 1.0, np.zeros_like(value)
+
+    def bad_policy_evaluation(value: np.ndarray, policy: np.ndarray) -> np.ndarray:
+        del value, policy
+        return np.zeros((2,), dtype=np.float64)
+
+    with pytest.raises(ValueError):
+        value_function_iteration(
+            initial_value=np.zeros((3,), dtype=np.float64),
+            bellman_operator=bellman_operator,
+            policy_evaluation_operator=bad_policy_evaluation,
+            config=VFIConfig(max_iter=1, howard_policy_improvement_steps=1),
+        )

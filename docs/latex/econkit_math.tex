@@ -134,6 +134,16 @@ EconKit also exposes an \(L^2\)-style residual for diagnostics:
 Convergence is declared when \(r_k^{\infty} < \varepsilon\), where \(\varepsilon\)
 is the configured tolerance.
 
+\subsection{Howard-Style Policy Evaluation Hook (Session 7)}
+Given a candidate policy \(\pi^{(k)}\), policy evaluation applies repeated
+updates under fixed policy:
+\begin{equation}
+    V^{(k,j+1)} = T^{\pi^{(k)}}\left(V^{(k,j)}\right), \qquad j=0,1,\dots,H-1,
+\end{equation}
+where \(H\) is the configured number of Howard policy-improvement steps.
+This can reduce outer Bellman iterations by doing extra work per iteration
+when policy evaluation is cheap relative to policy updates.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

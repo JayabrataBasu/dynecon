@@ -16,6 +16,10 @@ BellmanOperator = Callable[
     [npt.NDArray[np.float64]],
     tuple[npt.NDArray[np.float64], npt.NDArray[np.float64] | None],
 ]
+PolicyEvaluationOperator = Callable[
+    [npt.NDArray[np.float64], npt.NDArray[np.float64]],
+    npt.NDArray[np.float64],
+]
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,7 @@ class VFIConfig:
     tol: float = 1e-8
     max_iter: int = 500
     relaxation: float = 1.0
+    howard_policy_improvement_steps: int = 0
     store_history: bool = True
 
     def __post_init__(self) -> None:
@@ -34,6 +39,8 @@ class VFIConfig:
             raise ValueError("max_iter must be >= 1")
         if not (0.0 < self.relaxation <= 1.0):
             raise ValueError("relaxation must be in (0, 1]")
+        if self.howard_policy_improvement_steps < 0:
+            raise ValueError("howard_policy_improvement_steps must be >= 0")
 
 
 @dataclass(frozen=True)
@@ -59,12 +66,14 @@ class VFISolver:
         self,
         initial_value: npt.NDArray[np.float64],
         bellman_operator: BellmanOperator,
+        policy_evaluation_operator: PolicyEvaluationOperator | None = None,
         model_name: str | None = None,
     ) -> VFISolution:
         return value_function_iteration(
             initial_value=initial_value,
             bellman_operator=bellman_operator,
             config=self.config,
+            policy_evaluation_operator=policy_evaluation_operator,
             model_name=model_name,
         )
 
@@ -73,6 +82,7 @@ def value_function_iteration(
     initial_value: npt.NDArray[np.float64],
     bellman_operator: BellmanOperator,
     config: VFIConfig | None = None,
+    policy_evaluation_operator: PolicyEvaluationOperator | None = None,
     model_name: str | None = None,
 ) -> VFISolution:
     """Run value function iteration for a user-provided Bellman operator.
@@ -94,6 +104,7 @@ def value_function_iteration(
     iterations = 0
 
     for iteration in range(1, cfg.max_iter + 1):
+        previous_value = value.copy()
         candidate_value, candidate_policy = bellman_operator(value)
         next_value = np.asarray(candidate_value, dtype=np.float64)
 
@@ -101,19 +112,30 @@ def value_function_iteration(
             raise ValueError("Bellman operator returned value with incompatible shape")
 
         relaxed_value = cfg.relaxation * next_value + (1.0 - cfg.relaxation) * value
-        residual = bellman_residual(relaxed_value, value, norm="sup")
+        updated_value = relaxed_value
         iterations = iteration
-
-        if cfg.store_history:
-            residual_history.append(residual)
-
-        value = relaxed_value
 
         if candidate_policy is not None:
             policy_array = np.asarray(candidate_policy, dtype=np.float64)
-            if policy_array.shape != value.shape:
+            if policy_array.shape != updated_value.shape:
                 raise ValueError("Bellman operator returned policy with incompatible shape")
             policy = policy_array
+
+            if policy_evaluation_operator is not None and cfg.howard_policy_improvement_steps > 0:
+                for _ in range(cfg.howard_policy_improvement_steps):
+                    evaluated_value = policy_evaluation_operator(updated_value, policy)
+                    evaluated_array = np.asarray(evaluated_value, dtype=np.float64)
+                    if evaluated_array.shape != updated_value.shape:
+                        raise ValueError(
+                            "Policy evaluation operator returned value with incompatible shape"
+                        )
+                    updated_value = evaluated_array
+
+        residual = bellman_residual(updated_value, previous_value, norm="sup")
+        if cfg.store_history:
+            residual_history.append(residual)
+
+        value = updated_value
 
         if residual < cfg.tol:
             converged = True
@@ -126,6 +148,7 @@ def value_function_iteration(
         "tolerance": cfg.tol,
         "max_iter": cfg.max_iter,
         "relaxation": cfg.relaxation,
+        "howard_policy_improvement_steps": cfg.howard_policy_improvement_steps,
         "solve_time_seconds": elapsed,
     }
     if model_name is not None:

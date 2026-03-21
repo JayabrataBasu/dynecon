@@ -15,6 +15,7 @@ The repository now includes the initial implementation foundation:
 - NumPy reference bounded optimization (golden section + Brent-style).
 - Minimal model DSL and immutable compile pipeline (Session 5 vertical slice).
 - Solver foundation slice with VFI scaffold and Bellman residual diagnostics (Session 6).
+- Session 7 solver extensions: Howard-style policy-evaluation hook and compiled-model VFI adapter.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start

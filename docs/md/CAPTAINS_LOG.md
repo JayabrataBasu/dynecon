@@ -455,3 +455,82 @@ Progress scale:
 1. Add a policy-improvement hook (Howard-style inner iterations) to the VFI scaffold.
 2. Introduce a simple canonical model adapter so `CompiledModel` can be solved with minimal boilerplate.
 3. Extend cross-backend parity tests to discretization and integration APIs.
+
+---
+
+## Session 07
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: VFI acceleration hooks + compiled-model solver adapter + wider backend parity coverage.
+- Reported overall Phase 1 progress: ~74%
+
+### Objectives
+
+1. Add a Howard-style policy-improvement hook to the VFI scaffold.
+2. Reduce boilerplate between `CompiledModel` and VFI usage with a solver adapter.
+3. Expand cross-backend parity checks beyond interpolation.
+
+### What was implemented
+
+1. VFI acceleration extension
+
+- Updated `econkit/solvers/vfi.py`:
+: added `howard_policy_improvement_steps` to `VFIConfig`,
+: added optional `policy_evaluation_operator` support,
+: applied Howard-style inner evaluation loop when policy is available,
+: exposed Howard step count in solution metadata,
+: added shape validation for policy evaluation outputs.
+
+2. Compiled-model adapter path
+
+- Added `econkit/solvers/adapters.py`:
+: `build_compiled_bellman_operator(...)` to adapt compiled equations into solver operators,
+: `solve_compiled_model_vfi(...)` for direct solve flow from compiled model + initial value.
+- Updated exports:
+: `econkit/solvers/__init__.py`
+: `econkit/__init__.py`
+
+3. Test expansion
+
+- Extended `tests/solvers/test_vfi.py`:
+: Howard-step application behavior,
+: policy-evaluation shape safety.
+- Added `tests/solvers/test_adapters.py`:
+: tuple-output Bellman equation path,
+: value-only Bellman equation path.
+- Extended `tests/cross_backend/test_interpolation_backend_parity.py`:
+: Tauchen parity check under backend selection,
+: Gauss-Hermite + discrete expectation parity under backend selection,
+: strict-backend error behavior for unimplemented backend.
+
+4. Documentation synchronization
+
+- Updated `README.md` implementation status for Session 7.
+- Updated `docs/latex/econkit_math.tex` with Howard-style policy-evaluation formula notes.
+
+### Architecture alignment
+
+- Section 7.2 Value Function Iteration: acceleration path added via Howard-style inner evaluation hook.
+- Section 7.1 Solver Framework: adapter improves practical solver/model interoperability while preserving layer boundaries.
+- Section 5.7 Backend Dispatch: parity checks now include discretization and integration APIs.
+
+### Verification performed
+
+- Full quality gate run after all changes (`make format && make ci`).
+- Includes format, layout guard, lint, static type checks, and tests.
+
+### Risks / notes
+
+- Howard-style hook is intentionally generic; model-specific fixed-policy evaluators remain user-defined.
+- Adapter currently assumes equation signatures accept `(value, params)` or `(value)` and should be expanded as DSL signatures mature.
+
+### Session output summary
+
+- Result: Session 7 goals completed with working code, tests, and docs.
+- Primary deliverables: Howard-capable VFI scaffold, compiled-model adapter, and broader backend parity guardrails.
+
+### Next planned slice (Session 08 proposal)
+
+1. Add canonical consumption-savings solver helper using current model specs/grids.
+2. Introduce residual diagnostics history utilities (rolling convergence summaries, stopping diagnostics report).
+3. Add optional Numba implementations for selected integration/discretization kernels to turn fallback parity into true multi-backend parity.
