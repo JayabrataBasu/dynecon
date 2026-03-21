@@ -18,6 +18,7 @@ The repository now includes the initial implementation foundation:
 - Session 7 solver extensions: Howard-style policy-evaluation hook and compiled-model VFI adapter.
 - Session 8 additions: canonical consumption-savings VFI helper, residual-history reporting, and selected true Numba backend kernels.
 - Session 9 additions: stochastic-income canonical helper, expanded Numba backend coverage, and JSON-ready convergence artifact persistence.
+- Session 10 additions: liquid/illiquid two-asset prototype helper, policy monotonicity diagnostics, iteration hooks, and schema-versioned artifact export.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start
@@ -41,3 +42,7 @@ The execution plan is active and tracked in the architecture and session logs un
 
 - `docs/md/`: architecture notes, explainability standard, and captain's log.
 - `docs/latex/`: formal mathematical formulas and derivations that map to code.
+
+## Review Milestones
+
+- `docs/md/REVIEW_1.md`: first formal review checkpoint agenda and criteria.

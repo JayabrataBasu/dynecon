@@ -10,6 +10,7 @@ import numpy.typing as npt
 from econkit.model.compiled import CompiledModel
 from econkit.model.specs import State
 from econkit.numerics.discretization import rouwenhorst, tauchen
+from econkit.solvers.diagnostics import summarize_policy_monotonicity
 from econkit.solvers.vfi import VFIConfig, VFISolution, value_function_iteration
 
 Array = npt.NDArray[np.float64]
@@ -18,6 +19,7 @@ Array = npt.NDArray[np.float64]
 def solve_consumption_savings_vfi(
     compiled_model: CompiledModel,
     config: VFIConfig | None = None,
+    check_monotonic_policy: bool = False,
 ) -> VFISolution:
     """Solve a simple deterministic consumption-savings problem via VFI.
 
@@ -95,6 +97,16 @@ def solve_consumption_savings_vfi(
         idx = np.clip(idx, 0, grid.shape[0] - 1)
         policy_grid = grid[idx]
 
+    if check_monotonic_policy and policy_grid is not None:
+        mono = summarize_policy_monotonicity(policy_grid, axis=0)
+        metadata["policy_monotonicity"] = {
+            "axis": mono.axis,
+            "tolerance": mono.tolerance,
+            "violation_count": mono.violation_count,
+            "min_diff": mono.min_diff,
+            "is_monotone_non_decreasing": mono.is_monotone_non_decreasing,
+        }
+
     return VFISolution(
         value_function=solution.value_function,
         policy=policy_grid,
@@ -111,6 +123,7 @@ def solve_consumption_savings_stochastic_vfi(
     config: VFIConfig | None = None,
     discretization_method: str = "tauchen",
     shock_backend: str | None = None,
+    check_monotonic_policy: bool = False,
 ) -> VFISolution:
     """Solve a consumption-savings problem with AR(1) income shocks.
 
@@ -215,9 +228,151 @@ def solve_consumption_savings_stochastic_vfi(
         idx = np.clip(idx, 0, a_grid.shape[0] - 1)
         policy_grid = a_grid[idx]
 
+    if check_monotonic_policy and policy_grid is not None:
+        mono = summarize_policy_monotonicity(policy_grid, axis=0)
+        metadata["policy_monotonicity"] = {
+            "axis": mono.axis,
+            "tolerance": mono.tolerance,
+            "violation_count": mono.violation_count,
+            "min_diff": mono.min_diff,
+            "is_monotone_non_decreasing": mono.is_monotone_non_decreasing,
+        }
+
     return VFISolution(
         value_function=solution.value_function,
         policy=policy_grid,
+        converged=solution.converged,
+        iterations=solution.iterations,
+        residual=solution.residual,
+        residual_history=solution.residual_history,
+        metadata=metadata,
+    )
+
+
+def solve_consumption_savings_liquid_illiquid_vfi(
+    compiled_model: CompiledModel,
+    config: VFIConfig | None = None,
+    check_monotonic_policy: bool = False,
+) -> VFISolution:
+    """Prototype VFI helper for liquid-illiquid two-asset models.
+
+    Economics note:
+    This prototype solves a two-asset problem where households reallocate
+    across liquid and illiquid assets with optional adjustment costs.
+    """
+    cfg = config or VFIConfig(tol=1e-8, max_iter=500)
+
+    liquid_state = _require_named_state(compiled_model, "liquid_assets")
+    illiquid_state = _require_named_state(compiled_model, "illiquid_assets")
+
+    beta = _require_param(compiled_model, "beta")
+    sigma = _require_param(compiled_model, "sigma")
+    r_liquid = _require_param(compiled_model, "r_liquid")
+    r_illiquid = _require_param(compiled_model, "r_illiquid")
+    income = _optional_param(compiled_model, "y", default=1.0)
+    adjustment_cost = _optional_param(compiled_model, "adjustment_cost", default=0.0)
+
+    l_grid = _build_grid_from_state(liquid_state)
+    i_grid = _build_grid_from_state(illiquid_state)
+
+    def bellman_operator(value: Array) -> tuple[Array, Array]:
+        if value.shape != (l_grid.shape[0], i_grid.shape[0]):
+            raise ValueError("liquid-illiquid helper expects value shape (n_liquid, n_illiquid)")
+
+        next_value = np.empty_like(value)
+        policy_liquid_idx = np.empty_like(value)
+
+        for il in range(l_grid.shape[0]):
+            l_now = l_grid[il]
+            for ii in range(i_grid.shape[0]):
+                i_now = i_grid[ii]
+                resources = (1.0 + r_liquid) * l_now + (1.0 + r_illiquid) * i_now + income
+
+                best_val = -np.inf
+                best_l_idx = 0
+
+                for jl in range(l_grid.shape[0]):
+                    l_next = l_grid[jl]
+                    for ji in range(i_grid.shape[0]):
+                        i_next = i_grid[ji]
+                        cost = adjustment_cost * abs(i_next - i_now)
+                        c = resources - l_next - i_next - cost
+                        if c <= 0.0:
+                            continue
+
+                        candidate = _crra_utility(c, sigma) + beta * value[jl, ji]
+                        if candidate > best_val:
+                            best_val = candidate
+                            best_l_idx = jl
+
+                if not math.isfinite(best_val):
+                    raise ValueError("No feasible choice found on liquid-illiquid grid")
+
+                next_value[il, ii] = best_val
+                policy_liquid_idx[il, ii] = float(best_l_idx)
+
+        # Encode liquid policy in primary policy output for compatibility.
+        return next_value, policy_liquid_idx
+
+    initial = np.zeros((l_grid.shape[0], i_grid.shape[0]), dtype=np.float64)
+    solution = value_function_iteration(
+        initial_value=initial,
+        bellman_operator=bellman_operator,
+        config=cfg,
+        model_name=compiled_model.name,
+    )
+
+    metadata = dict(solution.metadata)
+    metadata["canonical_model"] = "consumption_savings_liquid_illiquid"
+    metadata["n_liquid"] = int(l_grid.shape[0])
+    metadata["n_illiquid"] = int(i_grid.shape[0])
+    metadata["adjustment_cost"] = adjustment_cost
+
+    policy_liquid = None
+    if solution.policy is not None:
+        l_idx = np.asarray(np.rint(solution.policy), dtype=np.int64)
+        l_idx = np.clip(l_idx, 0, l_grid.shape[0] - 1)
+        policy_liquid = l_grid[l_idx]
+
+        # Recover illiquid policy by one-step greedy improvement at converged value.
+        policy_illiquid = np.empty_like(policy_liquid)
+        for il in range(l_grid.shape[0]):
+            l_now = l_grid[il]
+            for ii in range(i_grid.shape[0]):
+                i_now = i_grid[ii]
+                resources = (1.0 + r_liquid) * l_now + (1.0 + r_illiquid) * i_now + income
+                l_next = policy_liquid[il, ii]
+
+                best_val = -np.inf
+                best_i = i_grid[0]
+                jl = int(np.clip(np.searchsorted(l_grid, l_next), 0, l_grid.shape[0] - 1))
+                for ji in range(i_grid.shape[0]):
+                    i_next = i_grid[ji]
+                    cost = adjustment_cost * abs(i_next - i_now)
+                    c = resources - l_next - i_next - cost
+                    if c <= 0.0:
+                        continue
+                    candidate = _crra_utility(c, sigma) + beta * solution.value_function[jl, ji]
+                    if candidate > best_val:
+                        best_val = candidate
+                        best_i = i_next
+                policy_illiquid[il, ii] = best_i
+
+        metadata["policy_illiquid"] = policy_illiquid.tolist()
+
+    if check_monotonic_policy and policy_liquid is not None:
+        mono_l = summarize_policy_monotonicity(policy_liquid, axis=0)
+        metadata["policy_monotonicity_liquid"] = {
+            "axis": mono_l.axis,
+            "tolerance": mono_l.tolerance,
+            "violation_count": mono_l.violation_count,
+            "min_diff": mono_l.min_diff,
+            "is_monotone_non_decreasing": mono_l.is_monotone_non_decreasing,
+        }
+
+    return VFISolution(
+        value_function=solution.value_function,
+        policy=policy_liquid,
         converged=solution.converged,
         iterations=solution.iterations,
         residual=solution.residual,
@@ -242,6 +397,13 @@ def _require_assets_state(compiled_model: CompiledModel) -> State:
     return assets_state
 
 
+def _require_named_state(compiled_model: CompiledModel, name: str) -> State:
+    state = compiled_model.states.get(name)
+    if state is None:
+        raise ValueError(f"canonical helper requires a state named '{name}'")
+    return state
+
+
 def _require_income_state(compiled_model: CompiledModel) -> State:
     income_state = compiled_model.states.get("income")
     if income_state is None:
@@ -259,3 +421,14 @@ def _require_param(compiled_model: CompiledModel, name: str) -> float:
 def _optional_param(compiled_model: CompiledModel, name: str, default: float) -> float:
     param = compiled_model.parameters.get(name)
     return default if param is None else float(param.value)
+
+
+def _build_grid_from_state(state: State) -> Array:
+    if state.bounds is None:
+        raise ValueError(f"state '{state.name}' must define bounds")
+    if state.n_points is None or state.n_points < 2:
+        raise ValueError(f"state '{state.name}' must define n_points >= 2")
+    lo, hi = state.bounds
+    if not (hi > lo):
+        raise ValueError(f"state '{state.name}' bounds must satisfy upper > lower")
+    return np.linspace(lo, hi, state.n_points, dtype=np.float64)

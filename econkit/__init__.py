@@ -4,6 +4,7 @@ from econkit.config import config
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
 from econkit.solvers import (
+    PolicyMonotonicitySummary,
     ResidualHistorySummary,
     VFIConfig,
     VFISolver,
@@ -12,11 +13,14 @@ from econkit.solvers import (
     build_compiled_bellman_operator,
     convergence_artifact_to_json,
     format_convergence_report,
+    solve_consumption_savings_liquid_illiquid_vfi,
     solve_consumption_savings_stochastic_vfi,
     solve_consumption_savings_vfi,
     solve_compiled_model_vfi,
     summarize_residual_history,
+    summarize_policy_monotonicity,
     value_function_iteration,
+    write_convergence_artifact,
 )
 
 __all__ = [
@@ -35,10 +39,14 @@ __all__ = [
     "solve_compiled_model_vfi",
     "solve_consumption_savings_vfi",
     "solve_consumption_savings_stochastic_vfi",
+    "solve_consumption_savings_liquid_illiquid_vfi",
     "ResidualHistorySummary",
+    "PolicyMonotonicitySummary",
     "summarize_residual_history",
+    "summarize_policy_monotonicity",
     "format_convergence_report",
     "build_convergence_artifact",
     "convergence_artifact_to_json",
+    "write_convergence_artifact",
 ]
 __version__ = "0.1.0.dev0"

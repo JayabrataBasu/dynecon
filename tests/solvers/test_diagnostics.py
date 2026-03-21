@@ -15,6 +15,8 @@ from econkit.solvers import (
     convergence_artifact_to_json,
     format_convergence_report,
     summarize_residual_history,
+    summarize_policy_monotonicity,
+    write_convergence_artifact,
 )
 
 
@@ -62,3 +64,25 @@ def test_convergence_artifact_to_json_round_trip() -> None:
 
     assert loaded["metadata"]["session"] == 9
     assert loaded["summary"]["last"] == 0.1
+
+
+def test_summarize_policy_monotonicity_detects_violation() -> None:
+    policy = [[0.0, 1.0], [0.5, 0.8], [0.4, 1.2]]
+    summary = summarize_policy_monotonicity(policy, axis=0)
+
+    assert not summary.is_monotone_non_decreasing
+    assert summary.violation_count >= 1
+
+
+def test_write_convergence_artifact_creates_schema_file(tmp_path) -> None:
+    out = write_convergence_artifact(
+        tmp_path / "conv" / "artifact.json",
+        history=[1.0, 0.3, 0.1],
+        metadata={"session": 10},
+        schema_version="1.1",
+    )
+    loaded = json.loads(out.read_text(encoding="utf-8"))
+
+    assert loaded["schema"]["name"] == "econkit.convergence_artifact"
+    assert loaded["schema"]["version"] == "1.1"
+    assert loaded["metadata"]["session"] == 10

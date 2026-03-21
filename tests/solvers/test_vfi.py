@@ -107,3 +107,29 @@ def test_howard_policy_evaluation_shape_is_validated() -> None:
             policy_evaluation_operator=bad_policy_evaluation,
             config=VFIConfig(max_iter=1, howard_policy_improvement_steps=1),
         )
+
+
+def test_iteration_hook_receives_progress() -> None:
+    beta = 0.8
+    utility = np.ones(5, dtype=np.float64)
+    seen_iterations: list[int] = []
+    seen_residuals: list[float] = []
+
+    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        return utility + beta * value, np.zeros_like(value)
+
+    def hook(iteration: int, residual: float, value: np.ndarray, policy: np.ndarray | None) -> None:
+        seen_iterations.append(iteration)
+        seen_residuals.append(residual)
+        assert value.shape == utility.shape
+        assert policy is not None
+
+    solution = value_function_iteration(
+        initial_value=np.zeros_like(utility),
+        bellman_operator=bellman_operator,
+        config=VFIConfig(tol=1e-8, max_iter=50),
+        iteration_hook=hook,
+    )
+
+    assert solution.iterations == len(seen_iterations)
+    assert len(seen_residuals) == len(seen_iterations)

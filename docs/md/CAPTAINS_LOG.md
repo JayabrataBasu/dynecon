@@ -696,3 +696,79 @@ Progress scale:
 1. Add two-asset or liquid/illiquid canonical helper prototype.
 2. Add optional policy monotonicity checks and diagnostics hooks.
 3. Introduce solver result export helper writing convergence artifacts to disk paths with schema versioning.
+
+---
+
+## Session 10
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Two-asset prototype closure + diagnostics hardening + Review-1 readiness.
+- Reported overall Phase 1 progress: ~94%
+
+### Objectives
+
+1. Add liquid/illiquid canonical helper prototype.
+2. Add optional policy monotonicity checks and iteration diagnostics hook support.
+3. Add schema-versioned convergence artifact export helper.
+
+### What was implemented
+
+1. Two-asset canonical helper prototype
+
+- Extended `econkit/solvers/canonical.py` with:
+: `solve_consumption_savings_liquid_illiquid_vfi(...)`,
+: liquid/illiquid grid-state support (`liquid_assets`, `illiquid_assets`),
+: optional illiquid adjustment-cost term,
+: metadata including recovered illiquid policy map.
+
+2. Policy and iteration diagnostics
+
+- Extended `econkit/solvers/diagnostics.py` with:
+: `PolicyMonotonicitySummary`,
+: `summarize_policy_monotonicity(...)`.
+- Extended `econkit/solvers/vfi.py` with optional `iteration_hook` callback support.
+- Integrated optional policy monotonicity summaries into canonical helper metadata.
+
+3. Schema-versioned artifact export
+
+- Extended `econkit/solvers/diagnostics.py` with:
+: `write_convergence_artifact(path, history, metadata, schema_version)`.
+- Helper writes JSON artifact with explicit schema block:
+: name `econkit.convergence_artifact`,
+: configurable schema version.
+
+4. API surface and tests
+
+- Exported new APIs in:
+: `econkit/solvers/__init__.py`
+: `econkit/__init__.py`
+- Extended tests:
+: `tests/solvers/test_canonical.py` (monotonicity metadata + liquid/illiquid helper),
+: `tests/solvers/test_diagnostics.py` (monotonicity + schema export),
+: `tests/solvers/test_vfi.py` (iteration hook callback).
+
+### Architecture alignment
+
+- Section 7 Solver Framework: extends canonical coverage toward richer household balance-sheet problems.
+- Section 15 Testing Strategy: diagnostics and export paths now test-covered.
+- Documentation/reproducibility goals: schema-versioned artifacts strengthen review/audit workflow.
+
+### Verification performed
+
+- Local full quality gate: `make format && make ci`.
+- Outcome: lint/type/tests all pass (`43 passed`).
+
+### Risks / notes
+
+- Two-asset helper is a prototype and currently brute-force over next-state pairs; optimization/acceleration can follow.
+- Export helper currently writes JSON only; binary/columnar export can be considered post Review-1.
+
+### Session output summary
+
+- Result: Session 10 essential work completed with no open implementation gaps in the planned scope.
+- Primary deliverables: liquid/illiquid prototype helper, monotonicity + hook diagnostics, and versioned artifact export.
+
+### Review-1 handoff
+
+- A Review-1 planning document is now expected at `docs/md/REVIEW_1.md`.
+- Next action after this session: run Review-1 against architecture compliance, numerical correctness, and solver-performance readiness.

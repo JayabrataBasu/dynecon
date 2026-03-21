@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
@@ -24,6 +25,17 @@ class ResidualHistorySummary:
     max_value: float
     monotone_nonincreasing: bool
     avg_log10_drop_per_step: float
+
+
+@dataclass(frozen=True)
+class PolicyMonotonicitySummary:
+    """Monotonicity diagnostics for policy arrays along one axis."""
+
+    axis: int
+    tolerance: float
+    violation_count: int
+    min_diff: float
+    is_monotone_non_decreasing: bool
 
 
 def bellman_residual(
@@ -120,3 +132,50 @@ def convergence_artifact_to_json(
     """Serialize convergence artifact to JSON for persistence."""
     artifact = build_convergence_artifact(history, metadata=metadata)
     return json.dumps(artifact, indent=indent, sort_keys=True)
+
+
+def summarize_policy_monotonicity(
+    policy: npt.NDArray[np.float64],
+    axis: int = 0,
+    tolerance: float = 1e-12,
+) -> PolicyMonotonicitySummary:
+    """Check whether a policy is non-decreasing along a specified axis."""
+    arr = np.asarray(policy, dtype=np.float64)
+    if arr.ndim < 1:
+        raise ValueError("policy must have at least one dimension")
+    if not (0 <= axis < arr.ndim):
+        raise ValueError("axis out of range for policy array")
+    if tolerance < 0.0:
+        raise ValueError("tolerance must be non-negative")
+
+    diffs = np.diff(arr, axis=axis)
+    min_diff = float(np.min(diffs)) if diffs.size > 0 else 0.0
+    violations = np.sum(diffs < -tolerance)
+    violation_count = int(violations)
+
+    return PolicyMonotonicitySummary(
+        axis=axis,
+        tolerance=tolerance,
+        violation_count=violation_count,
+        min_diff=min_diff,
+        is_monotone_non_decreasing=violation_count == 0,
+    )
+
+
+def write_convergence_artifact(
+    path: str | Path,
+    history: list[float] | tuple[float, ...],
+    metadata: dict[str, Any] | None = None,
+    schema_version: str = "1.0",
+) -> Path:
+    """Write convergence artifact to disk with schema metadata."""
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    artifact = build_convergence_artifact(history, metadata=metadata)
+    artifact["schema"] = {
+        "name": "econkit.convergence_artifact",
+        "version": schema_version,
+    }
+    output_path.write_text(json.dumps(artifact, indent=2, sort_keys=True), encoding="utf-8")
+    return output_path

@@ -199,6 +199,31 @@ Session 9 adds JSON-ready persistence for convergence diagnostics. Given history
 where \texttt{summary} includes count, endpoints, monotonicity flag, and average
 log-drop metric. This enables reproducible solver diagnostics across runs.
 
+\section{Liquid-Illiquid Prototype and Review Hooks (Implemented in Session 10)}
+Session 10 introduces a two-asset prototype with liquid \(\ell\) and illiquid
+\(i\) holdings:
+\begin{equation}
+    V(\ell,i)=\max_{\ell',i'}\left\{u(c)+\beta V(\ell',i')\right\},
+\end{equation}
+subject to
+\begin{equation}
+    c=(1+r_\ell)\ell + (1+r_i)i + y - \ell' - i' - \kappa|i'-i|, \qquad c>0,
+\end{equation}
+where \(\kappa\) is an optional illiquid-adjustment cost parameter.
+
+\subsection{Policy Monotonicity Diagnostic}
+Given a policy array \(\pi\), monotonicity along an axis is checked via first
+differences \(\Delta \pi\). Violations are counted where
+\begin{equation}
+    \Delta \pi < -\tau,
+\end{equation}
+with tolerance \(\tau\). This yields a compact monotonicity summary for review.
+
+\subsection{Iteration Hooks and Export}
+Solver iteration hooks receive per-iteration residual and current iterate,
+enabling online diagnostics. Convergence artifacts are exported with schema
+metadata for versioned downstream analysis.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

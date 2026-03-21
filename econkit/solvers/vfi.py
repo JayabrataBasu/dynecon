@@ -20,6 +20,9 @@ PolicyEvaluationOperator = Callable[
     [npt.NDArray[np.float64], npt.NDArray[np.float64]],
     npt.NDArray[np.float64],
 ]
+IterationHook = Callable[
+    [int, float, npt.NDArray[np.float64], npt.NDArray[np.float64] | None], None
+]
 
 
 @dataclass(frozen=True)
@@ -67,6 +70,7 @@ class VFISolver:
         initial_value: npt.NDArray[np.float64],
         bellman_operator: BellmanOperator,
         policy_evaluation_operator: PolicyEvaluationOperator | None = None,
+        iteration_hook: IterationHook | None = None,
         model_name: str | None = None,
     ) -> VFISolution:
         return value_function_iteration(
@@ -74,6 +78,7 @@ class VFISolver:
             bellman_operator=bellman_operator,
             config=self.config,
             policy_evaluation_operator=policy_evaluation_operator,
+            iteration_hook=iteration_hook,
             model_name=model_name,
         )
 
@@ -83,6 +88,7 @@ def value_function_iteration(
     bellman_operator: BellmanOperator,
     config: VFIConfig | None = None,
     policy_evaluation_operator: PolicyEvaluationOperator | None = None,
+    iteration_hook: IterationHook | None = None,
     model_name: str | None = None,
 ) -> VFISolution:
     """Run value function iteration for a user-provided Bellman operator.
@@ -136,6 +142,10 @@ def value_function_iteration(
             residual_history.append(residual)
 
         value = updated_value
+
+        if iteration_hook is not None:
+            hook_policy = None if policy is None else policy.copy()
+            iteration_hook(iteration, residual, value.copy(), hook_policy)
 
         if residual < cfg.tol:
             converged = True

@@ -10,6 +10,7 @@ import numpy as np
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.solvers import (
     VFIConfig,
+    solve_consumption_savings_liquid_illiquid_vfi,
     solve_consumption_savings_stochastic_vfi,
     solve_consumption_savings_vfi,
 )
@@ -117,3 +118,58 @@ def test_stochastic_helper_requires_income_shock() -> None:
         assert "AR(1) shock" in str(exc)
     else:
         raise AssertionError("expected stochastic helper to reject missing income shock")
+
+
+def test_canonical_helper_emits_monotonicity_metadata() -> None:
+    model = Model(name="canonical_monotonic")
+    model.params(beta=Param(value=0.95), sigma=Param(value=2.0), r=Param(value=0.01))
+    model.add_state(State("assets", bounds=(0.0, 5.0), n_points=15))
+    model.add_control(Control("consumption", bounds=(1e-8, None)))
+
+    @model.equation("bellman")
+    def bellman_placeholder(value: np.ndarray, params: dict[str, float]) -> np.ndarray:
+        del value, params
+        return np.zeros(15, dtype=np.float64)
+
+    compiled = model.compile()
+    solution = solve_consumption_savings_vfi(
+        compiled,
+        config=VFIConfig(tol=1e-6, max_iter=120),
+        check_monotonic_policy=True,
+    )
+
+    assert "policy_monotonicity" in solution.metadata
+
+
+def test_liquid_illiquid_helper_solves_prototype() -> None:
+    model = Model(name="liquid_illiquid")
+    model.params(
+        beta=Param(value=0.93),
+        sigma=Param(value=2.0),
+        r_liquid=Param(value=0.01),
+        r_illiquid=Param(value=0.03),
+        y=Param(value=1.0),
+        adjustment_cost=Param(value=0.01),
+    )
+    model.add_state(State("liquid_assets", bounds=(0.0, 3.0), n_points=10))
+    model.add_state(State("illiquid_assets", bounds=(0.0, 3.0), n_points=8))
+    model.add_control(Control("consumption", bounds=(1e-8, None)))
+
+    @model.equation("bellman")
+    def bellman_placeholder(value: np.ndarray, params: dict[str, float]) -> np.ndarray:
+        del value, params
+        return np.zeros((10, 8), dtype=np.float64)
+
+    compiled = model.compile()
+    solution = solve_consumption_savings_liquid_illiquid_vfi(
+        compiled,
+        config=VFIConfig(tol=1e-6, max_iter=150),
+        check_monotonic_policy=True,
+    )
+
+    assert solution.converged
+    assert solution.policy is not None
+    assert solution.value_function.shape == (10, 8)
+    assert solution.policy.shape == (10, 8)
+    assert solution.metadata["canonical_model"] == "consumption_savings_liquid_illiquid"
+    assert "policy_illiquid" in solution.metadata
