@@ -138,6 +138,8 @@ celerybeat.pid
 .env
 .envrc
 .venv
+.venv-econkit/
+.econkit/
 env/
 venv/
 ENV/
@@ -190,6 +192,13 @@ cython_debug/
 
 # Ruff stuff:
 .ruff_cache/
+
+# Local project artifacts
+.idea/
+.vscode/
+
+# User-requested exclusion for repository-local GitHub config
+.github/
 
 # PyPI configuration file
 .pypirc
