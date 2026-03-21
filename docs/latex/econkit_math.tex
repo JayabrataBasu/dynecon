@@ -104,6 +104,36 @@ Brent-style bounded search alternates between:
 The safeguarded update keeps iterates inside \([a,b]\), making it suitable for
 economic policy problems with hard constraints.
 
+\section{Value Function Iteration and Bellman Residual (Implemented in Session 6)}
+Let \(T\) denote the Bellman operator on value functions. Standard VFI iterates
+\begin{equation}
+    V^{(k+1)} = T\left(V^{(k)}\right), \qquad k=0,1,2,\dots
+\end{equation}
+until a fixed-point tolerance is met.
+
+\subsection{Relaxed Update}
+To improve stability in some models, EconKit exposes relaxation
+\(\omega \in (0,1]\):
+\begin{equation}
+    \widetilde{V}^{(k+1)} = \omega V^{(k+1)} + (1-\omega)V^{(k)}.
+\end{equation}
+When \(\omega=1\), this reduces to plain VFI.
+
+\subsection{Bellman Residual Diagnostics}
+The stopping metric is the residual between successive iterates, typically the
+sup norm:
+\begin{equation}
+    r_k^{\infty} = \left\lVert \widetilde{V}^{(k+1)} - V^{(k)} \right\rVert_{\infty}
+    = \max_i \left|\widetilde{V}^{(k+1)}_i - V^{(k)}_i\right|.
+\end{equation}
+EconKit also exposes an \(L^2\)-style residual for diagnostics:
+\begin{equation}
+    r_k^{2} = \sqrt{\frac{1}{N} \sum_{i=1}^{N}
+    \left(\widetilde{V}^{(k+1)}_i - V^{(k)}_i\right)^2}.
+\end{equation}
+Convergence is declared when \(r_k^{\infty} < \varepsilon\), where \(\varepsilon\)
+is the configured tolerance.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

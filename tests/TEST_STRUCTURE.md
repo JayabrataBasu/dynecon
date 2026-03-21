@@ -4,5 +4,7 @@ Tests are grouped by domain to reduce developer confusion:
 
 - `tests/infrastructure/`: dispatch, config, and runtime wiring behavior.
 - `tests/numerics/`: numerical kernel correctness and invariants.
+- `tests/solvers/`: solver algorithms, convergence behavior, and diagnostics.
+- `tests/cross_backend/`: parity checks for equivalent APIs across backends.
 
 As the project grows, add new folders by domain (for example: `tests/solvers/`, `tests/simulation/`, `tests/estimation/`).

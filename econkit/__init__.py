@@ -3,6 +3,7 @@
 from econkit.config import config
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
+from econkit.solvers import VFIConfig, VFISolver, bellman_residual, value_function_iteration
 
 __all__ = [
     "config",
@@ -12,5 +13,9 @@ __all__ = [
     "State",
     "Control",
     "AR1Shock",
+    "VFIConfig",
+    "VFISolver",
+    "value_function_iteration",
+    "bellman_residual",
 ]
 __version__ = "0.1.0.dev0"

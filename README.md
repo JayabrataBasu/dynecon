@@ -14,6 +14,7 @@ The repository now includes the initial implementation foundation:
 - NumPy reference quadrature/expectation kernels.
 - NumPy reference bounded optimization (golden section + Brent-style).
 - Minimal model DSL and immutable compile pipeline (Session 5 vertical slice).
+- Solver foundation slice with VFI scaffold and Bellman residual diagnostics (Session 6).
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start
@@ -31,7 +32,7 @@ EconKit routes numerical operations through a custom dispatcher so callers use o
 
 ## Project Plan
 
-I will soon share the project plan and architecture, preferably as a docx file since it is easier to read than an .md file for most people.
+The execution plan is active and tracked in the architecture and session logs under `docs/md/`.
 
 ## Documentation Layout
 

@@ -379,3 +379,79 @@ Progress scale:
 1. Solver foundation package (`econkit.solvers`) with first VFI scaffold.
 2. Bellman residual diagnostics utility and test harness.
 3. Cross-backend test folder initiation (`tests/cross_backend/`) for interpolation/discretization parity baseline.
+
+---
+
+## Session 06
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Solver foundation slice (VFI scaffold) + convergence diagnostics + backend parity baseline.
+- Reported overall Phase 1 progress: ~67%
+
+### Objectives
+
+1. Introduce `econkit.solvers` with a first value function iteration scaffold.
+2. Add Bellman residual diagnostics suitable for convergence monitoring.
+3. Start cross-backend parity testing as a standing regression guard.
+
+### What was implemented
+
+1. Solver package scaffold (`econkit.solvers`)
+
+- Added `econkit/solvers/vfi.py`:
+: `VFIConfig` for tolerance/iteration/relaxation controls,
+: `VFISolution` result artifact with metadata and residual history,
+: `VFISolver` convenience wrapper,
+: `value_function_iteration(...)` core iterative routine with relaxation and timing metadata.
+- Added `econkit/solvers/diagnostics.py`:
+: `bellman_residual(...)` with sup- and L2-style norms.
+- Added package exports in `econkit/solvers/__init__.py`.
+
+2. Public/package wiring
+
+- Updated `econkit/__init__.py` to export solver-facing APIs.
+- Updated `pyproject.toml` package list to include `econkit.solvers`.
+
+3. Tests for solver and parity behavior
+
+- Added `tests/solvers/test_vfi.py`:
+: contraction-model convergence validation,
+: max-iteration cap behavior validation,
+: Bellman residual norm checks,
+: residual shape mismatch guard.
+- Added `tests/cross_backend/test_interpolation_backend_parity.py`:
+: NumPy vs Numba interpolation parity baseline (auto-skip if Numba missing).
+- Updated `tests/TEST_STRUCTURE.md` with `solvers` and `cross_backend` folder conventions.
+
+4. Documentation synchronization
+
+- Updated `docs/latex/econkit_math.tex` with a new section on VFI iteration, relaxation updates, and Bellman residual norms.
+- Updated `README.md` implementation status and removed stale placeholder text.
+
+### Architecture alignment
+
+- Section 7.2 Value Function Iteration: first executable VFI scaffold now exists.
+- Section 7.1 Solver Framework: solver returns structured solution artifact with convergence metadata.
+- Section 3.3 Layered Architecture: model details remain user/operator supplied while solver core stays generic.
+- Section 5.7 Backend Dispatch doctrine: parity testing started to protect backend substitution behavior.
+
+### Verification performed
+
+- Local full quality gate run after implementation (`make format && make ci`).
+- Includes format, test-layout guard, lint, static type checks, and tests.
+
+### Risks / notes
+
+- Current VFI scaffold is operator-driven and intentionally lightweight; Howard improvement and grid/multidimensional accelerators are pending.
+- Cross-backend parity currently starts with interpolation and should be expanded to discretization/integration/optimization as optional backends mature.
+
+### Session output summary
+
+- Result: solver layer has started with a stable, typed, and test-backed VFI foundation.
+- Primary deliverables: `econkit.solvers`, Bellman residual diagnostics, solver tests, and initial cross-backend parity guardrails.
+
+### Next planned slice (Session 07 proposal)
+
+1. Add a policy-improvement hook (Howard-style inner iterations) to the VFI scaffold.
+2. Introduce a simple canonical model adapter so `CompiledModel` can be solved with minimal boilerplate.
+3. Extend cross-backend parity tests to discretization and integration APIs.
