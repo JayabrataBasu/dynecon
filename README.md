@@ -18,8 +18,8 @@ The repository now includes the initial implementation foundation:
 ## Quick Start
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m venv .econkit
+source .econkit/bin/activate
 pip install -e .[dev]
 pytest
 ```
@@ -30,4 +30,4 @@ EconKit routes numerical operations through a custom dispatcher so callers use o
 
 ## Project Plan
 
-See `.github/prompts/plan-econKit.prompt.md` for the active implementation blueprint and `docs/CAPTAINS_LOG.md` for session-by-session implementation logs.
+I will soon share the project plan and architecture, preferably as a docx file since it is easier to read than an .md file for most people.
