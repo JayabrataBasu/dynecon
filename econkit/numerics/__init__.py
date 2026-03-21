@@ -6,6 +6,7 @@ from econkit.numerics.integration import (
     gauss_hermite_normal,
     gauss_laguerre_exp,
 )
+from econkit.numerics.optimize import brent_max, golden_section_max
 from econkit.numerics.interpolation import linear_interp_1d
 
 __all__ = [
@@ -15,4 +16,6 @@ __all__ = [
     "gauss_hermite_normal",
     "gauss_laguerre_exp",
     "expectation_discrete",
+    "golden_section_max",
+    "brent_max",
 ]

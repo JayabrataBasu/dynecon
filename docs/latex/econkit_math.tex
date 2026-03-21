@@ -1,0 +1,98 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools, bm}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{EconKit Mathematical Notes}
+\author{EconKit Project}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+This document records the mathematical formulas implemented in EconKit and explains
+how each formula connects to computational economics workflows.
+
+\section{AR(1) Shock Process and Discretization}
+EconKit models many exogenous processes as
+\begin{equation}
+    z_{t+1} = \rho z_t + \varepsilon_{t+1}, \qquad \varepsilon_{t+1} \sim \mathcal{N}(0, \sigma_\varepsilon^2), \qquad |\rho| < 1.
+\end{equation}
+The stationary standard deviation is
+\begin{equation}
+    \sigma_z = \frac{\sigma_\varepsilon}{\sqrt{1-\rho^2}}.
+\end{equation}
+
+\subsection{Tauchen}
+Given a grid \(\{z_j\}_{j=1}^N\), transition probabilities are
+\begin{equation}
+    \Pi_{ij} = \Pr\left(z_{t+1} \in \left[z_j-\frac{\Delta}{2}, z_j+\frac{\Delta}{2}\right] \mid z_t=z_i\right),
+\end{equation}
+with endpoint bins handled by one-sided tails and interior bins by CDF differences.
+This converts a continuous shock to a finite Markov chain for Bellman iteration.
+
+\subsection{Rouwenhorst}
+For persistent processes, Rouwenhorst recursively constructs \(\Pi_N\) with
+\begin{equation}
+    p = q = \frac{1+\rho}{2}
+\end{equation}
+and midpoint row scaling at each recursion. This method preserves persistence
+and moments better than naive coarse grids when \(\rho\) is high.
+
+\section{Quadrature and Expectations}
+
+\subsection{Gaussian-Hermite for Standard Normal}
+For \(X \sim \mathcal{N}(0,1)\),
+\begin{equation}
+    \mathbb{E}[f(X)] = \int_{-\infty}^{\infty} f(x)\phi(x)\,dx
+    \approx \sum_{k=1}^n w_k f(x_k),
+\end{equation}
+where EconKit uses transformed Hermite nodes and weights to match normal density.
+
+\subsection{Gauss-Laguerre for Exponential Weight}
+For integrals with \(e^{-x}\) weight on \([0,\infty)\),
+\begin{equation}
+    \int_0^{\infty} e^{-x} g(x)\,dx \approx \sum_{k=1}^n w_k g(x_k).
+\end{equation}
+For \(X\sim \text{Exp}(1)\), this directly approximates \(\mathbb{E}[g(X)]\).
+
+\subsection{Discrete Expectation}
+For finite support,
+\begin{equation}
+    \mathbb{E}[X] = \sum_{i=1}^N p_i x_i,
+\end{equation}
+implemented as a dot product after probability validation.
+
+\section{Interpolation in Dynamic Programming}
+Continuation values are evaluated off-grid via linear interpolation:
+\begin{equation}
+    V(x) \approx (1-t) V(x_i) + t V(x_{i+1}), \qquad
+    t = \frac{x-x_i}{x_{i+1}-x_i}.
+\end{equation}
+This is central to VFI/EGM because policy updates typically generate non-grid next states.
+
+\section{Bounded Scalar Optimization (Session 4 Target)}
+Given objective \(u(c) + \beta \mathbb{E}[V(x')]\), many subproblems reduce to
+\begin{equation}
+    x^* = \arg\max_{x\in[a,b]} f(x).
+\end{equation}
+EconKit will implement:
+\begin{itemize}
+    \item Golden-section search: robust derivative-free interval contraction.
+    \item Brent-style search: combines parabolic interpolation with safeguarded bracketing.
+\end{itemize}
+These methods are used when derivatives are unavailable or expensive.
+
+\section{Maintenance Rule}
+Update this document every session where numerical methods are added or changed.
+Each new method must include:
+\begin{enumerate}
+    \item Mathematical statement,
+    \item Economic interpretation,
+    \item Numerical approximation details,
+    \item Link to implementation module.
+\end{enumerate}
+
+\end{document}

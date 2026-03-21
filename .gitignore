@@ -203,7 +203,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-EconKit_Architecture.md
+docs/md/EconKit_Architecture.md
 # Marimo
 marimo/_static/
 marimo/_lsp/

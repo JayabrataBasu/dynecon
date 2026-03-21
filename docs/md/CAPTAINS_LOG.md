@@ -10,7 +10,7 @@ Update rule:
 
 Progress scale:
 
-- Overall progress is reported against Phase 1 goals in `EconKit_Architecture.md` Section 16.
+- Overall progress is reported against Phase 1 goals in `docs/md/EconKit_Architecture.md` Section 16.
 
 ---
 
@@ -55,7 +55,7 @@ Progress scale:
 - Added first CI workflow (`.github/workflows/ci.yml`) for lint/type/test.
 - Added contribution and explainability policy docs:
 : `CONTRIBUTING.md`
-: `docs/economics_explainability.md`
+: `docs/md/economics_explainability.md`
 : `.github/PULL_REQUEST_TEMPLATE.md`
 
 5.Developer environment setup
@@ -190,3 +190,107 @@ Progress scale:
 
 - Result: moved from initial scaffold to sustained implementation cadence with stronger governance, clearer test topology, and additional Phase-1 numerical capabilities.
 - Primary deliverables: integration package, structure guardrails, and stable local CI workflow.
+
+---
+
+## Session 03
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Mathematical documentation layer (LaTeX) as a first-class project artifact.
+- Reported overall Phase 1 progress: ~40%
+
+### Objectives
+
+1. Create a dedicated math documentation folder and LaTeX source.
+2. Document implemented formulas with economic interpretation and numerical context.
+3. Establish a rule to keep LaTeX docs updated session-by-session.
+
+### What was implemented
+
+1. LaTeX documentation folder and base manuscript
+- Added `docs/latex/`.
+- Added `docs/latex/econkit_math.tex` with structured sections for:
+: AR(1) shock process,
+: Tauchen and Rouwenhorst discretization,
+: Gauss-Hermite and Gauss-Laguerre quadrature,
+: discrete expectation,
+: interpolation in dynamic programming,
+: bounded optimization framing.
+
+2. Documentation maintenance policy inside LaTeX
+- Added an explicit maintenance section requiring updates whenever numerical methods are added/changed.
+
+3. Code hygiene follow-up
+- Removed temporary inline planning note from `econkit/numerics/integration.py` to keep source clean.
+
+### Architecture alignment
+
+- Section 5.3 Numerical Integration: formulas now mirrored in canonical math notes.
+- Section 5.7 Backend Dispatch: documented that formulas are backend-agnostic while implementations are backend-specific.
+- Section 17.2 Documentation Strategy: advanced from prose notes toward formal technical reference.
+
+### Verification performed
+
+- LaTeX source added and structurally complete.
+- Session handoff requested to continue with bounded optimization implementation.
+
+### Session output summary
+
+- Result: EconKit now has a durable mathematical reference layer aligned with implementation.
+- Primary deliverable: `docs/latex/econkit_math.tex`.
+
+---
+
+## Session 04
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Bounded optimization package implementation (golden section + Brent-style).
+- Reported overall Phase 1 progress: ~48%
+
+### Objectives
+
+1. Implement bounded scalar optimization kernels for policy subproblems.
+2. Route optimization through dispatcher and expose public APIs.
+3. Add tests and update project docs/status.
+
+### What was implemented
+
+1. Optimization backend (NumPy reference)
+- Added `econkit/numerics/backends/optimize_numpy.py`:
+: `OptimizeResult` dataclass,
+: `golden_section_max_numpy`,
+: `brent_max_numpy` (safeguarded parabolic + golden fallback).
+
+2. Dispatcher-routed optimization API
+- Added `econkit/numerics/optimize.py`:
+: operation registration for `golden_section_max` and `brent_max`,
+: public wrappers that resolve backend via dispatcher.
+
+3. Public namespace export
+- Updated `econkit/numerics/__init__.py` to export optimization APIs.
+
+4. Numerical tests for optimization
+- Added `tests/numerics/test_optimize.py` with:
+: quadratic argmax recovery for both methods,
+: consistency check between Brent and golden outcomes.
+
+5. Documentation/status updates
+- Updated `README.md` to include newly implemented numerics slices.
+
+### Architecture alignment
+
+- Section 5.4 Optimization: bounded scalar methods now implemented.
+- Section 5.7 Backend Dispatch: optimization follows the same backend registration/routing pattern.
+- Section 19.3 Reference Implementation Doctrine: NumPy optimization kernels added first as baseline.
+
+### Verification performed
+
+- Local workflow executed:
+: `make format`
+: `make ci`
+- Outcome: all checks passed with expanded test suite.
+
+### Session output summary
+
+- Result: completed planned next slice from roadmap (bounded optimization package).
+- Primary deliverables: optimization backend + dispatcher API + tests + docs alignment.

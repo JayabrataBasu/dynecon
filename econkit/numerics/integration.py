@@ -15,8 +15,6 @@ from econkit.numerics.backends.integration_numpy import (
 
 Array = npt.NDArray[np.float64]
 
-
-## I will document the economics rationale for these kernels in a LaTeX which I will create. 
 register("gauss_hermite_normal", "numpy", gauss_hermite_normal_numpy)
 register("gauss_laguerre_exp", "numpy", gauss_laguerre_exp_numpy)
 register("expectation_discrete", "numpy", expectation_discrete_numpy)

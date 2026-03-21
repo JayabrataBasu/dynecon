@@ -10,6 +10,9 @@ The repository now includes the initial implementation foundation:
 - Custom backend dispatcher infrastructure.
 - NumPy reference interpolation kernel.
 - Optional Numba interpolation kernel.
+- NumPy reference shock discretization (Tauchen/Rouwenhorst).
+- NumPy reference quadrature/expectation kernels.
+- NumPy reference bounded optimization (golden section + Brent-style).
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start
@@ -27,4 +30,4 @@ EconKit routes numerical operations through a custom dispatcher so callers use o
 
 ## Project Plan
 
-See `.github/prompts/plan-econKit.prompt.md` for the active implementation blueprint.
+See `.github/prompts/plan-econKit.prompt.md` for the active implementation blueprint and `docs/CAPTAINS_LOG.md` for session-by-session implementation logs.
