@@ -1,3 +1,10 @@
+"""Dispatcher infrastructure tests.
+
+Economics rationale:
+Backend routing must be transparent to model authors so economic code remains
+stable while numerical implementations evolve across performance layers.
+"""
+
 import numpy as np
 
 from econkit.config import config

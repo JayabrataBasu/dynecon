@@ -1,3 +1,10 @@
+"""Interpolation tests.
+
+Economics rationale:
+Interpolation quality directly affects continuation values in Bellman updates,
+which in turn affects policy functions and welfare comparisons.
+"""
+
 import numpy as np
 
 from econkit.numerics.interpolation import linear_interp_1d

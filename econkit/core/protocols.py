@@ -11,15 +11,13 @@ class Model(Protocol):
     relationships that define agent decision problems.
     """
 
-    def compile(self) -> Any:
-        ...
+    def compile(self) -> Any: ...
 
 
 class Solver(Protocol):
     """Solver interface for dynamic economic models."""
 
-    def solve(self, model: Model) -> Any:
-        ...
+    def solve(self, model: Model) -> Any: ...
 
 
 class Solution(Protocol):
@@ -31,12 +29,10 @@ class Solution(Protocol):
 class Simulation(Protocol):
     """Simulation artifact generated from a solved model."""
 
-    def to_dataframe(self) -> Any:
-        ...
+    def to_dataframe(self) -> Any: ...
 
 
 class Estimator(Protocol):
     """Estimator interface for structural inference."""
 
-    def fit(self, model: Model, data: Any) -> Any:
-        ...
+    def fit(self, model: Model, data: Any) -> Any: ...
