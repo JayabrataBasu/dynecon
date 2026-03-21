@@ -208,6 +208,7 @@ Progress scale:
 ### What was implemented
 
 1. LaTeX documentation folder and base manuscript
+
 - Added `docs/latex/`.
 - Added `docs/latex/econkit_math.tex` with structured sections for:
 : AR(1) shock process,
@@ -218,9 +219,11 @@ Progress scale:
 : bounded optimization framing.
 
 2. Documentation maintenance policy inside LaTeX
+
 - Added an explicit maintenance section requiring updates whenever numerical methods are added/changed.
 
 3. Code hygiene follow-up
+
 - Removed temporary inline planning note from `econkit/numerics/integration.py` to keep source clean.
 
 ### Architecture alignment
@@ -256,25 +259,30 @@ Progress scale:
 ### What was implemented
 
 1. Optimization backend (NumPy reference)
+
 - Added `econkit/numerics/backends/optimize_numpy.py`:
 : `OptimizeResult` dataclass,
 : `golden_section_max_numpy`,
 : `brent_max_numpy` (safeguarded parabolic + golden fallback).
 
 2. Dispatcher-routed optimization API
+
 - Added `econkit/numerics/optimize.py`:
 : operation registration for `golden_section_max` and `brent_max`,
 : public wrappers that resolve backend via dispatcher.
 
 3. Public namespace export
+
 - Updated `econkit/numerics/__init__.py` to export optimization APIs.
 
 4. Numerical tests for optimization
+
 - Added `tests/numerics/test_optimize.py` with:
 : quadratic argmax recovery for both methods,
 : consistency check between Brent and golden outcomes.
 
 5. Documentation/status updates
+
 - Updated `README.md` to include newly implemented numerics slices.
 
 ### Architecture alignment
@@ -294,3 +302,80 @@ Progress scale:
 
 - Result: completed planned next slice from roadmap (bounded optimization package).
 - Primary deliverables: optimization backend + dispatcher API + tests + docs alignment.
+
+---
+
+## Session 05
+
+- Timestamp: 2026-03-21 (UTC, approximate)
+- Theme: Model DSL vertical slice + documentation compartmentalization follow-through.
+- Reported overall Phase 1 progress: ~58%
+
+### Objectives
+
+1. Implement the next planned slice after optimization: minimal model DSL + compile pipeline.
+2. Align docs structure with compartmentalization preference (`docs/md` + `docs/latex`).
+3. Keep captain's log and LaTeX notes synchronized with implementation status.
+
+### What was implemented
+
+1. Model DSL package introduced (`econkit.model`)
+
+- Added specification dataclasses in `econkit/model/specs.py`:
+: `Param`, `State`, `Control`, `AR1Shock`, `EquationSpec`.
+- Added compiled artifact in `econkit/model/compiled.py`:
+: immutable-style `CompiledModel` with mapping proxies and equation caller.
+- Added model builder in `econkit/model/base.py`:
+: parameter registration,
+: state/control registration,
+: equation decorator registration,
+: `compile()` validation gate for required components.
+- Added package exports in `econkit/model/__init__.py`.
+
+2. Public API exposure
+
+- Updated `econkit/__init__.py` to export DSL symbols (`Model`, `Param`, `State`, `Control`, `AR1Shock`).
+
+3. Tests for model vertical slice
+
+- Added `tests/model/test_model_dsl.py`:
+: compile success path for a consumption-savings-like toy model,
+: equation call validation,
+: failure mode when required components are missing.
+
+4. Packaging configuration improvement
+
+- Updated `pyproject.toml` package list to include subpackages (`econkit.core`, `econkit.model`, `econkit.numerics`, `econkit.numerics.backends`).
+
+5. Documentation and structure updates
+
+- Moved docs markdown files to `docs/md/` and updated references.
+- Updated `README.md` to reflect current implementation status and doc layout.
+- Updated `docs/latex/econkit_math.tex` to mark optimization section as implemented and added golden-section/Brent formulas.
+
+### Architecture alignment
+
+- Section 6 Model Specification System: first executable DSL subset is now present.
+- Section 3.3 Layered Architecture: model authoring and numerical kernels remain separated.
+- Section 19.3 Reference Implementation Doctrine: model compilation emits backend-agnostic artifacts consumed by dispatcher-driven numerics.
+
+### Verification performed
+
+- Local CI pipeline executed during session iterations (`make ci`) after major changes.
+- Added tests increased coverage breadth for model layer.
+
+### Risks / notes
+
+- `.github/` remains ignored by explicit user preference; this can obscure workflow changes from source control and should be revisited if collaboration expands.
+- Model DSL currently supports minimal vertical slice; YAML serialization and richer symbolic compilation are pending future sessions.
+
+### Session output summary
+
+- Result: roadmap progressed from numerics-only infrastructure into model-layer implementation.
+- Primary deliverables: `econkit.model` package, compile validation workflow, model tests, and synchronized docs.
+
+### Next planned slice (Session 06 proposal)
+
+1. Solver foundation package (`econkit.solvers`) with first VFI scaffold.
+2. Bellman residual diagnostics utility and test harness.
+3. Cross-backend test folder initiation (`tests/cross_backend/`) for interpolation/discretization parity baseline.

@@ -73,17 +73,36 @@ Continuation values are evaluated off-grid via linear interpolation:
 \end{equation}
 This is central to VFI/EGM because policy updates typically generate non-grid next states.
 
-\section{Bounded Scalar Optimization (Session 4 Target)}
+\section{Bounded Scalar Optimization (Implemented in Session 4)}
 Given objective \(u(c) + \beta \mathbb{E}[V(x')]\), many subproblems reduce to
 \begin{equation}
     x^* = \arg\max_{x\in[a,b]} f(x).
 \end{equation}
-EconKit will implement:
+EconKit implements:
 \begin{itemize}
     \item Golden-section search: robust derivative-free interval contraction.
     \item Brent-style search: combines parabolic interpolation with safeguarded bracketing.
 \end{itemize}
 These methods are used when derivatives are unavailable or expensive.
+
+\subsection{Golden-Section Interval Update}
+Given interior points \(x_1 < x_2\) in \([a,b]\),
+\begin{equation}
+    x_1 = a + (1-\varphi^{-1})(b-a), \qquad
+    x_2 = a + \varphi^{-1}(b-a), \qquad
+    \varphi = \frac{1+\sqrt{5}}{2},
+\end{equation}
+the interval is contracted by comparing \(f(x_1)\) and \(f(x_2)\), preserving
+the maximizer bracket while reusing one function evaluation per iteration.
+
+\subsection{Brent-Style Step Selection}
+Brent-style bounded search alternates between:
+\begin{enumerate}
+    \item parabolic interpolation (fast local convergence when stable), and
+    \item golden-section fallback (robust global progress).
+\end{enumerate}
+The safeguarded update keeps iterates inside \([a,b]\), making it suitable for
+economic policy problems with hard constraints.
 
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.

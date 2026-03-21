@@ -23,7 +23,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["econkit"]
+packages = ["econkit", "econkit.core", "econkit.model", "econkit.numerics", "econkit.numerics.backends"]
 
 [tool.setuptools.package-data]
 "econkit" = ["py.typed"]

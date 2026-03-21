@@ -13,6 +13,7 @@ The repository now includes the initial implementation foundation:
 - NumPy reference shock discretization (Tauchen/Rouwenhorst).
 - NumPy reference quadrature/expectation kernels.
 - NumPy reference bounded optimization (golden section + Brent-style).
+- Minimal model DSL and immutable compile pipeline (Session 5 vertical slice).
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start
@@ -31,3 +32,8 @@ EconKit routes numerical operations through a custom dispatcher so callers use o
 ## Project Plan
 
 I will soon share the project plan and architecture, preferably as a docx file since it is easier to read than an .md file for most people.
+
+## Documentation Layout
+
+- `docs/md/`: architecture notes, explainability standard, and captain's log.
+- `docs/latex/`: formal mathematical formulas and derivations that map to code.
