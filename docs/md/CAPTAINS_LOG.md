@@ -853,3 +853,76 @@ Progress scale:
 1. Add Numba optimization kernels to close strict-backend gap.
 2. Introduce simulation-to-estimation interface stubs (moment extraction contracts).
 3. Add benchmark scripts for solver/runtime comparison across backends.
+
+---
+
+## Session 12
+
+- Timestamp: 2026-03-30 (UTC, approximate)
+- Theme: Optimization parity closure + estimation bridge stubs + benchmark tooling.
+- Reported overall Phase 1 progress: ~98%
+
+### Objectives
+
+1. Close strict-backend optimization parity gap for Numba backend selection.
+2. Introduce first estimation stubs linked to simulation outputs.
+3. Add reproducible backend micro-benchmark tooling.
+
+### What was implemented
+
+1. Optimization backend parity closure
+
+- Added `econkit/numerics/backends/optimize_numba.py`:
+: `golden_section_max_numba(...)`,
+: `brent_max_numba(...)`.
+- Registered Numba optimization operations in `econkit/numerics/optimize.py`.
+- Updated strict-backend parity test to target truly unimplemented backend (`jax`) rather than Numba optimization path.
+
+2. Estimation interface stubs
+
+- Added `econkit/estimation/moments.py` with:
+: `MomentTarget` dataclass,
+: `extract_moments_from_simulation(...)`,
+: `quadratic_moment_loss(...)`,
+: `estimation_stub_report(...)`.
+- Added `econkit/estimation/__init__.py` and package wiring in `pyproject.toml`.
+- Exported estimation stubs in top-level `econkit/__init__.py`.
+
+3. Benchmark tooling
+
+- Added `scripts/benchmark_solver_backends.py` for bounded optimization micro-benchmarks.
+- Added Makefile target: `benchmark-backends`.
+
+4. Test expansion
+
+- Added `tests/estimation/test_moments.py`.
+- Extended `tests/numerics/test_optimize.py` with NumPy/Numba parity checks.
+- Updated `tests/cross_backend/test_interpolation_backend_parity.py` strict-mode expectation.
+- Updated `tests/TEST_STRUCTURE.md` with estimation-domain guidance.
+
+### Architecture alignment
+
+- Section 3.2 module map: first executable `econkit.estimation` slice introduced.
+- Section 5.4 optimization layer: backend parity semantics now consistent for Numba path.
+- Review-1 follow-up actions: benchmark harness objective addressed with script + task target.
+
+### Verification performed
+
+- Local full quality gate: `make format && make ci`.
+- Outcome: lint/type/tests all pass (`51 passed`).
+
+### Risks / notes
+
+- Numba optimization backend currently ensures strict-mode parity and API continuity; deeper nopython-specialized objective pathways are future optimization work.
+- Estimation slice is intentionally minimal and moment-based; full MLE/SMM/Bayesian workflows remain future scope.
+
+### Session output summary
+
+- Result: Session 12 completed with all planned deliverables implemented, tested, and documented.
+- Primary deliverables: strict-mode optimization parity closure, estimation stubs, and benchmark tooling.
+
+### Next planned slice (Session 13 proposal)
+
+1. Add simulation-to-estimation integration example pipeline (solve -> simulate -> moments -> objective).
+2. Add first simulation diagnostics report object (autocorrelation, transition frequencies).
+3. Start JAX pilot backend entries for interpolation/discretization with optional dependency gating.

@@ -1,6 +1,12 @@
 """EconKit public package entrypoint."""
 
 from econkit.config import config
+from econkit.estimation import (
+    MomentTarget,
+    estimation_stub_report,
+    extract_moments_from_simulation,
+    quadratic_moment_loss,
+)
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
 from econkit.simulation import SimulationResult, simulate_markov_asset_policy, summarize_simulation
@@ -32,6 +38,10 @@ __all__ = [
     "SimulationResult",
     "simulate_markov_asset_policy",
     "summarize_simulation",
+    "MomentTarget",
+    "extract_moments_from_simulation",
+    "quadratic_moment_loss",
+    "estimation_stub_report",
     "Model",
     "Param",
     "State",

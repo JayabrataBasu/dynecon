@@ -79,12 +79,10 @@ def test_gauss_laguerre_backend_selection_matches_numpy_reference() -> None:
 
 
 def test_strict_backend_mode_rejects_unimplemented_backend() -> None:
-    pytest.importorskip("numba")
-
     original = config.strict_backend
     config.strict_backend = True
     try:
         with pytest.raises(ValueError):
-            brent_max(lambda x: -((x - 1.0) ** 2), 0.0, 2.0, backend="numba")
+            brent_max(lambda x: -((x - 1.0) ** 2), 0.0, 2.0, backend="jax")
     finally:
         config.strict_backend = original

@@ -20,6 +20,7 @@ The repository now includes the initial implementation foundation:
 - Session 9 additions: stochastic-income canonical helper, expanded Numba backend coverage, and JSON-ready convergence artifact persistence.
 - Session 10 additions: liquid/illiquid two-asset prototype helper, policy monotonicity diagnostics, iteration hooks, and schema-versioned artifact export.
 - Session 11 additions: first simulation vertical slice, schema validation helpers, and performance hardening knob for the liquid/illiquid helper.
+- Session 12 additions: optimization backend strict-mode parity closure, first estimation stubs, and backend benchmark tooling.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start

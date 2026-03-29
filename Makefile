@@ -5,7 +5,7 @@ RUFF := $(ENV_DIR)/bin/ruff
 MYPY := $(ENV_DIR)/bin/mypy
 PYTEST := $(ENV_DIR)/bin/pytest
 
-.PHONY: install test lint typecheck format test-structure ci
+.PHONY: install test lint typecheck format test-structure ci benchmark-backends
 
 install:
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
@@ -27,3 +27,6 @@ test-structure:
 	$(PYTHON) scripts/check_test_layout.py
 
 ci: test-structure lint typecheck test
+
+benchmark-backends:
+	$(PYTHON) scripts/benchmark_solver_backends.py

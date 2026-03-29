@@ -250,6 +250,20 @@ Session 11 formalizes schema checks for convergence artifacts by validating
 required fields and supported schema versions. Legacy artifacts without schema
 blocks are optionally accepted for backward compatibility.
 
+\section{Session 12: Estimation Stub and Optimization Parity}
+Session 12 introduces a first estimation-stub bridge from simulation moments to
+calibration objectives via weighted quadratic distance:
+\begin{equation}
+    \mathcal{L}(\theta) = \sum_{m=1}^{M} w_m\left(\hat{g}_m(\theta)-g_m^{\text{target}}\right)^2,
+\end{equation}
+where \(\hat{g}_m\) are simulated moments, \(g_m^{\text{target}}\) are data
+targets, and \(w_m\) are moment weights.
+
+\subsection{Backend Optimization Parity Closure}
+Session 12 closes the strict-backend gap for bounded optimization API routing
+by adding Numba backend entries for golden-section and Brent-style methods,
+ensuring consistent backend selection semantics in strict mode.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

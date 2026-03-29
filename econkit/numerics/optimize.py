@@ -7,6 +7,7 @@ from typing import cast
 
 from econkit.numerics._dispatch import resolve_backend
 from econkit.numerics._registry import register
+from econkit.numerics.backends.optimize_numba import brent_max_numba, golden_section_max_numba
 from econkit.numerics.backends.optimize_numpy import (
     OptimizeResult,
     brent_max_numpy,
@@ -15,6 +16,8 @@ from econkit.numerics.backends.optimize_numpy import (
 
 register("golden_section_max", "numpy", golden_section_max_numpy)
 register("brent_max", "numpy", brent_max_numpy)
+register("golden_section_max", "numba", golden_section_max_numba)
+register("brent_max", "numba", brent_max_numba)
 
 
 def golden_section_max(
