@@ -21,6 +21,7 @@ The repository now includes the initial implementation foundation:
 - Session 10 additions: liquid/illiquid two-asset prototype helper, policy monotonicity diagnostics, iteration hooks, and schema-versioned artifact export.
 - Session 11 additions: first simulation vertical slice, schema validation helpers, and performance hardening knob for the liquid/illiquid helper.
 - Session 12 additions: optimization backend strict-mode parity closure, first estimation stubs, and backend benchmark tooling.
+- Session 13 additions: solve->simulate->moments pipeline helper, richer simulation diagnostics, and optional JAX pilot registrations for interpolation/discretization.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start

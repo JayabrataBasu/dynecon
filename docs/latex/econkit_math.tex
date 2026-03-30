@@ -264,6 +264,45 @@ Session 12 closes the strict-backend gap for bounded optimization API routing
 by adding Numba backend entries for golden-section and Brent-style methods,
 ensuring consistent backend selection semantics in strict mode.
 
+\section{Session 13: Pipeline Integration, Diagnostics, and JAX Pilot}
+Session 13 connects solve, simulation, and estimation into a compact reference
+workflow and adds simulation diagnostics for review:
+\begin{equation}
+    \text{solve} \rightarrow \text{simulate} \rightarrow \hat{g}(\theta) \rightarrow
+    \mathcal{L}(\theta).
+\end{equation}
+Here, \(\hat{g}(\theta)\) denotes simulated moments extracted from generated
+paths under parameters \(\theta\), and \(\mathcal{L}(\theta)\) is the weighted
+quadratic distance objective.
+
+\subsection{Lag-1 Asset Autocorrelation Diagnostic}
+Given simulated asset path \(\{a_t\}_{t=0}^{T-1}\), Session 13 reports
+\begin{equation}
+    \rho_a(1) = \mathrm{Corr}(a_t, a_{t+1}).
+\end{equation}
+This summarizes persistence in simulated asset dynamics and helps identify
+whether policy-induced state dynamics are too diffusive or too sticky.
+
+\subsection{Empirical Shock Transition Frequencies}
+For simulated shock indices \(z_t \in \{1,\dots,N\}\), define empirical counts
+\begin{equation}
+    C_{ij} = \sum_{t=0}^{T-2} \mathbf{1}\{z_t=i,\ z_{t+1}=j\}.
+\end{equation}
+Session 13 reports row-normalized frequencies
+\begin{equation}
+    \widehat{\Pi}_{ij} =
+    \begin{cases}
+        \dfrac{C_{ij}}{\sum_{k=1}^{N} C_{ik}}, & \sum_{k=1}^{N} C_{ik} > 0,\\
+        0, & \text{otherwise},
+    \end{cases}
+\end{equation}
+which provide a simulation-based diagnostic against intended transition behavior.
+
+\subsection{Optional JAX Pilot Dispatch Entries}
+Session 13 introduces optional JAX dispatch registrations for interpolation and
+AR(1) discretization APIs. These entries are dependency-gated and preserve the
+dispatcher contract while enabling future JAX-native backend expansion.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

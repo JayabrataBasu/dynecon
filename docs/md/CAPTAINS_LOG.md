@@ -926,3 +926,75 @@ Progress scale:
 1. Add simulation-to-estimation integration example pipeline (solve -> simulate -> moments -> objective).
 2. Add first simulation diagnostics report object (autocorrelation, transition frequencies).
 3. Start JAX pilot backend entries for interpolation/discretization with optional dependency gating.
+
+---
+
+## Session 13
+
+- Timestamp: 2026-03-30 (UTC, approximate)
+- Theme: End-to-end estimation bridge + richer simulation diagnostics + JAX pilot dispatch wiring.
+- Reported overall Phase 1 progress: ~100%
+
+### Objectives
+
+1. Implement a runnable solve -> simulate -> moments -> objective pipeline helper.
+2. Extend simulation outputs with a diagnostics report object.
+3. Add optional JAX pilot backend registrations for interpolation/discretization.
+
+### What was implemented
+
+1. End-to-end pipeline helper
+
+- Added `econkit/estimation/pipeline.py` with `run_solve_simulate_moments_pipeline(...)`.
+- Pipeline flow:
+: build canonical model,
+: solve via VFI,
+: simulate policy path,
+: extract moments,
+: evaluate weighted quadratic objective report.
+- Exported in `econkit/estimation/__init__.py` and package top-level `econkit/__init__.py`.
+
+2. Simulation diagnostics report
+
+- Extended `econkit/simulation/policy.py` with:
+: `SimulationDiagnostics` dataclass,
+: `simulation_diagnostics_report(...)` including lag-1 asset autocorrelation,
+: row-normalized shock transition-frequency matrix.
+- Added finite-value safeguards for autocorrelation and validation for `n_shocks`.
+- Exported diagnostics APIs from `econkit/simulation/__init__.py` and `econkit/__init__.py`.
+
+3. JAX pilot backend entries (optional dependency gated)
+
+- Added `econkit/numerics/backends/jax_backend.py` for interpolation pilot kernel.
+- Added `econkit/numerics/backends/discretization_jax.py` for Tauchen/Rouwenhorst pilot wrappers.
+- Updated dispatcher registration in:
+: `econkit/numerics/interpolation.py`,
+: `econkit/numerics/discretization.py`.
+- Registrations are conditional on runtime JAX availability.
+
+4. Test expansion
+
+- Added `tests/estimation/test_pipeline.py` for pipeline report contract.
+- Added `tests/cross_backend/test_jax_conditional_registration.py` for optional JAX registration behavior.
+- Extended `tests/simulation/test_policy_simulation.py` with diagnostics report tests.
+
+### Architecture alignment
+
+- Section 3 module map: strengthens integration between solver, simulation, and estimation layers.
+- Section 5.7 backend dispatch: JAX pilot follows existing registration and fallback semantics.
+- Section 17 documentation/reproducibility: diagnostics object adds structured review-friendly outputs.
+
+### Verification performed
+
+- Local full quality gate: `make format && make ci`.
+- Outcome: lint/type/tests all pass (`56 passed`).
+
+### Risks / notes
+
+- JAX path is intentionally pilot-level and currently wraps baseline behavior for parity and integration safety.
+- Pipeline helper is a compact reference flow and not yet a full estimation workflow engine.
+
+### Session output summary
+
+- Result: Session 13 objectives completed with implementation, tests, and documentation synchronization.
+- Primary deliverables: integrated pipeline helper, structured simulation diagnostics, and optional JAX dispatch pilot.

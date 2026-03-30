@@ -20,6 +20,15 @@ class SimulationResult:
     assets: Array
 
 
+@dataclass(frozen=True)
+class SimulationDiagnostics:
+    """Summary diagnostics for simulated paths."""
+
+    moments: dict[str, float]
+    asset_lag1_autocorr: float
+    shock_transition_frequencies: Array
+
+
 def simulate_markov_asset_policy(
     policy_assets: Array,
     asset_grid: Array,
@@ -97,3 +106,41 @@ def summarize_simulation(result: SimulationResult) -> dict[str, float]:
         "min_assets": float(np.min(result.assets)),
         "max_assets": float(np.max(result.assets)),
     }
+
+
+def simulation_diagnostics_report(
+    result: SimulationResult,
+    n_shocks: int,
+) -> SimulationDiagnostics:
+    """Build a diagnostics report object from simulation paths."""
+    if n_shocks < 1:
+        raise ValueError("n_shocks must be >= 1")
+
+    moments = summarize_simulation(result)
+
+    if (
+        result.assets.shape[0] < 2
+        or np.std(result.assets[:-1]) == 0.0
+        or np.std(result.assets[1:]) == 0.0
+    ):
+        lag1 = 0.0
+    else:
+        lag1_raw = float(np.corrcoef(result.assets[:-1], result.assets[1:])[0, 1])
+        lag1 = lag1_raw if np.isfinite(lag1_raw) else 0.0
+
+    counts = np.zeros((n_shocks, n_shocks), dtype=np.float64)
+    for t in range(result.shock_indices.shape[0] - 1):
+        i = int(result.shock_indices[t])
+        j = int(result.shock_indices[t + 1])
+        if 0 <= i < n_shocks and 0 <= j < n_shocks:
+            counts[i, j] += 1.0
+
+    row_sums = counts.sum(axis=1, keepdims=True)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        freqs = np.where(row_sums > 0.0, counts / row_sums, 0.0)
+
+    return SimulationDiagnostics(
+        moments=moments,
+        asset_lag1_autocorr=lag1,
+        shock_transition_frequencies=freqs,
+    )

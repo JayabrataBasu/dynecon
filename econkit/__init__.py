@@ -6,10 +6,17 @@ from econkit.estimation import (
     estimation_stub_report,
     extract_moments_from_simulation,
     quadratic_moment_loss,
+    run_solve_simulate_moments_pipeline,
 )
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
-from econkit.simulation import SimulationResult, simulate_markov_asset_policy, summarize_simulation
+from econkit.simulation import (
+    SimulationDiagnostics,
+    SimulationResult,
+    simulation_diagnostics_report,
+    simulate_markov_asset_policy,
+    summarize_simulation,
+)
 from econkit.solvers import (
     PolicyMonotonicitySummary,
     ResidualHistorySummary,
@@ -36,12 +43,15 @@ __all__ = [
     "config",
     "linear_interp_1d",
     "SimulationResult",
+    "SimulationDiagnostics",
     "simulate_markov_asset_policy",
     "summarize_simulation",
+    "simulation_diagnostics_report",
     "MomentTarget",
     "extract_moments_from_simulation",
     "quadratic_moment_loss",
     "estimation_stub_report",
+    "run_solve_simulate_moments_pipeline",
     "Model",
     "Param",
     "State",

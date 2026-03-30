@@ -7,7 +7,11 @@ which is the minimum viable simulation capability for model workflows.
 
 import numpy as np
 
-from econkit.simulation import simulate_markov_asset_policy, summarize_simulation
+from econkit.simulation import (
+    simulation_diagnostics_report,
+    simulate_markov_asset_policy,
+    summarize_simulation,
+)
 
 
 def test_simulate_markov_asset_policy_shapes_and_bounds() -> None:
@@ -55,3 +59,43 @@ def test_simulation_summary_contains_moments() -> None:
     summary = summarize_simulation(result)
 
     assert set(summary.keys()) == {"mean_assets", "std_assets", "min_assets", "max_assets"}
+
+
+def test_simulation_diagnostics_report_shapes_and_bounds() -> None:
+    asset_grid = np.linspace(0.0, 2.0, 5)
+    policy_assets = np.full((asset_grid.size, 2), 1.0)
+    transition = np.array([[0.8, 0.2], [0.1, 0.9]])
+
+    result = simulate_markov_asset_policy(
+        policy_assets=policy_assets,
+        asset_grid=asset_grid,
+        shock_transition=transition,
+        periods=200,
+        random_seed=99,
+    )
+    diagnostics = simulation_diagnostics_report(result, n_shocks=2)
+
+    assert diagnostics.shock_transition_frequencies.shape == (2, 2)
+    assert -1.0 <= diagnostics.asset_lag1_autocorr <= 1.0
+    assert diagnostics.moments["mean_assets"] >= 0.0
+    row_sums = diagnostics.shock_transition_frequencies.sum(axis=1)
+    assert np.all((row_sums <= 1.0 + 1e-12) & (row_sums >= 0.0))
+
+
+def test_simulation_diagnostics_invalid_n_shocks_raises() -> None:
+    asset_grid = np.linspace(0.0, 1.0, 4)
+    policy_assets = np.full((asset_grid.size, 1), 0.5)
+    transition = np.array([[1.0]])
+    result = simulate_markov_asset_policy(
+        policy_assets=policy_assets,
+        asset_grid=asset_grid,
+        shock_transition=transition,
+        periods=5,
+        random_seed=1,
+    )
+
+    try:
+        simulation_diagnostics_report(result, n_shocks=0)
+        assert False, "expected ValueError"
+    except ValueError:
+        assert True
