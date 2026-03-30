@@ -16,6 +16,8 @@ from econkit.solvers import (
     format_convergence_report,
     summarize_residual_history,
     summarize_policy_monotonicity,
+    validate_convergence_artifact_schema,
+    validate_convergence_schema_version,
     write_convergence_artifact,
 )
 
@@ -86,3 +88,28 @@ def test_write_convergence_artifact_creates_schema_file(tmp_path) -> None:
     assert loaded["schema"]["name"] == "econkit.convergence_artifact"
     assert loaded["schema"]["version"] == "1.1"
     assert loaded["metadata"]["session"] == 10
+
+
+def test_validate_convergence_schema_version() -> None:
+    assert validate_convergence_schema_version("1.0")
+    assert validate_convergence_schema_version("1.1")
+    assert not validate_convergence_schema_version("2.0")
+
+
+def test_validate_convergence_artifact_schema_current_and_legacy() -> None:
+    artifact = {
+        "history": [1.0, 0.5],
+        "summary": {"count": 2},
+        "metadata": {},
+        "schema": {"name": "econkit.convergence_artifact", "version": "1.1"},
+    }
+    assert validate_convergence_artifact_schema(artifact) == []
+
+    legacy = {
+        "history": [1.0, 0.5],
+        "summary": {"count": 2},
+        "metadata": {},
+    }
+    assert validate_convergence_artifact_schema(legacy, allow_legacy_without_schema=True) == []
+    errors = validate_convergence_artifact_schema(legacy, allow_legacy_without_schema=False)
+    assert "missing field: schema" in errors

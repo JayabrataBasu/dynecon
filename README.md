@@ -19,6 +19,7 @@ The repository now includes the initial implementation foundation:
 - Session 8 additions: canonical consumption-savings VFI helper, residual-history reporting, and selected true Numba backend kernels.
 - Session 9 additions: stochastic-income canonical helper, expanded Numba backend coverage, and JSON-ready convergence artifact persistence.
 - Session 10 additions: liquid/illiquid two-asset prototype helper, policy monotonicity diagnostics, iteration hooks, and schema-versioned artifact export.
+- Session 11 additions: first simulation vertical slice, schema validation helpers, and performance hardening knob for the liquid/illiquid helper.
 - CI, tests, and contribution standards with economics-explainability requirements.
 
 ## Quick Start
@@ -46,3 +47,4 @@ The execution plan is active and tracked in the architecture and session logs un
 ## Review Milestones
 
 - `docs/md/REVIEW_1.md`: first formal review checkpoint agenda and criteria.
+- `docs/md/BACKEND_ROADMAP.md`: backend parity priorities and implementation sequence.

@@ -30,6 +30,7 @@ packages = [
   "econkit.numerics",
   "econkit.numerics.backends",
   "econkit.solvers",
+  "econkit.simulation",
 ]
 
 [tool.setuptools.package-data]

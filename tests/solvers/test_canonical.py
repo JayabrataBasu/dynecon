@@ -165,6 +165,7 @@ def test_liquid_illiquid_helper_solves_prototype() -> None:
         compiled,
         config=VFIConfig(tol=1e-6, max_iter=150),
         check_monotonic_policy=True,
+        policy_search_window=2,
     )
 
     assert solution.converged
@@ -173,3 +174,4 @@ def test_liquid_illiquid_helper_solves_prototype() -> None:
     assert solution.policy.shape == (10, 8)
     assert solution.metadata["canonical_model"] == "consumption_savings_liquid_illiquid"
     assert "policy_illiquid" in solution.metadata
+    assert solution.metadata["policy_search_window"] == 2

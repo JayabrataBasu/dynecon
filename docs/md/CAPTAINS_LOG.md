@@ -772,3 +772,84 @@ Progress scale:
 
 - A Review-1 planning document is now expected at `docs/md/REVIEW_1.md`.
 - Next action after this session: run Review-1 against architecture compliance, numerical correctness, and solver-performance readiness.
+
+---
+
+## Session 11
+
+- Timestamp: 2026-03-30 (UTC, approximate)
+- Theme: Post-Review-1 execution: simulation vertical slice + diagnostics hardening + targeted solver performance improvement.
+- Reported overall Phase 1 progress: ~96%
+
+### Objectives
+
+1. Ship the first simulation module vertical slice for policy-path workflows.
+2. Harden diagnostics reproducibility with schema validation and backward-compatibility checks.
+3. Improve liquid/illiquid prototype runtime behavior with a pruning control.
+4. Publish a concrete backend parity roadmap decision.
+
+### What was implemented
+
+1. Simulation vertical slice (`econkit.simulation`)
+
+- Added `econkit/simulation/policy.py`:
+: `SimulationResult` dataclass,
+: `simulate_markov_asset_policy(...)` for Markov-shock policy-path simulation,
+: `summarize_simulation(...)` for baseline moments.
+- Added package exports in `econkit/simulation/__init__.py`.
+- Added package wiring in `pyproject.toml` and top-level exports in `econkit/__init__.py`.
+
+2. Schema validation and compatibility checks
+
+- Extended `econkit/solvers/diagnostics.py` with:
+: `SUPPORTED_CONVERGENCE_SCHEMA_VERSIONS`,
+: `validate_convergence_schema_version(...)`,
+: `validate_convergence_artifact_schema(...)`.
+- Legacy artifacts without schema can be optionally accepted.
+- Exported in `econkit/solvers/__init__.py` and `econkit/__init__.py`.
+
+3. Solver performance hardening (prototype-safe)
+
+- Extended `econkit/solvers/canonical.py` liquid/illiquid helper with:
+: `policy_search_window` optional pruning control around prior policy indices,
+: retained full-search behavior when unset,
+: metadata reporting of active window value.
+
+4. Test expansion
+
+- Added `tests/simulation/test_policy_simulation.py` for simulation path correctness and summary outputs.
+- Extended `tests/solvers/test_diagnostics.py` for schema validation behavior and legacy compatibility checks.
+- Extended `tests/solvers/test_canonical.py` for pruning metadata path.
+- Updated `tests/TEST_STRUCTURE.md` with simulation-domain guidance.
+
+5. Documentation and roadmap decision
+
+- Added backend parity decision record: `docs/md/BACKEND_ROADMAP.md`.
+- Updated `README.md` and `docs/latex/econkit_math.tex` for Session 11 deliverables.
+
+### Architecture alignment
+
+- Section 3.2/3.3 module map: first concrete `econkit.simulation` slice is now implemented.
+- Section 7 solver framework: liquid/illiquid helper remains prototype but now includes pragmatic pruning control.
+- Reproducibility and review goals: schema validation closes a gap for artifact consistency checks.
+
+### Verification performed
+
+- Local full quality gate: `make format && make ci`.
+- Outcome: lint/type/tests all pass (`47 passed`).
+
+### Risks / notes
+
+- Simulation slice is intentionally minimal and policy-driven; richer outputs (consumption, welfare, aggregate moments) are future scope.
+- Pruned search can miss global optimum if the window is set too narrowly; default remains unrestricted for safety.
+
+### Session output summary
+
+- Result: Session 11 objectives completed with implementation, test coverage, and docs synchronization.
+- Primary deliverables: simulation vertical slice, schema validation layer, and liquid/illiquid pruning control.
+
+### Next planned slice (Session 12 proposal)
+
+1. Add Numba optimization kernels to close strict-backend gap.
+2. Introduce simulation-to-estimation interface stubs (moment extraction contracts).
+3. Add benchmark scripts for solver/runtime comparison across backends.

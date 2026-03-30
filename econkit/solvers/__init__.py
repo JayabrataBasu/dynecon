@@ -15,6 +15,8 @@ from econkit.solvers.diagnostics import (
     format_convergence_report,
     summarize_residual_history,
     summarize_policy_monotonicity,
+    validate_convergence_artifact_schema,
+    validate_convergence_schema_version,
     write_convergence_artifact,
 )
 from econkit.solvers.vfi import VFIConfig, VFISolution, VFISolver, value_function_iteration
@@ -30,6 +32,8 @@ __all__ = [
     "bellman_residual",
     "summarize_residual_history",
     "summarize_policy_monotonicity",
+    "validate_convergence_artifact_schema",
+    "validate_convergence_schema_version",
     "format_convergence_report",
     "build_convergence_artifact",
     "convergence_artifact_to_json",

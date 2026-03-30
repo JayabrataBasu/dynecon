@@ -253,6 +253,7 @@ def solve_consumption_savings_liquid_illiquid_vfi(
     compiled_model: CompiledModel,
     config: VFIConfig | None = None,
     check_monotonic_policy: bool = False,
+    policy_search_window: int | None = None,
 ) -> VFISolution:
     """Prototype VFI helper for liquid-illiquid two-asset models.
 
@@ -274,6 +275,12 @@ def solve_consumption_savings_liquid_illiquid_vfi(
 
     l_grid = _build_grid_from_state(liquid_state)
     i_grid = _build_grid_from_state(illiquid_state)
+    if policy_search_window is not None and policy_search_window < 0:
+        raise ValueError("policy_search_window must be >= 0 when provided")
+
+    previous_l_idx = np.zeros((l_grid.shape[0], i_grid.shape[0]), dtype=np.int64)
+    previous_i_idx = np.zeros((l_grid.shape[0], i_grid.shape[0]), dtype=np.int64)
+    latest_i_idx = np.zeros((l_grid.shape[0], i_grid.shape[0]), dtype=np.int64)
 
     def bellman_operator(value: Array) -> tuple[Array, Array]:
         if value.shape != (l_grid.shape[0], i_grid.shape[0]):
@@ -290,10 +297,24 @@ def solve_consumption_savings_liquid_illiquid_vfi(
 
                 best_val = -np.inf
                 best_l_idx = 0
+                best_i_idx = 0
 
-                for jl in range(l_grid.shape[0]):
+                if policy_search_window is None:
+                    jl_start = 0
+                    jl_end = l_grid.shape[0]
+                    ji_start = 0
+                    ji_end = i_grid.shape[0]
+                else:
+                    prev_l = int(previous_l_idx[il, ii])
+                    prev_i = int(previous_i_idx[il, ii])
+                    jl_start = max(0, prev_l - policy_search_window)
+                    jl_end = min(l_grid.shape[0], prev_l + policy_search_window + 1)
+                    ji_start = max(0, prev_i - policy_search_window)
+                    ji_end = min(i_grid.shape[0], prev_i + policy_search_window + 1)
+
+                for jl in range(jl_start, jl_end):
                     l_next = l_grid[jl]
-                    for ji in range(i_grid.shape[0]):
+                    for ji in range(ji_start, ji_end):
                         i_next = i_grid[ji]
                         cost = adjustment_cost * abs(i_next - i_now)
                         c = resources - l_next - i_next - cost
@@ -310,6 +331,10 @@ def solve_consumption_savings_liquid_illiquid_vfi(
 
                 next_value[il, ii] = best_val
                 policy_liquid_idx[il, ii] = float(best_l_idx)
+                latest_i_idx[il, ii] = best_i_idx
+
+            previous_l_idx[:, :] = np.asarray(np.rint(policy_liquid_idx), dtype=np.int64)
+            previous_i_idx[:, :] = latest_i_idx
 
         # Encode liquid policy in primary policy output for compatibility.
         return next_value, policy_liquid_idx
@@ -334,31 +359,10 @@ def solve_consumption_savings_liquid_illiquid_vfi(
         l_idx = np.clip(l_idx, 0, l_grid.shape[0] - 1)
         policy_liquid = l_grid[l_idx]
 
-        # Recover illiquid policy by one-step greedy improvement at converged value.
-        policy_illiquid = np.empty_like(policy_liquid)
-        for il in range(l_grid.shape[0]):
-            l_now = l_grid[il]
-            for ii in range(i_grid.shape[0]):
-                i_now = i_grid[ii]
-                resources = (1.0 + r_liquid) * l_now + (1.0 + r_illiquid) * i_now + income
-                l_next = policy_liquid[il, ii]
-
-                best_val = -np.inf
-                best_i = i_grid[0]
-                jl = int(np.clip(np.searchsorted(l_grid, l_next), 0, l_grid.shape[0] - 1))
-                for ji in range(i_grid.shape[0]):
-                    i_next = i_grid[ji]
-                    cost = adjustment_cost * abs(i_next - i_now)
-                    c = resources - l_next - i_next - cost
-                    if c <= 0.0:
-                        continue
-                    candidate = _crra_utility(c, sigma) + beta * solution.value_function[jl, ji]
-                    if candidate > best_val:
-                        best_val = candidate
-                        best_i = i_next
-                policy_illiquid[il, ii] = best_i
+        policy_illiquid = i_grid[np.clip(latest_i_idx, 0, i_grid.shape[0] - 1)]
 
         metadata["policy_illiquid"] = policy_illiquid.tolist()
+        metadata["policy_search_window"] = policy_search_window
 
     if check_monotonic_policy and policy_liquid is not None:
         mono_l = summarize_policy_monotonicity(policy_liquid, axis=0)

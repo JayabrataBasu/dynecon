@@ -12,6 +12,7 @@ import numpy as np
 import numpy.typing as npt
 
 NormName = Literal["sup", "l2"]
+SUPPORTED_CONVERGENCE_SCHEMA_VERSIONS = {"1.0", "1.1"}
 
 
 @dataclass(frozen=True)
@@ -179,3 +180,57 @@ def write_convergence_artifact(
     }
     output_path.write_text(json.dumps(artifact, indent=2, sort_keys=True), encoding="utf-8")
     return output_path
+
+
+def validate_convergence_schema_version(version: str) -> bool:
+    """Return True if schema version is supported."""
+    return version in SUPPORTED_CONVERGENCE_SCHEMA_VERSIONS
+
+
+def validate_convergence_artifact_schema(
+    artifact: dict[str, Any],
+    allow_legacy_without_schema: bool = True,
+) -> list[str]:
+    """Validate convergence artifact shape and schema metadata.
+
+    Returns a list of validation errors. Empty list means valid.
+    """
+    errors: list[str] = []
+
+    has_history = "history" in artifact
+    has_summary = "summary" in artifact
+    has_metadata = "metadata" in artifact
+    if not has_history:
+        errors.append("missing field: history")
+    if not has_summary:
+        errors.append("missing field: summary")
+    if not has_metadata:
+        errors.append("missing field: metadata")
+
+    if has_history and not isinstance(artifact["history"], list):
+        errors.append("history must be a list")
+    if has_summary and not isinstance(artifact["summary"], dict):
+        errors.append("summary must be a dict")
+    if has_metadata and not isinstance(artifact["metadata"], dict):
+        errors.append("metadata must be a dict")
+
+    schema = artifact.get("schema")
+    if schema is None:
+        if not allow_legacy_without_schema:
+            errors.append("missing field: schema")
+        return errors
+
+    if not isinstance(schema, dict):
+        errors.append("schema must be a dict")
+        return errors
+
+    name = schema.get("name")
+    version = schema.get("version")
+    if name != "econkit.convergence_artifact":
+        errors.append("schema.name must equal 'econkit.convergence_artifact'")
+    if not isinstance(version, str):
+        errors.append("schema.version must be a string")
+    elif not validate_convergence_schema_version(version):
+        errors.append(f"unsupported schema version: {version}")
+
+    return errors

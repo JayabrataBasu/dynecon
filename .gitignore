@@ -204,6 +204,8 @@ cython_debug/
 .pypirc
 
 docs/md/EconKit_Architecture.md
+docs/md/BACKEND_ROADMAP.md
+docs/md/REVIEW_1.md
 # Marimo
 marimo/_static/
 marimo/_lsp/

@@ -224,6 +224,32 @@ Solver iteration hooks receive per-iteration residual and current iterate,
 enabling online diagnostics. Convergence artifacts are exported with schema
 metadata for versioned downstream analysis.
 
+\section{Session 11: Simulation Slice and Pruned Two-Asset Search}
+Session 11 introduces a first simulation vertical slice for policy-driven
+Markov dynamics. Given policy map \(a' = \pi(a,z)\) and transition matrix
+\(\Pi\), simulated paths evolve by
+\begin{equation}
+    a_{t+1} = \pi(a_t, z_t), \qquad z_{t+1} \sim \Pi(z_t, \cdot).
+\end{equation}
+This yields reproducible simulated state sequences and summary moments.
+
+\subsection{Policy Search-Window Pruning}
+For the liquid-illiquid prototype, Session 11 adds optional local search around
+previous-iteration policy indices. If prior argmax indices are
+\((j^{\ell}_{t-1}, j^{i}_{t-1})\), candidate sets are restricted to
+\begin{equation}
+    j^{\ell} \in [j^{\ell}_{t-1}-w,\, j^{\ell}_{t-1}+w],
+    \qquad
+    j^{i} \in [j^{i}_{t-1}-w,\, j^{i}_{t-1}+w],
+\end{equation}
+with window size \(w\). This reduces brute-force search cost while preserving
+the full-search path when \(w\) is unset.
+
+\subsection{Artifact Schema Validation}
+Session 11 formalizes schema checks for convergence artifacts by validating
+required fields and supported schema versions. Legacy artifacts without schema
+blocks are optionally accepted for backward compatibility.
+
 \section{Maintenance Rule}
 Update this document every session where numerical methods are added or changed.
 Each new method must include:

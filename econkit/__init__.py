@@ -3,6 +3,7 @@
 from econkit.config import config
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.numerics.interpolation import linear_interp_1d
+from econkit.simulation import SimulationResult, simulate_markov_asset_policy, summarize_simulation
 from econkit.solvers import (
     PolicyMonotonicitySummary,
     ResidualHistorySummary,
@@ -19,6 +20,8 @@ from econkit.solvers import (
     solve_compiled_model_vfi,
     summarize_residual_history,
     summarize_policy_monotonicity,
+    validate_convergence_artifact_schema,
+    validate_convergence_schema_version,
     value_function_iteration,
     write_convergence_artifact,
 )
@@ -26,6 +29,9 @@ from econkit.solvers import (
 __all__ = [
     "config",
     "linear_interp_1d",
+    "SimulationResult",
+    "simulate_markov_asset_policy",
+    "summarize_simulation",
     "Model",
     "Param",
     "State",
@@ -44,6 +50,8 @@ __all__ = [
     "PolicyMonotonicitySummary",
     "summarize_residual_history",
     "summarize_policy_monotonicity",
+    "validate_convergence_artifact_schema",
+    "validate_convergence_schema_version",
     "format_convergence_report",
     "build_convergence_artifact",
     "convergence_artifact_to_json",
