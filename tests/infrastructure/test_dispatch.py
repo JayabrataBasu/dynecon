@@ -1,14 +1,11 @@
-"""Dispatcher infrastructure tests.
-
-Economics rationale:
-Backend routing must be transparent to model authors so economic code remains
-stable while numerical implementations evolve across performance layers.
-"""
+"""Dispatcher infrastructure tests: routing is transparent to model authors."""
 
 import numpy as np
+import pytest
 
 from econkit.config import config
 from econkit.numerics._dispatch import resolve_backend
+from econkit.numerics._registry import list_registered, register
 from econkit.numerics.interpolation import linear_interp_1d
 
 
@@ -17,12 +14,19 @@ def test_dispatch_resolves_numpy() -> None:
     assert backend == "numpy"
 
 
-def test_dispatch_falls_back_to_numpy() -> None:
-    config.strict_backend = False
-    config.set_backend("jax")
-    x = np.array([0.1, 0.2, 0.3])
-    xp = np.array([0.0, 1.0])
-    fp = np.array([0.0, 1.0])
-    out = linear_interp_1d(x, xp, fp)
-    assert out.shape == x.shape
+def test_global_backend_numpy_routes() -> None:
     config.set_backend("numpy")
+    out = linear_interp_1d(np.array([0.1, 0.2]), np.array([0.0, 1.0]), np.array([0.0, 1.0]))
+    np.testing.assert_allclose(out, [0.1, 0.2])
+
+
+def test_duplicate_registration_rejected() -> None:
+    with pytest.raises(ValueError):
+        register("linear_interp_1d", "numpy", lambda *a: None)
+
+
+def test_every_registered_numba_op_has_numpy_reference() -> None:
+    reg = list_registered()
+    for op, backend in reg:
+        if backend != "numpy":
+            assert (op, "numpy") in reg

@@ -1,49 +1,40 @@
-"""Integration and expectation APIs routed through the backend dispatcher."""
+"""Quadrature rules (cold path, NumPy).
+
+Economics note:
+Expectations over continuous shocks in Bellman and Euler operators are replaced by
+weighted sums over quadrature nodes.
+"""
 
 from __future__ import annotations
+
+import math
 
 import numpy as np
 import numpy.typing as npt
 
-from econkit.numerics._dispatch import resolve_backend
-from econkit.numerics._registry import register
-from econkit.numerics.backends.integration_numba import (
-    expectation_discrete_numba,
-    gauss_hermite_normal_numba,
-    gauss_laguerre_exp_numba,
-)
-from econkit.numerics.backends.integration_numpy import (
-    expectation_discrete_numpy,
-    gauss_hermite_normal_numpy,
-    gauss_laguerre_exp_numpy,
-)
+from econkit.core.errors import ValidationError
+
+__all__ = ["gauss_hermite_normal", "gauss_legendre"]
 
 Array = npt.NDArray[np.float64]
 
-register("gauss_hermite_normal", "numpy", gauss_hermite_normal_numpy)
-register("gauss_laguerre_exp", "numpy", gauss_laguerre_exp_numpy)
-register("expectation_discrete", "numpy", expectation_discrete_numpy)
-register("gauss_hermite_normal", "numba", gauss_hermite_normal_numba)
-register("gauss_laguerre_exp", "numba", gauss_laguerre_exp_numba)
-register("expectation_discrete", "numba", expectation_discrete_numba)
+
+def _check_order(order: int) -> None:
+    if int(order) != order or order < 1:
+        raise ValidationError(f"order must be an integer >= 1, got {order}")
 
 
-def gauss_hermite_normal(order: int, backend: str | None = None) -> tuple[Array, Array]:
-    _, impl = resolve_backend("gauss_hermite_normal", backend=backend)
-    nodes, weights = impl(order)
-    return np.asarray(nodes, dtype=np.float64), np.asarray(weights, dtype=np.float64)
+def gauss_hermite_normal(order: int) -> tuple[Array, Array]:
+    """Nodes and weights for ``E[f(X)]``, ``X ~ N(0, 1)`` (weights sum to one)."""
+    _check_order(order)
+    nodes, weights = np.polynomial.hermite.hermgauss(order)
+    return nodes * math.sqrt(2.0), weights / math.sqrt(math.pi)
 
 
-def gauss_laguerre_exp(order: int, backend: str | None = None) -> tuple[Array, Array]:
-    _, impl = resolve_backend("gauss_laguerre_exp", backend=backend)
-    nodes, weights = impl(order)
-    return np.asarray(nodes, dtype=np.float64), np.asarray(weights, dtype=np.float64)
-
-
-def expectation_discrete(
-    values: Array,
-    probs: Array,
-    backend: str | None = None,
-) -> float:
-    _, impl = resolve_backend("expectation_discrete", backend=backend)
-    return float(impl(values, probs))
+def gauss_legendre(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, Array]:
+    """Nodes and weights for the *average* of ``f`` over ``U(a, b)`` (weights sum to one)."""
+    _check_order(order)
+    if not b > a:
+        raise ValidationError(f"need b > a, got ({a}, {b})")
+    x, w = np.polynomial.legendre.leggauss(order)
+    return 0.5 * (b - a) * x + 0.5 * (a + b), w / 2.0

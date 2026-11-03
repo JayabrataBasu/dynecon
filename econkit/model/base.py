@@ -1,29 +1,36 @@
-"""Python-native model DSL for EconKit."""
+"""Python-native model builder for EconKit.
+
+Economics note:
+The builder lets researchers state primitives (parameters, states, controls and the
+decision problem) in a readable structure before any numerical solving.
+"""
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import Any
 
-from econkit.model.compiled import CompiledModel
-from econkit.model.specs import Control, EquationSpec, Param, State
+from econkit.core.errors import ModelSpecificationError, ValidationError
+from econkit.model.compiled import CompiledModel, ModelSpec, compile_spec
+from econkit.model.problems import FiniteDPProblem, SavingProblem
+from econkit.model.specs import Control, Param, ParameterSet, State
+
+__all__ = ["Model"]
+
+_TEMPLATES = ("saving", "finite_dp")
 
 
 class Model:
-    """Economic model builder.
-
-    Economics note:
-    The DSL lets researchers define primitives (states, controls, shocks,
-    parameters, equations) in a readable structure before numerical solving.
-    """
+    """Mutable model builder; :meth:`compile` returns an immutable :class:`CompiledModel`."""
 
     def __init__(self, name: str):
         self.name = name
         self._parameters: dict[str, Param] = {}
         self._states: dict[str, State] = {}
         self._controls: dict[str, Control] = {}
-        self._equations: dict[str, EquationSpec] = {}
+        self._problem: SavingProblem | FiniteDPProblem | None = None
 
     def params(self, **kwargs: Param) -> dict[str, Param]:
+        """Declare parameters by keyword; returns all parameters declared so far."""
         for key, param in kwargs.items():
             if not isinstance(param, Param):
                 raise TypeError("params() values must be Param objects")
@@ -32,36 +39,48 @@ class Model:
 
     def add_state(self, state: State) -> State:
         if state.name in self._states:
-            raise ValueError(f"Duplicate state name: {state.name}")
+            raise ValidationError(f"Duplicate state name: {state.name}")
         self._states[state.name] = state
         return state
 
     def add_control(self, control: Control) -> Control:
         if control.name in self._controls:
-            raise ValueError(f"Duplicate control name: {control.name}")
+            raise ValidationError(f"Duplicate control name: {control.name}")
         self._controls[control.name] = control
         return control
 
-    def equation(self, name: str) -> Callable[[Callable[..., object]], Callable[..., object]]:
-        def _decorate(func: Callable[..., object]) -> Callable[..., object]:
-            if name in self._equations:
-                raise ValueError(f"Duplicate equation name: {name}")
-            self._equations[name] = EquationSpec(name=name, func=func)
-            return func
+    def set_problem(self, kind: str, **fields: Any) -> None:
+        """Declare the decision problem: ``"saving"`` or ``"finite_dp"`` (see problems module)."""
+        try:
+            if kind == "saving":
+                self._problem = SavingProblem(**fields)
+            elif kind == "finite_dp":
+                self._problem = FiniteDPProblem(**fields)
+            else:
+                raise ModelSpecificationError(
+                    f"unknown problem template {kind!r}; use {_TEMPLATES}"
+                )
+        except TypeError as exc:
+            raise ModelSpecificationError(f"problem {kind!r}: {exc}") from exc
 
-        return _decorate
+    def copy(self, name: str | None = None) -> Model:
+        """Independent copy of the builder (used by reform functions)."""
+        new = Model(name or self.name)
+        new._parameters = dict(self._parameters)
+        new._states = dict(self._states)
+        new._controls = dict(self._controls)
+        new._problem = self._problem
+        return new
 
     def compile(self) -> CompiledModel:
-        if not self._equations:
-            raise ValueError("Model must define at least one equation before compile()")
-        if not self._states:
-            raise ValueError("Model must define at least one state before compile()")
-        if not self._controls:
-            raise ValueError("Model must define at least one control before compile()")
-        return CompiledModel.from_parts(
-            name=self.name,
-            parameters=self._parameters,
-            states=self._states,
-            controls=self._controls,
-            equations=self._equations,
+        """Validate and return an immutable compiled model."""
+        spec = ModelSpec(
+            self.name, tuple(self._states.values()), tuple(self._controls.values()), self._problem
+        )
+        return compile_spec(spec, ParameterSet(self._parameters))
+
+    def __repr__(self) -> str:
+        return (
+            f"Model('{self.name}', params={list(self._parameters)}, states={list(self._states)}, "
+            f"controls={list(self._controls)}, problem={type(self._problem).__name__})"
         )

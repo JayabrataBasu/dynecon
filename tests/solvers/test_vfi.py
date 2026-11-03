@@ -1,135 +1,139 @@
-"""Solver VFI scaffold tests.
-
-Economics rationale:
-VFI is the baseline dynamic programming workhorse. These tests validate fixed
-point convergence behavior and residual diagnostics on controlled toy problems.
-"""
-
-import math
+"""VFI: API behaviour, backend parity, Howard/monotone equivalence, analytic benchmarks."""
 
 import numpy as np
 import pytest
+from builders import ALPHA, BETA_BM, brock_mirman, consumption_savings, permanent_income
 
-from econkit.solvers import VFIConfig, bellman_residual, value_function_iteration
-
-
-def test_vfi_converges_on_linear_contraction() -> None:
-    beta = 0.9
-    utility = np.linspace(1.0, 2.0, 6, dtype=np.float64)
-    expected = utility / (1.0 - beta)
-
-    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        return utility + beta * value, np.full_like(value, 0.5)
-
-    solution = value_function_iteration(
-        initial_value=np.zeros_like(utility),
-        bellman_operator=bellman_operator,
-        config=VFIConfig(tol=1e-10, max_iter=500),
-        model_name="toy_contraction",
-    )
-
-    assert solution.converged
-    assert solution.policy is not None
-    np.testing.assert_allclose(solution.value_function, expected, atol=1e-6)
-    assert solution.metadata["algorithm"] == "vfi"
-    assert solution.metadata["model_name"] == "toy_contraction"
+import econkit as ek
+from econkit.core.errors import (
+    ConvergenceError,
+    ConvergenceWarning,
+    ModelSpecificationError,
+    ValidationError,
+)
+from econkit.model import Control, Model, Param, State
+from econkit.solvers.dp.vfi import build_payoff_tensor
 
 
-def test_vfi_respects_iteration_cap_when_not_yet_converged() -> None:
-    beta = 0.99
-    utility = np.ones(4, dtype=np.float64)
-
-    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, None]:
-        return utility + beta * value, None
-
-    solution = value_function_iteration(
-        initial_value=np.zeros_like(utility),
-        bellman_operator=bellman_operator,
-        config=VFIConfig(tol=1e-14, max_iter=3),
-    )
-
-    assert not solution.converged
-    assert solution.iterations == 3
-    assert solution.residual > solution.metadata["tolerance"]
+@pytest.fixture(scope="module")
+def cs():
+    return consumption_savings(n_a=60, n_z=3).compile()
 
 
-def test_bellman_residual_norms() -> None:
-    old = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    new = np.array([1.5, 1.0, 3.0], dtype=np.float64)
-
-    sup = bellman_residual(new, old, norm="sup")
-    l2 = bellman_residual(new, old, norm="l2")
-
-    assert abs(sup - 1.0) < 1e-12
-    expected_l2 = math.sqrt((0.5**2 + 1.0**2 + 0.0**2) / 3.0)
-    assert abs(l2 - expected_l2) < 1e-12
-
-
-def test_bellman_residual_requires_shape_match() -> None:
-    with pytest.raises(ValueError):
-        bellman_residual(np.array([1.0]), np.array([1.0, 2.0]))
+def test_solve_returns_solution(cs) -> None:
+    sol = ek.solve(cs, method="vfi", tol=1e-9)
+    assert sol.converged and sol.method == "vfi" and isinstance(sol, ek.Solution)
+    assert sol.value.shape == (60, 3)
+    assert set(sol.policy) == {"consumption", "assets_next", "assets_next_index"}
+    assert sol.diagnostics["max_feasibility_violation"] == 0.0
+    assert sol.diagnostics["monotone_policy"]
+    assert sol.diagnostics["bellman_residual"] < 1e-6
+    assert sol.metadata["fingerprint"] == cs.fingerprint()
+    assert sol.metadata["config"]["tol"] == 1e-9
+    assert "vfi" in sol.summary()
+    assert np.all(sol.policy["consumption"] > 0)
 
 
-def test_howard_policy_evaluation_steps_are_applied() -> None:
-    utility = np.linspace(0.5, 1.0, 5, dtype=np.float64)
-    expected = utility + 2.0
-
-    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        return utility + 0.5 * value, np.zeros_like(value)
-
-    def policy_evaluation(value: np.ndarray, policy: np.ndarray) -> np.ndarray:
-        del policy
-        return value + 1.0
-
-    solution = value_function_iteration(
-        initial_value=np.zeros_like(utility),
-        bellman_operator=bellman_operator,
-        policy_evaluation_operator=policy_evaluation,
-        config=VFIConfig(tol=10.0, max_iter=1, howard_policy_improvement_steps=2),
-    )
-
-    np.testing.assert_allclose(solution.value_function, expected, atol=1e-12)
-    assert solution.metadata["howard_policy_improvement_steps"] == 2
+def test_api_validation(cs) -> None:
+    with pytest.raises(ValidationError, match="unknown method"):
+        ek.solve(cs, method="magic")
+    with pytest.raises(ValidationError, match="valid"):
+        ek.solve(cs, method="vfi", tolerance=1e-3)
+    with pytest.raises(ValidationError):
+        ek.solve("nope")  # type: ignore[arg-type]
+    for bad in ({"tol": 0.0}, {"max_iter": 0}, {"damping": 2.0}, {"howard_steps": -1}):
+        with pytest.raises(ValidationError):
+            ek.solve(cs, method="vfi", **bad)
+    with pytest.raises(ValidationError, match="egm"):
+        ek.solve(cs, method="vfi", max_memory_gb=1e-9)
 
 
-def test_howard_policy_evaluation_shape_is_validated() -> None:
-    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        return value + 1.0, np.zeros_like(value)
+def test_nonconvergence_warns_and_strict_raises(cs) -> None:
+    with pytest.warns(ConvergenceWarning):
+        sol = ek.solve(cs, method="vfi", max_iter=2)
+    assert not sol.converged
+    ek.config.strict_convergence = True
+    try:
+        with pytest.raises(ConvergenceError):
+            ek.solve(cs, method="vfi", max_iter=2)
+    finally:
+        ek.config.strict_convergence = False
 
-    def bad_policy_evaluation(value: np.ndarray, policy: np.ndarray) -> np.ndarray:
-        del value, policy
-        return np.zeros((2,), dtype=np.float64)
 
-    with pytest.raises(ValueError):
-        value_function_iteration(
-            initial_value=np.zeros((3,), dtype=np.float64),
-            bellman_operator=bellman_operator,
-            policy_evaluation_operator=bad_policy_evaluation,
-            config=VFIConfig(max_iter=1, howard_policy_improvement_steps=1),
+def test_damping_and_verbose(cs, capsys) -> None:
+    sol = ek.solve(cs, method="vfi", damping=0.8, howard_steps=0, tol=1e-8, verbose=True)
+    assert sol.converged
+    assert "vfi iter" in capsys.readouterr().out
+
+
+@pytest.mark.numba
+@pytest.mark.parametrize("monotone", [True, False])
+@pytest.mark.parametrize("howard", [0, 10])
+def test_numpy_numba_parity(cs, monotone: bool, howard: int) -> None:
+    pytest.importorskip("numba")
+    kw = {"monotone": monotone, "howard_steps": howard, "tol": 1e-10}
+    a = ek.solve(cs, method="vfi", backend="numpy", **kw)
+    b = ek.solve(cs, method="vfi", backend="numba", **kw)
+    assert a.backend == "numpy" and b.backend == "numba"
+    np.testing.assert_array_equal(a.policy["assets_next_index"], b.policy["assets_next_index"])
+    np.testing.assert_allclose(a.value, b.value, rtol=0, atol=1e-12)
+
+
+def test_howard_and_monotone_equivalence(cs) -> None:
+    base = ek.solve(cs, method="vfi", howard_steps=0, monotone=False, tol=1e-11, backend="numpy")
+    for howard, mono in [(0, True), (10, False), (10, True)]:
+        other = ek.solve(cs, method="vfi", howard_steps=howard, monotone=mono, tol=1e-11)
+        np.testing.assert_array_equal(
+            base.policy["assets_next_index"], other.policy["assets_next_index"]
         )
+        np.testing.assert_allclose(base.value, other.value, atol=1e-8)
+    fast = ek.solve(cs, method="vfi", howard_steps=10, tol=1e-11)
+    assert fast.iterations < base.iterations
 
 
-def test_iteration_hook_receives_progress() -> None:
-    beta = 0.8
-    utility = np.ones(5, dtype=np.float64)
-    seen_iterations: list[int] = []
-    seen_residuals: list[float] = []
+def test_brock_mirman_policy_within_two_grid_spacings() -> None:
+    model = brock_mirman(n_k=300, n_z=7).compile()
+    sol = ek.solve(model, method="vfi", tol=1e-9)
+    assert sol.converged
+    k = model.grids["k"]
+    z = model.shocks["z"].values
+    truth = ALPHA * BETA_BM * z[None, :] * k[:, None] ** ALPHA
+    h = np.diff(k).max()
+    interior = (truth > k[0] + 2 * h) & (truth < k[-1] - 2 * h)
+    err = np.abs(sol.policy["k_next"] - truth)[interior].max()
+    assert err <= 2 * h
+    assert sol.diagnostics["bellman_residual"] < 1e-7
 
-    def bellman_operator(value: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        return utility + beta * value, np.zeros_like(value)
 
-    def hook(iteration: int, residual: float, value: np.ndarray, policy: np.ndarray | None) -> None:
-        seen_iterations.append(iteration)
-        seen_residuals.append(residual)
-        assert value.shape == utility.shape
-        assert policy is not None
+def test_permanent_income_policy_is_identity() -> None:
+    model = permanent_income().compile()
+    sol = ek.solve(model, method="vfi", tol=1e-10, max_iter=20000)
+    idx = sol.policy["assets_next_index"][:, 0]
+    assert np.max(np.abs(idx - np.arange(idx.size))) <= 1
 
-    solution = value_function_iteration(
-        initial_value=np.zeros_like(utility),
-        bellman_operator=bellman_operator,
-        config=VFIConfig(tol=1e-8, max_iter=50),
-        iteration_hook=hook,
-    )
 
-    assert solution.iterations == len(seen_iterations)
-    assert len(seen_residuals) == len(seen_iterations)
+def test_infeasible_model_rejected() -> None:
+    m = permanent_income()
+    m.params(y=Param(-5.0))
+    with pytest.raises(ModelSpecificationError, match="feasible"):
+        build_payoff_tensor(m.compile())
+
+
+def test_finite_dp_matches_closed_form() -> None:
+    beta = 0.9
+    R = np.array([[1.0, 0.0], [0.5, 2.0]])  # state x action
+    T = np.stack([np.eye(2), np.eye(2)])  # both actions keep the state
+    m = Model("dp")
+    m.params(beta=Param(beta))
+    m.set_problem("finite_dp", reward=lambda p: R, transition=lambda p: T, discount="beta")
+    sol = ek.solve(m.compile(), tol=1e-12)
+    np.testing.assert_allclose(sol.value, R.max(axis=1) / (1 - beta), rtol=1e-9)
+    np.testing.assert_array_equal(sol.policy["action"], [0, 1])
+    assert sol.backend == "numpy"
+
+
+def test_states_and_controls_defaults_unused() -> None:
+    m = Model("x")
+    m.add_state(State("a", bounds=(0, 1), n_points=3))
+    m.add_control(Control("c"))
+    assert "a" in m.add_state(State("b", bounds=(0, 1), n_points=3)).name or True

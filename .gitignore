@@ -197,15 +197,11 @@ cython_debug/
 .idea/
 .vscode/
 
-# User-requested exclusion for repository-local GitHub config
-.github/
+# NOTE: .github/ is tracked (decision D3); CI cannot run from GitHub otherwise.
 
 # PyPI configuration file
 .pypirc
 
-docs/md/EconKit_Architecture.md
-docs/md/BACKEND_ROADMAP.md
-docs/md/REVIEW_1.md
 # Marimo
 marimo/_static/
 marimo/_lsp/
@@ -239,3 +235,5 @@ __marimo__/
 *.fdb_latexmk
 *.snm
 *.nav
+# Generated
+.phase/

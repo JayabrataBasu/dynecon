@@ -4,35 +4,58 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "econkit"
-version = "0.1.0.dev0"
+dynamic = ["version"]
 description = "A Python library for computational economics"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "EconKit Contributors" }]
+authors = [{ name = "Jayabrata Basu" }]
+keywords = ["economics", "dynamic programming", "macroeconomics", "numerical methods", "estimation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Typing :: Typed",
+]
 dependencies = [
   "numpy>=1.25",
+  "scipy>=1.11",
 ]
+
+[project.urls]
+Homepage = "https://github.com/JayabrataBasu/EconKit"
+Source = "https://github.com/JayabrataBasu/EconKit"
+Issues = "https://github.com/JayabrataBasu/EconKit/issues"
+Documentation = "https://github.com/JayabrataBasu/EconKit/tree/master/docs"
 
 [project.optional-dependencies]
 numba = ["numba>=0.59"]
+jax = ["jax>=0.4.25", "jaxlib>=0.4.25"]
+data = ["pandas>=2.0"]
+viz = ["matplotlib>=3.7"]
+docs = ["sphinx>=7", "myst-nb>=1.0", "furo", "sphinx-autodoc-typehints", "jupytext"]
 dev = [
   "pytest>=8.0",
+  "pytest-cov",
+  "hypothesis>=6",
   "ruff>=0.6",
   "mypy>=1.10",
+  "vulture>=2.11",
+  "numba>=0.59",
+  "pandas>=2.0",
+  "matplotlib>=3.7",
 ]
+all = ["econkit[numba,jax,data,viz]"]
 
-[tool.setuptools]
-packages = [
-  "econkit",
-  "econkit.core",
-  "econkit.model",
-  "econkit.numerics",
-  "econkit.numerics.backends",
-  "econkit.solvers",
-  "econkit.simulation",
-  "econkit.estimation",
-]
+[tool.setuptools.dynamic]
+version = { attr = "econkit._version.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["econkit*"]
 
 [tool.setuptools.package-data]
 "econkit" = ["py.typed"]
@@ -41,9 +64,38 @@ packages = [
 line-length = 100
 target-version = "py310"
 
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "ERA", "ARG", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ARG"]
+"scripts/**" = ["ARG"]
+
+[tool.vulture]
+min_confidence = 80
+paths = ["econkit"]
+
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q --strict-markers"
 testpaths = ["tests"]
+markers = [
+  "slow: long-running (deselect with -m 'not slow')",
+  "numba: requires numba",
+  "jax: requires jax",
+  "network: requires internet (never run in CI by default)",
+  "plot: needs matplotlib",
+]
+filterwarnings = ["error::DeprecationWarning:econkit.*"]
+
+[tool.coverage.run]
+source = ["econkit"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -52,5 +104,5 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["numba"]
+module = ["numba", "numba.*", "jax", "jax.*", "pandas", "matplotlib.*", "scipy.*"]
 ignore_missing_imports = true

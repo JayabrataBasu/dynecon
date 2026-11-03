@@ -1,21 +1,26 @@
 """Numerical kernels and backend dispatch APIs."""
 
 from econkit.numerics.discretization import rouwenhorst, tauchen
-from econkit.numerics.integration import (
-    expectation_discrete,
-    gauss_hermite_normal,
-    gauss_laguerre_exp,
-)
-from econkit.numerics.optimize import brent_max, golden_section_max
+from econkit.numerics.fixedpoint import FixedPointResult, fixed_point
+from econkit.numerics.grids import exp_grid, make_grid, uniform_grid
+from econkit.numerics.integration import gauss_hermite_normal, gauss_legendre
 from econkit.numerics.interpolation import linear_interp_1d
+from econkit.numerics.jacobian import numerical_jacobian
+from econkit.numerics.markov import markov_paths, simulate_markov, stationary_distribution
 
 __all__ = [
-    "linear_interp_1d",
-    "tauchen",
-    "rouwenhorst",
+    "FixedPointResult",
+    "exp_grid",
+    "fixed_point",
     "gauss_hermite_normal",
-    "gauss_laguerre_exp",
-    "expectation_discrete",
-    "golden_section_max",
-    "brent_max",
+    "gauss_legendre",
+    "linear_interp_1d",
+    "make_grid",
+    "markov_paths",
+    "numerical_jacobian",
+    "rouwenhorst",
+    "simulate_markov",
+    "stationary_distribution",
+    "tauchen",
+    "uniform_grid",
 ]

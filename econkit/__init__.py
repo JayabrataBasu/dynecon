@@ -1,80 +1,23 @@
-"""EconKit public package entrypoint."""
+"""EconKit: a Python library for computational economics."""
 
+from econkit import backends
+from econkit._version import __version__
 from econkit.config import config
-from econkit.estimation import (
-    MomentTarget,
-    estimation_stub_report,
-    extract_moments_from_simulation,
-    quadratic_moment_loss,
-    run_solve_simulate_moments_pipeline,
-)
+from econkit.core import errors
+from econkit.core.solution import Solution
 from econkit.model import AR1Shock, Control, Model, Param, State
-from econkit.numerics.interpolation import linear_interp_1d
-from econkit.simulation import (
-    SimulationDiagnostics,
-    SimulationResult,
-    simulation_diagnostics_report,
-    simulate_markov_asset_policy,
-    summarize_simulation,
-)
-from econkit.solvers import (
-    PolicyMonotonicitySummary,
-    ResidualHistorySummary,
-    VFIConfig,
-    VFISolver,
-    bellman_residual,
-    build_convergence_artifact,
-    build_compiled_bellman_operator,
-    convergence_artifact_to_json,
-    format_convergence_report,
-    solve_consumption_savings_liquid_illiquid_vfi,
-    solve_consumption_savings_stochastic_vfi,
-    solve_consumption_savings_vfi,
-    solve_compiled_model_vfi,
-    summarize_residual_history,
-    summarize_policy_monotonicity,
-    validate_convergence_artifact_schema,
-    validate_convergence_schema_version,
-    value_function_iteration,
-    write_convergence_artifact,
-)
+from econkit.solvers import solve
 
 __all__ = [
-    "config",
-    "linear_interp_1d",
-    "SimulationResult",
-    "SimulationDiagnostics",
-    "simulate_markov_asset_policy",
-    "summarize_simulation",
-    "simulation_diagnostics_report",
-    "MomentTarget",
-    "extract_moments_from_simulation",
-    "quadratic_moment_loss",
-    "estimation_stub_report",
-    "run_solve_simulate_moments_pipeline",
+    "AR1Shock",
+    "Control",
     "Model",
     "Param",
+    "Solution",
     "State",
-    "Control",
-    "AR1Shock",
-    "VFIConfig",
-    "VFISolver",
-    "value_function_iteration",
-    "bellman_residual",
-    "build_compiled_bellman_operator",
-    "solve_compiled_model_vfi",
-    "solve_consumption_savings_vfi",
-    "solve_consumption_savings_stochastic_vfi",
-    "solve_consumption_savings_liquid_illiquid_vfi",
-    "ResidualHistorySummary",
-    "PolicyMonotonicitySummary",
-    "summarize_residual_history",
-    "summarize_policy_monotonicity",
-    "validate_convergence_artifact_schema",
-    "validate_convergence_schema_version",
-    "format_convergence_report",
-    "build_convergence_artifact",
-    "convergence_artifact_to_json",
-    "write_convergence_artifact",
+    "__version__",
+    "backends",
+    "config",
+    "errors",
+    "solve",
 ]
-__version__ = "0.1.0.dev0"
