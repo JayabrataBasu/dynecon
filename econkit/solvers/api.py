@@ -13,8 +13,8 @@ from typing import Any
 from econkit.core.errors import ValidationError
 from econkit.core.solution import Solution
 from econkit.model.compiled import CompiledModel
-from econkit.model.problems import SavingProblem
-from econkit.solvers import dp, egm  # noqa: F401  (register "vfi" and "egm")
+from econkit.model.problems import DSGEProblem, PricingProblem, SavingProblem
+from econkit.solvers import dp, egm, perturbation, pricing  # noqa: F401  (register)
 from econkit.solvers.registry import SOLVERS
 
 __all__ = ["solve"]
@@ -45,4 +45,8 @@ def solve(
 def _auto_method(model: CompiledModel) -> str:
     """EGM when the saving problem supplies the marginal fields, otherwise VFI."""
     prob = model.problem
+    if isinstance(prob, DSGEProblem):
+        return "perturbation"
+    if isinstance(prob, PricingProblem):
+        return "pricing"
     return "egm" if isinstance(prob, SavingProblem) and prob.supports_egm else "vfi"

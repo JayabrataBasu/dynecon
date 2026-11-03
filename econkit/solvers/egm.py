@@ -61,8 +61,18 @@ def _require_egm(model: CompiledModel) -> SavingProblem:
     return prob
 
 
-def solve_egm(model: CompiledModel, *, backend: str | None = None, **options: Any) -> Solution:
-    """Solve a ``saving`` problem by EGM (see :class:`EGMConfig` for options)."""
+def solve_egm(
+    model: CompiledModel,
+    *,
+    backend: str | None = None,
+    initial: Array | None = None,
+    **options: Any,
+) -> Solution:
+    """Solve a ``saving`` problem by EGM (see :class:`EGMConfig` for options).
+
+    ``initial`` optionally warm-starts the consumption iterate (used when re-solving at a
+    nearby price); it is ignored if its shape does not match the grids.
+    """
     cfg = resolve_config(EGMConfig, options)
     prob = _require_egm(model)
     mu_fn, inv_mu_fn = prob.marginal_utility, prob.inverse_marginal_utility
@@ -107,6 +117,8 @@ def solve_egm(model: CompiledModel, *, backend: str | None = None, **options: An
         return out
 
     C0 = np.maximum(m_grid - a_min, 1e-8)
+    if initial is not None and np.shape(initial) == C0.shape and np.all(np.asarray(initial) > 0):
+        C0 = np.array(initial, dtype=np.float64)
     res = fixed_point(
         operator, C0, tol=cfg.tol, max_iter=cfg.max_iter, damping=cfg.damping, name="egm"
     )

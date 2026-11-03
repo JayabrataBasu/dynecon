@@ -11,12 +11,17 @@ from typing import Any
 
 from econkit.core.errors import ModelSpecificationError, ValidationError
 from econkit.model.compiled import CompiledModel, ModelSpec, compile_spec
-from econkit.model.problems import FiniteDPProblem, SavingProblem
+from econkit.model.problems import (
+    DSGEProblem,
+    FiniteDPProblem,
+    PricingProblem,
+    SavingProblem,
+)
 from econkit.model.specs import Control, Param, ParameterSet, State
 
 __all__ = ["Model"]
 
-_TEMPLATES = ("saving", "finite_dp")
+_TEMPLATES = ("saving", "finite_dp", "dsge", "pricing")
 
 
 class Model:
@@ -27,7 +32,7 @@ class Model:
         self._parameters: dict[str, Param] = {}
         self._states: dict[str, State] = {}
         self._controls: dict[str, Control] = {}
-        self._problem: SavingProblem | FiniteDPProblem | None = None
+        self._problem: SavingProblem | FiniteDPProblem | DSGEProblem | PricingProblem | None = None
 
     def params(self, **kwargs: Param) -> dict[str, Param]:
         """Declare parameters by keyword; returns all parameters declared so far."""
@@ -50,12 +55,19 @@ class Model:
         return control
 
     def set_problem(self, kind: str, **fields: Any) -> None:
-        """Declare the decision problem: ``"saving"`` or ``"finite_dp"`` (see problems module)."""
+        """Declare the problem: ``"saving"``, ``"finite_dp"``, ``"dsge"`` or ``"pricing"``."""
         try:
             if kind == "saving":
                 self._problem = SavingProblem(**fields)
             elif kind == "finite_dp":
                 self._problem = FiniteDPProblem(**fields)
+            elif kind == "pricing":
+                self._problem = PricingProblem(**fields)
+            elif kind == "dsge":
+                for key in ("variables", "states", "shocks", "log_variables"):
+                    if key in fields:
+                        fields[key] = tuple(fields[key])
+                self._problem = DSGEProblem(**fields)
             else:
                 raise ModelSpecificationError(
                     f"unknown problem template {kind!r}; use {_TEMPLATES}"

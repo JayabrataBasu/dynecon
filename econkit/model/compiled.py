@@ -15,7 +15,12 @@ import numpy as np
 
 from econkit.core.errors import ModelSpecificationError, ValidationError
 from econkit.model.fingerprint import fingerprint_model
-from econkit.model.problems import FiniteDPProblem, SavingProblem
+from econkit.model.problems import (
+    DSGEProblem,
+    FiniteDPProblem,
+    PricingProblem,
+    SavingProblem,
+)
 from econkit.model.shocks import discretize_shock
 from econkit.model.specs import Control, ParameterSet, ParamView, ShockProcess, State
 from econkit.model.validation import validate_model
@@ -23,7 +28,7 @@ from econkit.numerics.grids import make_grid
 
 __all__ = ["CompiledModel", "ModelSpec", "compile_spec"]
 
-Problem = SavingProblem | FiniteDPProblem
+Problem = SavingProblem | FiniteDPProblem | DSGEProblem | PricingProblem
 
 
 @dataclass(frozen=True)

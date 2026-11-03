@@ -73,6 +73,7 @@ max-complexity = 12
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ARG"]
 "scripts/**" = ["ARG"]
+"econkit/models/**" = ["ARG001", "ARG005"]  # template callables have fixed signatures
 
 [tool.vulture]
 min_confidence = 80

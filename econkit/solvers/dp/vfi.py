@@ -100,7 +100,9 @@ def _howard(
     return v
 
 
-def _solve_saving(model: CompiledModel, cfg: VFIConfig, backend: str | None) -> Solution:
+def _solve_saving(
+    model: CompiledModel, cfg: VFIConfig, backend: str | None, initial: Array | None
+) -> Solution:
     prob = model.problem
     assert isinstance(prob, SavingProblem)
     t0 = perf_counter()
@@ -129,9 +131,12 @@ def _solve_saving(model: CompiledModel, cfg: VFIConfig, backend: str | None) -> 
             print(f"vfi iter {it:5d}  change {r:.3e}  {perf_counter() - t0:.2f}s")
 
     callbacks = [progress] if cfg.verbose else []
+    v0 = np.zeros((n_a, n_z))
+    if initial is not None and np.shape(initial) == v0.shape and np.all(np.isfinite(initial)):
+        v0 = np.array(initial, dtype=np.float64)
     res = fixed_point(
         operator,
-        np.zeros((n_a, n_z)),
+        v0,
         tol=cfg.tol,
         max_iter=cfg.max_iter,
         damping=cfg.damping,
@@ -223,11 +228,22 @@ def _solve_finite_dp(model: CompiledModel, cfg: VFIConfig) -> Solution:
     )
 
 
-def solve_vfi(model: CompiledModel, *, backend: str | None = None, **options: Any) -> Solution:
-    """Value function iteration (see :class:`VFIConfig` for options)."""
+def solve_vfi(
+    model: CompiledModel,
+    *,
+    backend: str | None = None,
+    initial: Array | None = None,
+    **options: Any,
+) -> Solution:
+    """Value function iteration (see :class:`VFIConfig` for options).
+
+    ``initial`` optionally warm-starts the value iterate (shape ``(n_assets, n_shocks)``).
+    """
     cfg = resolve_config(VFIConfig, options)
+    if not isinstance(model.problem, SavingProblem | FiniteDPProblem):
+        raise ValidationError("vfi supports 'saving' and 'finite_dp' problems only")
     out = (
-        _solve_saving(model, cfg, backend)
+        _solve_saving(model, cfg, backend, initial)
         if isinstance(model.problem, SavingProblem)
         else _solve_finite_dp(model, cfg)
     )

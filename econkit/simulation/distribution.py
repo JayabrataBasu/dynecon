@@ -8,11 +8,14 @@ policy, preserving the policy mean and avoiding simulation noise.
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import numpy.typing as npt
 from scipy import sparse
+from scipy.sparse.linalg import spsolve
 
-from econkit.core.errors import ValidationError
+from econkit.core.errors import ConvergenceWarning, ValidationError
 from econkit.core.solution import Solution
 from econkit.model.problems import SavingProblem
 from econkit.numerics._dispatch import resolve_backend
@@ -115,10 +118,15 @@ def iterate_distribution(
 def stationary_distribution_young(
     solution: Solution,
     tol: float = 1e-12,
-    max_iter: int = 10_000,
+    max_iter: int = 2_000,
     backend: str | None = None,
 ) -> Array:
-    """Stationary mass ``mu[i, j]`` on the (asset, shock) grid by iterating the histogram step."""
+    """Stationary mass ``mu[i, j]`` on the (asset, shock) grid.
+
+    Iterates the histogram step on :func:`econkit.numerics.fixed_point`; when the iteration has
+    not reached ``tol`` within ``max_iter`` steps (slowly mixing wealth distributions near
+    ``beta (1 + r) = 1``) it falls back to a sparse direct solve of ``mu = T' mu``.
+    """
     _, a_next, P = _parts(solution)
     k, w, _ = lottery_weights(solution)
     _, lottery = resolve_backend("distribution_lottery", backend=backend)
@@ -128,9 +136,25 @@ def stationary_distribution_young(
     def step(mu: Array) -> Array:
         return np.asarray(lottery(mu, k, w), dtype=np.float64) @ P
 
-    res = fixed_point(step, mu0, tol=tol, max_iter=max_iter, norm="l1", name="young_distribution")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+        res = fixed_point(step, mu0, tol=tol, max_iter=max_iter, norm="l1", name="young")
     mu = res.x
+    if not res.converged:
+        mu = _direct_stationary(build_transition_matrix(solution)).reshape(mu0.shape)
     return np.asarray(mu / np.sum(mu), dtype=np.float64)
+
+
+def _direct_stationary(T: sparse.csr_matrix) -> Array:
+    """Solve ``mu = T' mu`` with ``sum(mu) = 1`` by a sparse LU factorisation."""
+    n = T.shape[0]
+    lhs = (sparse.identity(n, format="csr") - T.T).tolil()
+    lhs[n - 1, :] = np.ones(n)
+    rhs = np.zeros(n)
+    rhs[n - 1] = 1.0
+    mu = np.asarray(spsolve(lhs.tocsc(), rhs), dtype=np.float64)
+    mu = np.clip(mu, 0.0, None)
+    return np.asarray(mu / mu.sum(), dtype=np.float64)
 
 
 def aggregate(mu: Array, values: npt.ArrayLike) -> float:

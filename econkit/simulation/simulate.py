@@ -75,6 +75,17 @@ def simulate(
     (common random numbers); otherwise they are drawn from ``rng``. ``store`` limits the
     returned variables (default all).
     """
+    if solution.method == "perturbation":
+        from econkit.solvers.perturbation import simulate_linear
+
+        return simulate_linear(
+            solution,  # type: ignore[arg-type]
+            n_periods=n_periods,
+            n_agents=n_agents,
+            burn_in=burn_in,
+            rng=rng,
+            store=store,
+        )
     model, prob = _saving_parts(solution)
     if n_periods < 1 or n_agents < 1 or burn_in < 0:
         raise ValidationError("need n_periods >= 1, n_agents >= 1, burn_in >= 0")

@@ -13,6 +13,7 @@ __all__ = [
     "BackendUnavailableError",
     "ConvergenceError",
     "ConvergenceWarning",
+    "DeterminacyError",
     "EconKitError",
     "ModelSpecificationError",
     "ValidationError",
@@ -41,6 +42,10 @@ class BackendUnavailableError(BackendError):
 
 class ConvergenceError(EconKitError):
     """An iteration did not converge (raised only in strict mode)."""
+
+
+class DeterminacyError(EconKitError):
+    """A linear rational-expectations model has no unique stable solution (Blanchard-Kahn)."""
 
 
 class ConvergenceWarning(UserWarning):

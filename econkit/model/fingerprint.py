@@ -15,7 +15,12 @@ from typing import Any
 
 import numpy as np
 
-from econkit.model.problems import FiniteDPProblem, SavingProblem
+from econkit.model.problems import (
+    DSGEProblem,
+    FiniteDPProblem,
+    PricingProblem,
+    SavingProblem,
+)
 from econkit.model.specs import ShockProcess
 
 __all__ = ["fingerprint_model"]
@@ -39,7 +44,7 @@ def fingerprint_model(
     params: Mapping[str, float],
     grids: Mapping[str, np.ndarray],
     shocks: Mapping[str, ShockProcess],
-    problem: SavingProblem | FiniteDPProblem | None,
+    problem: SavingProblem | FiniteDPProblem | DSGEProblem | PricingProblem | None,
 ) -> str:
     """Hash parameters (exact floats), grids, shock arrays and equation source text."""
     prob: dict[str, Any] = {}
