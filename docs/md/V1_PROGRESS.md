@@ -196,7 +196,7 @@ Checklist only. No percentages (R6). Tick a box only when the phase gates pass.
 ## P17 — Release engineering and v1.0.0
 
 - [x] P17.1 API freeze
-- [ ] P17.2 Licence and metadata (needs D1, D8)
+- [x] P17.2 Licence and metadata (needs D1, D8)
 - [x] P17.3 Final quality sweep
 - [x] P17.4 Build and clean-room install
 - [ ] P17.5 Release candidate (human-gated)
@@ -222,9 +222,8 @@ Checklist only. No percentages (R6). Tick a box only when the phase gates pass.
 
 ## Blockers
 
-- **PyPI name `econkit` is taken** (existing project, versions up to 0.5.8). Choose a distribution name.
-- **D1 licence** (GPL-3.0 kept; decision needed before P17.2).
-- **D8** author metadata/URLs to be confirmed.
+- **PyPI name `econkit` is taken** (existing project, versions up to 0.5.8); the maintainer chose to keep it, so an upload under this name will be refused unless the name is obtained.
+- D1 licence decided: BSD-3-Clause. D8 author metadata set (Jayabrata Basu).
 - Human gates: Review-2/3/4, release candidate, soak, final release.
 - Ticked boxes mean the step's code, tests and docs exist and the local gates passed on Python 3.14 /
   Windows; steps that mention CI (P0.5, P12.8) mean the files were created, **not** that they ran on

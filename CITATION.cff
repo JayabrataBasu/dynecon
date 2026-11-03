@@ -5,6 +5,7 @@ type: software
 authors:
   - family-names: Basu
     given-names: Jayabrata
+    email: jayabratabasu@gmail.com
 repository-code: "https://github.com/JayabrataBasu/EconKit"
-license: GPL-3.0-or-later
+license: BSD-3-Clause
 version: 0.1.0.dev0

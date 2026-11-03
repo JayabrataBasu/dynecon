@@ -5,7 +5,7 @@ economic models, with a NumPy reference implementation, optional Numba accelerat
 optional JAX backend for exact derivatives.
 
 > **Status: pre-1.0 (0.1.0.dev0).** Feature-complete against the v1.0 execution plan except the
-> human-gated release steps (licence decision, PyPI upload). Progress is tracked as a checklist
+> human-gated release steps (PyPI upload and the package name). Progress is tracked as a checklist
 > in [`docs/md/V1_PROGRESS.md`](docs/md/V1_PROGRESS.md); known limits are in
 > [`docs/md/known_limits.md`](docs/md/known_limits.md).
 
@@ -114,5 +114,4 @@ See [`CITATION.cff`](CITATION.cff).
 
 ## Licence
 
-GPL-3.0 (see `LICENSE`). Whether to move to a permissive licence before 1.0 is an open decision
-(plan D1).
+BSD 3-Clause (see `LICENSE`), (c) 2026 Jayabrata Basu.
