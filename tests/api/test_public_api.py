@@ -14,6 +14,7 @@ EXPECTED = {
     "config",
     "errors",
     "simulate",
+    "smm",
     "solve",
 }
 

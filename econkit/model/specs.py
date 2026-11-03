@@ -8,7 +8,7 @@ economic model; keeping them declarative separates economic intent from numerics
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
 import numpy as np
@@ -33,6 +33,10 @@ __all__ = [
 class Param:
     """Named model parameter (value, optional bounds, free/fixed flag).
 
+    ``transform`` maps the parameter to the real line for estimation: ``"logit"`` for a
+    two-sided bound, ``"log"`` for a lower bound only, ``"none"`` for unbounded; ``"auto"``
+    picks from ``bounds``. ``prior`` is an :mod:`econkit.estimation.priors` distribution.
+
     Economics note:
     Parameters map structural primitives such as preferences, technology and policy
     constants into executable model code; ``free`` marks those to be estimated.
@@ -42,6 +46,8 @@ class Param:
     bounds: tuple[float, float] | None = None
     free: bool = False
     description: str = ""
+    transform: Literal["auto", "none", "log", "logit"] = "auto"
+    prior: Any = None
 
 
 @dataclass(frozen=True)
@@ -198,6 +204,67 @@ class ParameterSet:
                 raise ValidationError(f"unknown parameter {n!r}; known: {list(self._params)}")
         new = dict(self._params)
         for n, v in overrides.items():
-            p = new[n]
-            new[n] = Param(float(v), p.bounds, p.free, p.description)
+            new[n] = replace(new[n], value=float(v))
         return ParameterSet(new)
+
+    def _kind(self, name: str) -> str:
+        p = self._params[name]
+        if p.transform != "auto":
+            return p.transform
+        lo, hi = (-np.inf, np.inf) if p.bounds is None else p.bounds
+        if np.isfinite(lo) and np.isfinite(hi):
+            return "logit"
+        return "log" if np.isfinite(lo) else "none"
+
+    def to_unconstrained(
+        self, x: npt.ArrayLike, names: list[str] | None = None
+    ) -> npt.NDArray[np.float64]:
+        """Map parameter values ``x`` of ``names`` to the real line using each transform."""
+        sel = self._select(names)
+        arr = np.asarray(x, dtype=np.float64)
+        out = np.empty(len(sel))
+        for i, n in enumerate(sel):
+            kind, (lo, hi) = self._kind(n), self.bounds([n])[0]
+            if kind == "logit":
+                t = (arr[i] - lo) / (hi - lo)
+                if not 0.0 < t < 1.0:
+                    raise ValidationError(f"{n}={arr[i]} must lie strictly inside ({lo}, {hi})")
+                out[i] = np.log(t / (1.0 - t))
+            elif kind == "log":
+                if not arr[i] > lo:
+                    raise ValidationError(f"{n}={arr[i]} must exceed its lower bound {lo}")
+                out[i] = np.log(arr[i] - (lo if np.isfinite(lo) else 0.0))
+            else:
+                out[i] = arr[i]
+        return out
+
+    def from_unconstrained(
+        self, u: npt.ArrayLike, names: list[str] | None = None
+    ) -> npt.NDArray[np.float64]:
+        """Inverse of :meth:`to_unconstrained` (always inside the bounds)."""
+        sel = self._select(names)
+        arr = np.asarray(u, dtype=np.float64)
+        out = np.empty(len(sel))
+        for i, n in enumerate(sel):
+            kind, (lo, hi) = self._kind(n), self.bounds([n])[0]
+            if kind == "logit":
+                out[i] = lo + (hi - lo) / (1.0 + np.exp(-arr[i]))
+            elif kind == "log":
+                out[i] = (lo if np.isfinite(lo) else 0.0) + np.exp(arr[i])
+            else:
+                out[i] = arr[i]
+        return out
+
+    def log_jacobian(self, u: npt.ArrayLike, names: list[str] | None = None) -> float:
+        """``log |d theta / d u|`` at the unconstrained point ``u`` (for Bayesian densities)."""
+        sel = self._select(names)
+        arr = np.asarray(u, dtype=np.float64)
+        total = 0.0
+        for i, n in enumerate(sel):
+            kind, (lo, hi) = self._kind(n), self.bounds([n])[0]
+            if kind == "logit":
+                s = 1.0 / (1.0 + np.exp(-arr[i]))
+                total += np.log(hi - lo) + np.log(s) + np.log(1.0 - s)
+            elif kind == "log":
+                total += arr[i]
+        return float(total)

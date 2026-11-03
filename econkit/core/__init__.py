@@ -7,6 +7,7 @@ from econkit.core.errors import (
     ConvergenceWarning,
     DeterminacyError,
     EconKitError,
+    IdentificationError,
     ModelSpecificationError,
     ValidationError,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "ConvergenceWarning",
     "DeterminacyError",
     "EconKitError",
+    "IdentificationError",
     "ModelSpecificationError",
     "ValidationError",
 ]
