@@ -28,10 +28,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/JayabrataBasu/EconKit"
-Source = "https://github.com/JayabrataBasu/EconKit"
-Issues = "https://github.com/JayabrataBasu/EconKit/issues"
-Documentation = "https://github.com/JayabrataBasu/EconKit/tree/master/docs"
+Homepage = "https://github.com/JayabrataBasu/dynecon"
+Source = "https://github.com/JayabrataBasu/dynecon"
+Issues = "https://github.com/JayabrataBasu/dynecon/issues"
+Documentation = "https://github.com/JayabrataBasu/dynecon/tree/master/docs"
 
 [project.optional-dependencies]
 numba = ["numba>=0.59"]

@@ -6,6 +6,6 @@ authors:
   - family-names: Basu
     given-names: Jayabrata
     email: jayabratabasu@gmail.com
-repository-code: "https://github.com/JayabrataBasu/EconKit"
+repository-code: "https://github.com/JayabrataBasu/dynecon"
 license: BSD-3-Clause
 version: 0.1.0.dev0
