@@ -2,7 +2,9 @@
 
 All notable changes are recorded here ([Keep a Changelog](https://keepachangelog.com)).
 
-## [Unreleased] - toward 1.0.0
+## [Unreleased]
+
+## [0.1.0] - 2026-11-03
 
 ### Added
 - **Core:** error hierarchy (`ValidationError`, `ModelSpecificationError`, `BackendError`,
