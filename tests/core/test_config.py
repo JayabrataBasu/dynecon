@@ -46,7 +46,7 @@ def test_strict_mode_unregistered_operation_raises() -> None:
     ek.config.strict_backend = True
     try:
         with pytest.raises(BackendError):
-            resolve_backend("linear_interp_1d", backend="jax")
+            resolve_backend("linear_interp_1d", backend="rust")
         with pytest.raises(BackendError):
             resolve_backend("no_such_operation", backend="numpy")
     finally:
@@ -54,5 +54,5 @@ def test_strict_mode_unregistered_operation_raises() -> None:
 
 
 def test_non_strict_falls_back_to_numpy() -> None:
-    name, _ = resolve_backend("linear_interp_1d", backend="jax")
+    name, _ = resolve_backend("linear_interp_1d", backend="rust")
     assert name == "numpy"

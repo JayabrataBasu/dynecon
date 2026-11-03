@@ -8,6 +8,7 @@ log-likelihood at the maximum measures how precisely the data pin down each para
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -46,8 +47,13 @@ def mle(
     theta0: npt.ArrayLike,
     bounds: list[tuple[float | None, float | None]] | None = None,
     method: str = "L-BFGS-B",
+    gradient: str | None = None,
 ) -> MLEResult:
-    """Maximise ``loglik``; standard errors from the inverse of ``-H`` at the optimum."""
+    """Maximise ``loglik``; standard errors from the inverse of ``-H`` at the optimum.
+
+    ``gradient="jax"`` uses exact JAX derivatives (gradient and Hessian); ``loglik`` must then
+    be JAX-traceable. Otherwise derivatives are finite differences.
+    """
     x0 = np.asarray(theta0, dtype=np.float64)
     if x0.ndim != 1:
         raise ValidationError("theta0 must be a vector")
@@ -56,11 +62,33 @@ def mle(
         v = float(loglik(x))
         return -v if np.isfinite(v) else 1e12
 
+    jac = None
+    hess_fn = None
+    if gradient == "jax":
+        import jax
+        import jax.numpy as jnp
+
+        from econkit import _jax_setup  # noqa: F401  (enables float64)
+
+        def neg_j(x: Any) -> Any:
+            return -loglik(x)
+
+        grad_j, hess_j = jax.jit(jax.grad(neg_j)), jax.jit(jax.hessian(neg_j))
+
+        def jac(x: Array) -> Array:
+            return np.asarray(grad_j(jnp.asarray(x)), dtype=np.float64)
+
+        def hess_fn(x: Array) -> Array:
+            return np.asarray(hess_j(jnp.asarray(x)), dtype=np.float64)
+
+    elif gradient is not None:
+        raise ValidationError("gradient must be None or 'jax'")
     kw = {"bounds": bounds} if method in ("L-BFGS-B", "TNC", "SLSQP", "Powell") else {}
     opts = {"ftol": 1e-14, "gtol": 1e-10} if method == "L-BFGS-B" else {}
-    res = minimize(neg, x0, method=method, options=opts, **kw)
+    res = minimize(neg, x0, method=method, options=opts, jac=jac, **kw)
     theta = np.asarray(res.x, dtype=np.float64)
-    H = -numerical_hessian(neg, theta)  # Hessian of the log-likelihood
+    # Hessian of the log-likelihood
+    H = -hess_fn(theta) if hess_fn is not None else -numerical_hessian(neg, theta)
     cov = np.linalg.pinv(-H)
     return MLEResult(
         estimates=theta,

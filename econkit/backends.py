@@ -35,9 +35,11 @@ def available_backends() -> list[str]:
 def describe() -> str:
     """Operation x backend table plus library versions (paste into bug reports)."""
     import econkit.numerics  # noqa: F401  (ensures registration)
+    from econkit.numerics._dispatch import ensure_jax
     from econkit.numerics._registry import list_registered
     from econkit.utils.provenance import collect_provenance
 
+    jax_loaded = ensure_jax()
     reg = list_registered()
     ops = sorted({k[0] for k in reg})
     lines = ["operation".ljust(24) + "".join(b.ljust(8) for b in KNOWN_BACKENDS)]
@@ -48,4 +50,10 @@ def describe() -> str:
     lines.append("")
     for key in ("econkit", "python", "numpy", "scipy", "numba", "jax"):
         lines.append(f"{key}: {prov[key]}")
+    if jax_loaded:
+        import jax
+
+        devices = [str(d) for d in jax.devices()]
+        x64 = bool(jax.config.read("jax_enable_x64"))
+        lines.append(f"jax devices: {devices}, x64 enabled: {x64}")
     return "\n".join(lines)

@@ -46,7 +46,7 @@ def kalman_filter(
     a0: Array,
     P0: Array,
 ) -> KalmanResult:
-    """Filter ``y_t = Z a_t + e_t``, ``a_{t+1} = T a_t + eta_t`` with ``e ~ N(0, H)``, ``eta ~ N(0, Q)``.
+    """Filter ``y = Z a + e``, ``a' = T a + eta`` with ``e ~ N(0, H)``, ``eta ~ N(0, Q)``.
 
     ``y`` has shape ``(n_periods, n_obs)``; NaN entries are treated as missing and skipped
     (the corresponding rows of ``Z`` and ``H`` are dropped for that period).

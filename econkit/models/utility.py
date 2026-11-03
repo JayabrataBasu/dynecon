@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-__all__ = ["crra", "crra_marginal", "crra_marginal_inverse"]
+__all__ = ["crra", "crra_marginal", "crra_marginal_inverse", "exp", "log"]
 
 
 def crra(c: Any, sigma: float) -> Any:
@@ -29,3 +29,25 @@ def crra_marginal(c: Any, sigma: float) -> Any:
 def crra_marginal_inverse(x: Any, sigma: float) -> Any:
     """Inverse marginal utility ``x^(-1/sigma)``."""
     return x ** (-1.0 / sigma)
+
+
+def _is_jax(x: Any) -> bool:
+    return type(x).__module__.split(".")[0] in ("jax", "jaxlib")
+
+
+def log(x: Any) -> Any:
+    """Natural log that works on NumPy values and on JAX tracers (for autodiff)."""
+    if _is_jax(x):
+        import jax.numpy as jnp
+
+        return jnp.log(x)
+    return np.log(x)
+
+
+def exp(x: Any) -> Any:
+    """Exponential that works on NumPy values and on JAX tracers (for autodiff)."""
+    if _is_jax(x):
+        import jax.numpy as jnp
+
+        return jnp.exp(x)
+    return np.exp(x)

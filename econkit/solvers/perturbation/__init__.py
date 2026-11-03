@@ -50,14 +50,18 @@ def solve_perturbation(
     model: CompiledModel, *, backend: str | None = None, **options: Any
 ) -> PerturbationSolution:
     """Solve a ``dsge`` problem to first order (see :class:`PerturbationConfig`)."""
-    del backend  # finite-difference Jacobians run in NumPy
     cfg = resolve_config(PerturbationConfig, options)
     prob = model.problem
     if not isinstance(prob, DSGEProblem):
         raise ValidationError("perturbation needs a 'dsge' problem")
     t0 = perf_counter()
     y_ss = steady_state(prob, model.p, cfg.ss_tol)
-    A, B, sigma = linearize(prob, model.p, y_ss, cfg.fd_eps)
+    if backend == "jax":
+        from econkit.solvers.perturbation.jacobian_jax import linearize_jax
+
+        A, B, sigma = linearize_jax(prob, model.p, y_ss)
+    else:
+        A, B, sigma = linearize(prob, model.p, y_ss, cfg.fd_eps)
     F, P, eig = klein_solve(A, B, len(prob.states))
     return PerturbationSolution(
         method="perturbation",
@@ -65,7 +69,7 @@ def solve_perturbation(
         iterations=0,
         residual=0.0,
         elapsed=perf_counter() - t0,
-        backend="numpy",
+        backend="jax" if backend == "jax" else "numpy",
         model_name=model.name,
         params=model.parameters.values,
         grids={},

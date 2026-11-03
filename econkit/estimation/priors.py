@@ -74,6 +74,7 @@ class Uniform(Prior):
         return (self.low, self.high)
 
     def _logpdf_inside(self, x: float) -> float:
+        del x
         return -math.log(self.high - self.low)
 
     def sample(self, rng: np.random.Generator) -> float:

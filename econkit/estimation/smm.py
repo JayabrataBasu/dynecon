@@ -76,7 +76,7 @@ def _check_weights(weights: str | Array, q: int) -> tuple[str, Array | None]:
     return "custom", w
 
 
-def smm(
+def smm(  # noqa: C901 - sequential two-step estimation with inference; steps are inline
     model: CompiledModel,
     free_params: Sequence[str],
     data_moments: npt.ArrayLike | None,

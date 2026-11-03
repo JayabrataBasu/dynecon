@@ -27,6 +27,11 @@ def _table(names: list[str], cols: dict[str, Array]) -> str:
     return "\n".join([head, *rows])
 
 
+def _no_loss(params: dict[str, float]) -> float:
+    del params
+    return float("nan")
+
+
 @dataclass(frozen=True)
 class SMMResult:
     """Simulated-method-of-moments estimate with inference and diagnostics."""
@@ -48,7 +53,7 @@ class SMMResult:
     converged: bool
     diagnostics: dict[str, Any]
     config: dict[str, Any]
-    loss_fn: Callable[[dict[str, float]], float] = field(repr=False, default=lambda p: float("nan"))
+    loss_fn: Callable[[dict[str, float]], float] = field(repr=False, default=_no_loss)
 
     @property
     def params(self) -> dict[str, float]:

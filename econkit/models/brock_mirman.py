@@ -15,6 +15,7 @@ import numpy as np
 from econkit.core.errors import ValidationError
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.models.registry import register, split_overrides
+from econkit.models.utility import log
 
 __all__ = ["ANALYTIC", "CALIBRATION_SOURCE", "DEFAULTS", "PARAMS", "build", "steady_state_capital"]
 
@@ -83,7 +84,7 @@ def build(**overrides: Any) -> Model:
             log_variables=["k", "z", "c"],
             equations=lambda yp, y, p: [
                 yp.k - y.z * y.k**p.alpha + y.c,
-                np.log(yp.z) - p.rho * np.log(y.z),
+                log(yp.z) - p.rho * log(y.z),
                 1.0 / y.c - p.beta * p.alpha * yp.z * yp.k ** (p.alpha - 1.0) / yp.c,
             ],
             shock_loadings=lambda p: np.array([[0.0], [p.sigma_e]]),

@@ -15,7 +15,7 @@ import numpy as np
 from econkit.core.errors import ValidationError
 from econkit.model import AR1Shock, Control, Model, Param, State
 from econkit.models.registry import register, split_overrides
-from econkit.models.utility import crra, crra_marginal, crra_marginal_inverse
+from econkit.models.utility import crra, crra_marginal, crra_marginal_inverse, log
 
 __all__ = ["ANALYTIC", "CALIBRATION_SOURCE", "DEFAULTS", "PARAMS", "build", "steady_state"]
 
@@ -64,7 +64,7 @@ def build(**overrides: Any) -> Model:
             log_variables=["k", "z", "c", "y", "i"],
             equations=lambda yp, y, p: [
                 yp.k - (1.0 - p.delta) * y.k - y.i,
-                np.log(yp.z) - p.rho * np.log(y.z),
+                log(yp.z) - p.rho * log(y.z),
                 y.c ** (-p.sigma)
                 - p.beta
                 * yp.c ** (-p.sigma)
