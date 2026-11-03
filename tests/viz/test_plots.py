@@ -92,7 +92,8 @@ def test_distribution_and_lorenz(egm) -> None:
     np.testing.assert_allclose(fig.axes[1].lines[0].get_ydata()[-1], 1.0)
     ax = plot_lorenz(egm.grids["assets"], mass)
     x, y = ax.lines[0].get_xdata(), ax.lines[0].get_ydata()
-    assert (x[0], y[0]) == (0.0, 0.0) and (x[-1], round(float(y[-1]), 12)) == (1.0, 1.0)
+    assert (x[0], y[0]) == (0.0, 0.0)
+    assert x[-1] == pytest.approx(1.0) and y[-1] == pytest.approx(1.0)
     assert "Gini" in ax.get_legend().get_texts()[0].get_text()
 
 

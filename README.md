@@ -4,7 +4,7 @@ A Python library for computational economics: specify, solve, simulate and estim
 economic models, with a NumPy reference implementation, optional Numba acceleration and an
 optional JAX backend for exact derivatives.
 
-> **Status: pre-1.0 (0.1.0.dev0).** Feature-complete against the v1.0 execution plan except the
+> **Status: pre-1.0 (0.1.0).** Feature-complete against the v1.0 execution plan except the
 > human-gated release steps (PyPI upload and the package name). Progress is tracked as a checklist
 > in [`docs/md/V1_PROGRESS.md`](docs/md/V1_PROGRESS.md); known limits are in
 > [`docs/md/known_limits.md`](docs/md/known_limits.md).

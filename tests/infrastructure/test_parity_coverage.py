@@ -36,7 +36,7 @@ def test_named_parity_tests_exist() -> None:
 
 def test_jax_ops_have_jax_parity_coverage() -> None:
     jax_ops = {op for (op, backend) in list_registered() if backend == "jax"}
-    text = (TESTS / "jax" / "test_jax_backend.py").read_text(encoding="utf-8")
+    text = (TESTS / "jax_backend" / "test_jax_backend.py").read_text(encoding="utf-8")
     for needle in (
         "interpolation_parity",
         "markov_paths_exact_parity",

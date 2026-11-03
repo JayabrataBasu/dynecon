@@ -8,6 +8,7 @@ a sweep solves the model on a grid of parameters and records chosen outcomes at 
 from __future__ import annotations
 
 import itertools
+import multiprocessing
 import warnings
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
@@ -116,7 +117,9 @@ class ParameterSweep:
             for pt in pts
         ]
         if self.n_jobs > 1:
-            with ProcessPoolExecutor(max_workers=self.n_jobs) as pool:
+            with ProcessPoolExecutor(
+                max_workers=self.n_jobs, mp_context=multiprocessing.get_context("spawn")
+            ) as pool:
                 outcomes = list(pool.map(_run_point, tasks))
         else:
             outcomes = [_run_point(t) for t in tasks]

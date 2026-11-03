@@ -66,7 +66,7 @@ def distribution_lottery_numpy(mu: Array, k: IntArray, w: Array) -> Array:
     lo = (k * n_z + cols).ravel()
     hi = ((k + 1) * n_z + cols).ravel()
     size = n_a * n_z
-    out = np.bincount(lo, weights=(mu * w).ravel(), minlength=size)
+    out = np.asarray(np.bincount(lo, weights=(mu * w).ravel(), minlength=size), dtype=np.float64)
     out += np.bincount(hi, weights=(mu * (1.0 - w)).ravel(), minlength=size)
     return out.reshape(n_a, n_z)
 

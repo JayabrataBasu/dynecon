@@ -17,6 +17,8 @@ def test_nine_tutorials_exist() -> None:
 @pytest.mark.slow
 @pytest.mark.parametrize("path", TUTORIALS, ids=lambda p: p.name)
 def test_tutorial_runs(path: Path) -> None:
+    if "import jax" in path.read_text(encoding="utf-8"):
+        pytest.importorskip("jax.numpy")
     proc = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "run_tutorials.py"), path.name[:2]],
         capture_output=True,

@@ -17,7 +17,7 @@ Array = npt.NDArray[np.float64]
 @jit
 def interp_linear_scalar(x: float, xp: Array, fp: Array, mode: int) -> float:
     """Interpolate at one point. ``mode`` 0 clamps outside the grid, 1 extrapolates."""
-    idx = np.searchsorted(xp, x, side="right") - 1
+    idx = int(np.searchsorted(xp, x, side="right")) - 1
     idx = max(0, min(idx, xp.shape[0] - 2))
     x0 = xp[idx]
     t = (x - x0) / (xp[idx + 1] - x0)
