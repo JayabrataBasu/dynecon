@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "econkit"
+name = "dynecon"
 dynamic = ["version"]
 description = "A Python library for computational economics"
 readme = "README.md"
@@ -50,16 +50,16 @@ dev = [
   "pandas>=2.0",
   "matplotlib>=3.7",
 ]
-all = ["econkit[numba,jax,data,viz]"]
+all = ["dynecon[numba,jax,data,viz]"]
 
 [tool.setuptools.dynamic]
-version = { attr = "econkit._version.__version__" }
+version = { attr = "dynecon._version.__version__" }
 
 [tool.setuptools.packages.find]
-include = ["econkit*"]
+include = ["dynecon*"]
 
 [tool.setuptools.package-data]
-"econkit" = ["py.typed"]
+"dynecon" = ["py.typed"]
 
 [tool.ruff]
 line-length = 100
@@ -75,11 +75,11 @@ max-complexity = 12
 "tests/**" = ["ARG", "E501"]
 "scripts/**" = ["ARG", "E501"]  # long prose/format strings in generators
 "benchmarks/**" = ["ARG", "E501"]
-"econkit/models/**" = ["ARG001", "ARG005"]  # template callables have fixed signatures
+"dynecon/models/**" = ["ARG001", "ARG005"]  # template callables have fixed signatures
 
 [tool.vulture]
 min_confidence = 80
-paths = ["econkit"]
+paths = ["dynecon"]
 
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"
@@ -91,10 +91,10 @@ markers = [
   "network: requires internet (never run in CI by default)",
   "plot: needs matplotlib",
 ]
-filterwarnings = ["error::DeprecationWarning:econkit.*"]
+filterwarnings = ["error::DeprecationWarning:dynecon.*"]
 
 [tool.coverage.run]
-source = ["econkit"]
+source = ["dynecon"]
 branch = true
 
 [tool.coverage.report]

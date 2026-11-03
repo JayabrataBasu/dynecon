@@ -35,10 +35,10 @@ ALLOW = {
 
 
 def public_modules() -> list[Any]:
-    import econkit
+    import dynecon
 
-    mods = [econkit]
-    for info in pkgutil.walk_packages(econkit.__path__, "econkit."):
+    mods = [dynecon]
+    for info in pkgutil.walk_packages(dynecon.__path__, "dynecon."):
         parts = info.name.split(".")
         if (
             any(p.startswith("_") for p in parts)
@@ -67,7 +67,7 @@ def main() -> int:
             obj = getattr(mod, name, None)
             if obj is None or not (inspect.isfunction(obj) or inspect.isclass(obj)):
                 continue
-            if getattr(obj, "__module__", "").split(".")[0] != "econkit":
+            if getattr(obj, "__module__", "").split(".")[0] != "dynecon":
                 continue
             doc = inspect.getdoc(obj) or ""
             defining = importlib.import_module(obj.__module__)

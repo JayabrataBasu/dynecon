@@ -1,6 +1,6 @@
 # Economics Explainability Standard
 
-EconKit code must explain economics, not just implementation details.
+Dynecon code must explain economics, not just implementation details.
 
 ## Required in Model and Solver Code
 
@@ -17,4 +17,4 @@ EconKit code must explain economics, not just implementation details.
 
 ## Why This Matters
 
-EconKit is a computational economics project. If a numerical routine cannot be connected back to the economics it represents, the implementation is incomplete.
+Dynecon is a computational economics project. If a numerical routine cannot be connected back to the economics it represents, the implementation is incomplete.

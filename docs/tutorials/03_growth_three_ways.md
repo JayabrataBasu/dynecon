@@ -16,9 +16,9 @@ With log utility and full depreciation the Brock-Mirman model has the exact poli
 
 ```{code-cell} ipython3
 import numpy as np
-import econkit as ek
-from econkit import models
-from econkit.models.brock_mirman import ANALYTIC
+import dynecon as ek
+from dynecon import models
+from dynecon.models.brock_mirman import ANALYTIC
 
 alpha, beta = 0.36, 0.96
 vfi = ek.solve(models.load("brock_mirman", n_k=300).compile(), method="vfi", tol=1e-9)

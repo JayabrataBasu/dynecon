@@ -3,10 +3,10 @@
 import numpy as np
 import pytest
 
-from econkit.config import config
-from econkit.numerics._dispatch import resolve_backend
-from econkit.numerics._registry import list_registered, register
-from econkit.numerics.interpolation import linear_interp_1d
+from dynecon.config import config
+from dynecon.numerics._dispatch import resolve_backend
+from dynecon.numerics._registry import list_registered, register
+from dynecon.numerics.interpolation import linear_interp_1d
 
 
 def test_dispatch_resolves_numpy() -> None:

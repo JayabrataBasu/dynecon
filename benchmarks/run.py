@@ -14,7 +14,7 @@ import numpy as np
 
 from benchmarks import cases as case_module
 from benchmarks.harness import machine_info, run_case
-from econkit import backends
+from dynecon import backends
 
 
 def main(argv: list[str] | None = None) -> int:

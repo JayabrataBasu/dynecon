@@ -33,9 +33,9 @@ jobs:
           python scripts/check_test_layout.py
           python scripts/check_progress.py
           ruff check .
-          mypy econkit
+          mypy dynecon
           pytest -m "not slow and not jax"
-          vulture econkit scripts/vulture_whitelist.py
+          vulture dynecon scripts/vulture_whitelist.py
           python scripts/check_usage.py
           python scripts/check_near_future.py
 

@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from econkit.numerics._dispatch import ensure_jax
-from econkit.numerics._registry import list_registered
+from dynecon.numerics._dispatch import ensure_jax
+from dynecon.numerics._registry import list_registered
 
 TESTS = Path(__file__).resolve().parents[1]
 

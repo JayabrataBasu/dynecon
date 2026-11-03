@@ -7,7 +7,7 @@ recorded on the result.
 ## Simulated method of moments
 
 ```python
-from econkit.estimation import MomentSet, MomentTarget, smm
+from dynecon.estimation import MomentSet, MomentTarget, smm
 
 target = MomentSet((MomentTarget("mean_assets", 3.1), MomentTarget("std_consumption", 0.4)))
 model = models.load("consumption_savings")  # then mark the parameter free with bounds

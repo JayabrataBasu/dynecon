@@ -30,11 +30,10 @@ Perturbation (default); EGM via `problem='saving'`.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
-sol = ek.solve(models.load("rbc").compile())
-irf = irf(sol, "eps_z")
+sol = ek.solve(models.load('rbc').compile()); irf = irf(sol, 'eps_z')
 ```
 
 ## Benchmark and test

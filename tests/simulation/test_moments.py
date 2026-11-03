@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import ValidationError
-from econkit.simulation import moments as m
+from dynecon.core.errors import ValidationError
+from dynecon.simulation import moments as m
 
 
 def ar1(rho: float, n: int, seed: int = 0) -> np.ndarray:

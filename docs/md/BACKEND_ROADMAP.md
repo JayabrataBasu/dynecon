@@ -1,13 +1,13 @@
 # Backend roadmap
 
 The Python surface API is permanent; compiled layers sit behind the dispatcher
-(`econkit/numerics/_dispatch.py`) and are added operation by operation, validated against the
-NumPy reference, never replacing it. See `docs/md/EconKit_Architecture.md`, Section 19.
+(`dynecon/numerics/_dispatch.py`) and are added operation by operation, validated against the
+NumPy reference, never replacing it. See `docs/md/Dynecon_Architecture.md`, Section 19.
 
 ## Status per operation
 
 Regenerate with `python scripts/backend_matrix.py` (after importing the JAX kernels with
-`econkit.backends.describe()`); current state:
+`dynecon.backends.describe()`); current state:
 
 | operation | numpy | numba | jax |
 |---|---|---|---|

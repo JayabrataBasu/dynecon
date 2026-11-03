@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import ModelSpecificationError, ValidationError
-from econkit.model import AR1Shock, Control, IIDShock, MarkovShock, Model, Param, State
-from econkit.model.shocks import discretize_shock
+from dynecon.core.errors import ModelSpecificationError, ValidationError
+from dynecon.model import AR1Shock, Control, IIDShock, MarkovShock, Model, Param, State
+from dynecon.model.shocks import discretize_shock
 
 
 def cs_model(beta: float = 0.96, n_a: int = 40, n_z: int = 5, name: str = "cs") -> Model:

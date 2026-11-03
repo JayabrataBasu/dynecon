@@ -28,10 +28,9 @@ EGM + Young distribution + Brent on the capital market.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
-from econkit.models import aiyagari
-
+import dynecon as ek
+from dynecon import models
+from dynecon.models import aiyagari
 eq = aiyagari.equilibrium(sigma=2.0, rho=0.9, sigma_e=0.2)
 ```
 

@@ -9,8 +9,8 @@ reported together in one `ModelSpecificationError`).
 
 ```python
 import numpy as np
-import econkit as ek
-from econkit import Model, Param, State, Control, AR1Shock
+import dynecon as ek
+from dynecon import Model, Param, State, Control, AR1Shock
 
 m = Model("consumption_savings")
 m.params(
@@ -62,7 +62,7 @@ Brock-Mirman uses the same template with `resources = z * k**alpha` and
 | `pricing` | dividend shock, discount, marginal utility | fixed point on prices |
 
 `dsge` equations receive `Vars` (name-addressable: `y.k`, `yp.c`) of levels, return one
-residual per variable and must use `econkit.models.utility.log/exp` (not NumPy's) if you want
+residual per variable and must use `dynecon.models.utility.log/exp` (not NumPy's) if you want
 JAX exact derivatives. `log_variables` makes responses percent deviations.
 
 ## Immutability and fingerprints

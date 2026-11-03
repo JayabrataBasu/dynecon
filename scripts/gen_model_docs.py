@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
-from econkit import models
+from dynecon import models
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -85,7 +85,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     names = models.available()
     for name in names:
-        mod = importlib.import_module(f"econkit.models.{name}")
+        mod = importlib.import_module(f"dynecon.models.{name}")
         meta = META[name]
         rows = "\n".join(
             f"| `{k}` | {p.value:g} | {p.bounds} | {p.description} |" for k, p in mod.PARAMS.items()
@@ -117,9 +117,9 @@ Structural options (not parameters): {opts}.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
-{("from econkit.models import " + name) if name in ("aiyagari", "huggett", "mccall") else ""}
+import dynecon as ek
+from dynecon import models
+{("from dynecon.models import " + name) if name in ("aiyagari", "huggett", "mccall") else ""}
 {meta["example"]}
 ```
 

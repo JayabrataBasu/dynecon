@@ -1,6 +1,6 @@
 # First-order perturbation (Klein 2000)
 
-For a `dsge` problem `E_t f(y_{t+1}, y_t; p) = 0` EconKit finds the steady state
+For a `dsge` problem `E_t f(y_{t+1}, y_t; p) = 0` Dynecon finds the steady state
 (analytic `steady_state(p)` or `scipy.optimize.root` from `guess(p)`), linearises by
 central differences (or exact JAX autodiff with `backend="jax"`), and solves
 `A E_t[yhat_{t+1}] = B yhat_t` with the generalised Schur decomposition.
@@ -16,7 +16,7 @@ m.set_problem(
     log_variables=["k", "z", "c"],  # report log deviations
     equations=lambda yp, y, p: [
         yp.k - y.z * y.k**p.alpha + y.c,  # resource constraint
-        log(yp.z) - p.rho * log(y.z),  # TFP; log from econkit.models.utility
+        log(yp.z) - p.rho * log(y.z),  # TFP; log from dynecon.models.utility
         1 / y.c - p.beta * p.alpha * yp.z * yp.k ** (p.alpha - 1) / yp.c,  # Euler
     ],
     shock_loadings=lambda p: np.array([[0.0], [p.sigma_e]]),  # (n_states x n_shocks)

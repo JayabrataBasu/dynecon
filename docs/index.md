@@ -1,12 +1,12 @@
-# EconKit
+# Dynecon
 
 A Python library for computational economics: specify, solve, simulate and estimate dynamic
 economic models with a NumPy reference, Numba acceleration and a JAX backend for exact
 derivatives.
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 model = models.load("consumption_savings").compile()
 sol = ek.solve(model)  # endogenous grid method

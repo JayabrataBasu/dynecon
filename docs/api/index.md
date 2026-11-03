@@ -5,17 +5,17 @@
    :toctree: generated
    :recursive:
 
-   econkit.model
-   econkit.models
-   econkit.numerics
-   econkit.solvers
-   econkit.simulation
-   econkit.estimation
-   econkit.experiment
-   econkit.data
-   econkit.viz
-   econkit.core.errors
-   econkit.core.solution
-   econkit.config
-   econkit.backends
+   dynecon.model
+   dynecon.models
+   dynecon.numerics
+   dynecon.solvers
+   dynecon.simulation
+   dynecon.estimation
+   dynecon.experiment
+   dynecon.data
+   dynecon.viz
+   dynecon.core.errors
+   dynecon.core.solution
+   dynecon.config
+   dynecon.backends
 ```

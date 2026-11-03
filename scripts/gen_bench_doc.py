@@ -38,9 +38,9 @@ def _new_iteration_seconds(n_a: int = 200, n_z: int = 7, repeats: int = 30) -> f
 
     import numpy as np
 
-    from econkit import models
-    from econkit.numerics._dispatch import resolve_backend
-    from econkit.solvers.dp.vfi import build_payoff_tensor
+    from dynecon import models
+    from dynecon.numerics._dispatch import resolve_backend
+    from dynecon.solvers.dp.vfi import build_payoff_tensor
 
     model = models.load("consumption_savings", n_a=n_a, n_z=n_z, a_max=50.0).compile()
     U = build_payoff_tensor(model)

@@ -138,8 +138,8 @@ celerybeat.pid
 .env
 .envrc
 .venv
-.venv-econkit/
-.econkit/
+.venv-dynecon/
+.venv/
 env/
 venv/
 ENV/

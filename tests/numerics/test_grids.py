@@ -3,8 +3,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from econkit.core.errors import ValidationError
-from econkit.numerics.grids import exp_grid, make_grid, uniform_grid
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.grids import exp_grid, make_grid, uniform_grid
 
 
 def test_uniform_grid_basic() -> None:
@@ -55,7 +55,7 @@ def test_exp_grid_reduces_interpolation_error_near_constraint() -> None:
     def u(c: np.ndarray) -> np.ndarray:
         return c ** (1 - sigma) / (1 - sigma)
 
-    from econkit.numerics.interpolation import linear_interp_1d
+    from dynecon.numerics.interpolation import linear_interp_1d
 
     fine = np.linspace(lo, lo + 0.1 * (hi - lo), 2000)
     errs = []

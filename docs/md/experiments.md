@@ -3,7 +3,7 @@
 ## Reproducible runs
 
 ```python
-from econkit.experiment import Experiment
+from dynecon.experiment import Experiment
 
 exp = Experiment(
     "aiyagari_base",

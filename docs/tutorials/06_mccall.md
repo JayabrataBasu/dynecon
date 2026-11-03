@@ -16,9 +16,9 @@ or rejects and collects the benefit `c`. The optimal rule is a reservation wage.
 
 ```{code-cell} ipython3
 import numpy as np
-import econkit as ek
-from econkit import models
-from econkit.models import mccall
+import dynecon as ek
+from dynecon import models
+from dynecon.models import mccall
 
 def wbar(**kw):
     return mccall.reservation_wage(ek.solve(models.load("mccall", **kw).compile(), tol=1e-12))

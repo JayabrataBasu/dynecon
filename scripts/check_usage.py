@@ -32,7 +32,7 @@ def allowlist() -> set[str]:
 
 
 def main() -> int:
-    lib = list((ROOT / "econkit").rglob("*.py"))
+    lib = list((ROOT / "dynecon").rglob("*.py"))
     tests = list((ROOT / "tests").rglob("*.py"))
     docs = list((ROOT / "docs").rglob("*.md"))
     text = {p: p.read_text(encoding="utf-8") for p in lib + tests + docs}

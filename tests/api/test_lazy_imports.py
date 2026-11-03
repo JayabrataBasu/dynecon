@@ -1,12 +1,12 @@
-"""`import econkit` must stay light: no pandas, matplotlib, numba or jax."""
+"""`import dynecon` must stay light: no pandas, matplotlib, numba or jax."""
 
 import subprocess
 import sys
 
 
-def test_import_econkit_does_not_load_optional_stacks() -> None:
+def test_import_dynecon_does_not_load_optional_stacks() -> None:
     code = (
-        "import sys, econkit;"
+        "import sys, dynecon;"
         "bad = [m for m in ('pandas','matplotlib','numba','jax') if m in sys.modules];"
         "print(','.join(bad))"
     )
@@ -18,8 +18,8 @@ def test_import_econkit_does_not_load_optional_stacks() -> None:
 
 def test_numba_loads_only_when_a_kernel_is_called() -> None:
     code = (
-        "import sys, numpy as np, econkit as ek;"
-        "from econkit import models;"
+        "import sys, numpy as np, dynecon as ek;"
+        "from dynecon import models;"
         "assert 'numba' not in sys.modules;"
         "ek.solve(models.load('consumption_savings', n_a=30, n_z=3).compile(), method='vfi');"
         "print('numba' in sys.modules)"

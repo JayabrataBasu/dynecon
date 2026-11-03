@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 from builders import consumption_savings, permanent_income
 
-import econkit as ek
-from econkit.core.errors import ValidationError
-from econkit.model import Model, Param
+import dynecon as ek
+from dynecon.core.errors import ValidationError
+from dynecon.model import Model, Param
 
 
 @pytest.fixture(scope="module")

@@ -13,10 +13,10 @@ kernelspec:
 
 ```{code-cell} ipython3
 import numpy as np
-import econkit as ek
-from econkit import models
-from econkit.solvers.perturbation import irf, theoretical_moments
-from econkit.core.errors import DeterminacyError
+import dynecon as ek
+from dynecon import models
+from dynecon.solvers.perturbation import irf, theoretical_moments
+from dynecon.core.errors import DeterminacyError
 
 rbc = ek.solve(models.load("rbc").compile())
 resp = irf(rbc, "eps_z", horizon=40)
@@ -42,7 +42,7 @@ outcome
 Compare three detrending filters on simulated RBC output (log deviations):
 
 ```{code-cell} ipython3
-from econkit.data import hp_filter, baxter_king, hamilton_filter
+from dynecon.data import hp_filter, baxter_king, hamilton_filter
 sim = ek.simulate(rbc, n_periods=240, rng=1, store=["y"])
 y = sim.paths["y"][:, 0]
 trend, cycle = hp_filter(y, 1600)
@@ -55,7 +55,7 @@ A small FRED-format sample (synthetic values, no licensed data) parsed and HP-fi
 
 ```{code-cell} ipython3
 from pathlib import Path
-from econkit.data import parse_fred_csv
+from dynecon.data import parse_fred_csv
 text = Path("data/fred_sample.csv").read_text() if Path("data/fred_sample.csv").exists() else Path("docs/tutorials/data/fred_sample.csv").read_text()
 gdp = parse_fred_csv(text).dropna()
 t, c = hp_filter(np.log(gdp))

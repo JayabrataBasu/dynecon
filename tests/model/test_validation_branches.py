@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import ModelSpecificationError
-from econkit.model import AR1Shock, Control, Model, Param, State
+from dynecon.core.errors import ModelSpecificationError
+from dynecon.model import AR1Shock, Control, Model, Param, State
 
 
 def saving(**overrides) -> Model:

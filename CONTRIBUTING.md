@@ -1,12 +1,12 @@
-# Contributing to EconKit
+# Contributing to Dynecon
 
 Thank you for contributing.
 
 ## Development setup
 
 ```bash
-python -m venv .econkit
-source .econkit/bin/activate        # Windows: .econkit\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 make install                        # pip install -e ".[dev]"
 make ci                             # all gates
 ```
@@ -38,7 +38,7 @@ Tests live in `tests/<domain>/` (see `tests/TEST_STRUCTURE.md`). Markers: `slow`
 
 ## Adding a model
 
-Write `econkit/models/<name>.py` with `PARAMS`, `DEFAULTS`, `CALIBRATION_SOURCE`, `ANALYTIC`, a
+Write `dynecon/models/<name>.py` with `PARAMS`, `DEFAULTS`, `CALIBRATION_SOURCE`, `ANALYTIC`, a
 `build(**overrides)` function returning a `Model`, and end with `register("<name>", build)`. The
 registry's `register(name, builder)` is the same function the nine built-ins use; there is no separate
 plugin mechanism. Add a test against an analytic or published benchmark, an entry in

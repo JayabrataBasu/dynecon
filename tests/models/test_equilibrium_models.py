@@ -2,7 +2,7 @@
 
 import pytest
 
-from econkit.models import aiyagari, huggett
+from dynecon.models import aiyagari, huggett
 
 COMPLETE = 1 / 0.96 - 1
 KW = dict(sigma=2.0, rho=0.9, n_a=80, n_z=5)
@@ -35,7 +35,7 @@ def test_risk_lowers_the_interest_rate() -> None:
 def test_warm_start_reduces_inner_iterations() -> None:
     kw = dict(sigma_e=0.1, **KW)
     warm = aiyagari.equilibrium(**kw)
-    from econkit.solvers.equilibrium import solve_stationary_equilibrium
+    from dynecon.solvers.equilibrium import solve_stationary_equilibrium
 
     cold = solve_stationary_equilibrium(
         lambda r: aiyagari.build(r=r, **kw).compile(),
@@ -63,7 +63,7 @@ def test_huggett_clears_bonds_and_borrowing_limit_matters() -> None:
 
 
 def test_wealth_more_unequal_than_income() -> None:
-    from econkit.simulation import gini, marginal_distribution
+    from dynecon.simulation import gini, marginal_distribution
 
     eq = huggett.equilibrium(n_a=80, n_z=5, phi=2.0)
     a = eq.grids["assets"]
@@ -74,7 +74,7 @@ def test_wealth_more_unequal_than_income() -> None:
 
 
 def test_equilibrium_rejects_price_override() -> None:
-    from econkit.core.errors import ValidationError
+    from dynecon.core.errors import ValidationError
 
     with pytest.raises(ValidationError):
         aiyagari.equilibrium(r=0.03)

@@ -5,15 +5,15 @@ import pytest
 
 jax = pytest.importorskip("jax")
 
-import econkit as ek  # noqa: E402
-from econkit import backends, models  # noqa: E402
-from econkit.core.errors import BackendError, BackendUnavailableError, ValidationError  # noqa: E402
-from econkit.estimation import mle  # noqa: E402
-from econkit.numerics import _dispatch  # noqa: E402
-from econkit.numerics.interpolation import linear_interp_1d  # noqa: E402
-from econkit.numerics.markov import markov_paths  # noqa: E402
-from econkit.simulation import iterate_distribution  # noqa: E402
-from econkit.solvers.batch import solve_many  # noqa: E402
+import dynecon as ek  # noqa: E402
+from dynecon import backends, models  # noqa: E402
+from dynecon.core.errors import BackendError, BackendUnavailableError, ValidationError  # noqa: E402
+from dynecon.estimation import mle  # noqa: E402
+from dynecon.numerics import _dispatch  # noqa: E402
+from dynecon.numerics.interpolation import linear_interp_1d  # noqa: E402
+from dynecon.numerics.markov import markov_paths  # noqa: E402
+from dynecon.simulation import iterate_distribution  # noqa: E402
+from dynecon.solvers.batch import solve_many  # noqa: E402
 
 pytestmark = pytest.mark.jax
 
@@ -81,7 +81,7 @@ def test_autodiff_jacobians_match_finite_differences_and_analytic() -> None:
 def test_non_traceable_equations_raise_clear_error() -> None:
     from dataclasses import replace
 
-    from econkit.model import Model
+    from dynecon.model import Model
 
     base = models.load("brock_mirman", problem="dsge").compile()
     m = Model("bad")
@@ -108,7 +108,7 @@ def test_non_traceable_equations_raise_clear_error() -> None:
 def test_kalman_gradient_and_mle_with_jax_gradient() -> None:
     import jax.numpy as jnp
 
-    from econkit.estimation.kalman_jax import kalman_loglik_jax
+    from dynecon.estimation.kalman_jax import kalman_loglik_jax
 
     rng = np.random.default_rng(3)
     mu = np.cumsum(0.3 * rng.standard_normal(300))

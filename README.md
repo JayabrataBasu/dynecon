@@ -1,4 +1,4 @@
-# EconKit
+# Dynecon
 
 A Python library for computational economics: specify, solve, simulate and estimate dynamic
 economic models, with a NumPy reference implementation, optional Numba acceleration and an
@@ -12,17 +12,17 @@ optional JAX backend for exact derivatives.
 ## Install
 
 ```bash
-pip install -e ".[dev]"            # from a clone; or: pip install econkit  (once published)
+pip install -e ".[dev]"            # from a clone; or: pip install dynecon  (once published)
 ```
 
 Runtime dependencies are NumPy and SciPy. Extras: `numba`, `jax`, `data` (pandas), `viz`
-(matplotlib), `docs`, `dev`, `all`. `import econkit` loads none of the optional stacks.
+(matplotlib), `docs`, `dev`, `all`. `import dynecon` loads none of the optional stacks.
 
 ## Example
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 model = models.load("consumption_savings").compile()  # CRRA household, borrowing limit, income risk
 sol = ek.solve(model)  # endogenous grid method (EGM)
@@ -32,7 +32,7 @@ sim = ek.simulate(sol, n_periods=500, n_agents=1000, burn_in=100, rng=0)
 print(sim.moments(["mean_assets", "std_consumption", "autocorr_income"]))
 
 # first-order perturbation of a DSGE model and an impulse response
-from econkit.solvers.perturbation import irf
+from dynecon.solvers.perturbation import irf
 
 rbc = ek.solve(models.load("rbc").compile())
 print(irf(rbc, "eps_z", horizon=8)["y"])
@@ -84,7 +84,7 @@ faster than Numba on CPU.
 - Guides: [`docs/md/`](docs/md) (DSL, backends, simulation, equilibrium, perturbation, estimation, experiments).
 - Nine executable tutorials: [`docs/tutorials/`](docs/tutorials).
 - Theory pages: [`docs/theory/`](docs/theory).
-- Architecture and execution plan: [`docs/md/EconKit_Architecture.md`](docs/md/EconKit_Architecture.md),
+- Architecture and execution plan: [`docs/md/Dynecon_Architecture.md`](docs/md/Dynecon_Architecture.md),
   [`docs/md/V1_EXECUTION_PLAN.md`](docs/md/V1_EXECUTION_PLAN.md).
 - API stability policy: [`docs/md/API_POLICY.md`](docs/md/API_POLICY.md).
 

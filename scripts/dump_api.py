@@ -15,20 +15,20 @@ sys.path.insert(0, str(ROOT))
 OUT = ROOT / "docs" / "md" / "API_SURFACE.txt"
 
 MODULES = [
-    "econkit",
-    "econkit.model",
-    "econkit.models",
-    "econkit.numerics",
-    "econkit.simulation",
-    "econkit.estimation",
-    "econkit.experiment",
-    "econkit.data",
-    "econkit.viz",
-    "econkit.solvers",
-    "econkit.solvers.perturbation",
-    "econkit.solvers.equilibrium",
-    "econkit.solvers.batch",
-    "econkit.core.errors",
+    "dynecon",
+    "dynecon.model",
+    "dynecon.models",
+    "dynecon.numerics",
+    "dynecon.simulation",
+    "dynecon.estimation",
+    "dynecon.experiment",
+    "dynecon.data",
+    "dynecon.viz",
+    "dynecon.solvers",
+    "dynecon.solvers.perturbation",
+    "dynecon.solvers.equilibrium",
+    "dynecon.solvers.batch",
+    "dynecon.core.errors",
 ]
 
 

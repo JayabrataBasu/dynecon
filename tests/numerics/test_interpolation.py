@@ -5,8 +5,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from econkit.core.errors import ValidationError
-from econkit.numerics.interpolation import linear_interp_1d
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.interpolation import linear_interp_1d
 
 BACKENDS = ["numpy", pytest.param("numba", marks=pytest.mark.numba)]
 
@@ -84,7 +84,7 @@ def test_properties(nodes: list[float], data: st.DataObject) -> None:
 @pytest.mark.parametrize("backend", BACKENDS + [pytest.param("jax", marks=pytest.mark.jax)])
 @pytest.mark.parametrize("mode", ["clamp", "linear"])
 def test_columns_match_rowwise_1d(backend: str, mode: str) -> None:
-    from econkit.numerics.interpolation import linear_interp_columns
+    from dynecon.numerics.interpolation import linear_interp_columns
 
     if backend == "numba":
         pytest.importorskip("numba")

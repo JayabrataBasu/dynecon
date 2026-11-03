@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 from builders import ALPHA, brock_mirman
 
-import econkit as ek
-from econkit.core.errors import ValidationError
-from econkit.simulation import simulate_irf
+import dynecon as ek
+from dynecon.core.errors import ValidationError
+from dynecon.simulation import simulate_irf
 
 
 @pytest.mark.parametrize("rho", [0.0001, 0.9])

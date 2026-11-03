@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 from scipy.signal import lfilter
 
-import econkit as ek
-from econkit import models
-from econkit.core.errors import IdentificationError, ValidationError
-from econkit.estimation import (
+import dynecon as ek
+from dynecon import models
+from dynecon.core.errors import IdentificationError, ValidationError
+from dynecon.estimation import (
     MomentSet,
     MomentTarget,
     identification_report,
@@ -15,7 +15,7 @@ from econkit.estimation import (
     make_moment_fn,
     smm,
 )
-from econkit.model import Model, Param
+from dynecon.model import Model, Param
 
 N_OBS, S = 5000, 20
 

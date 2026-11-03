@@ -1107,3 +1107,21 @@ Progress scale:
 ### Next step
 
 Resolve the blockers above, run CI on GitHub across the matrix, then the human review gates.
+
+
+## Session 15 (licence, author metadata and rename)
+
+- **Licence** changed from GPL-3.0 to **BSD-3-Clause** (decision D1), copyright 2026 Jayabrata Basu;
+  author metadata set to Jayabrata Basu <jayabratabasu@gmail.com> (D8).
+- **Rename: EconKit / `econkit` is now Dynecon / `dynecon`.** The PyPI name `econkit` belongs to
+  another project, so the distribution and the import package were both renamed to `dynecon`
+  (`pip install dynecon`, `import dynecon`). The error base class is now `DyneconError`, the kill switch
+  is `DYNECON_DISABLE_JIT`, and the virtualenv directory in the docs is `.venv`.
+- Entries above this one in this log, `REVIEW_1.md` and the git tag `v0.1.0-baseline` keep the old name
+  on purpose (history). `scripts/legacy_vfi_timing.py` still imports `econkit` inside its embedded
+  snippet because it runs the tagged baseline code.
+- The GitHub repository URL in `pyproject.toml` / `CITATION.cff` still says `EconKit`; update it if the
+  repository is renamed (GitHub redirects the old URL).
+- PyPI: `dynecon` is registered as a *pending trusted publisher* (owner JayabrataBasu, workflow
+  `release.yml`, environment `pypi`); the project is created on the first release. The repository name in
+  that pending publisher must match the final GitHub repository name.

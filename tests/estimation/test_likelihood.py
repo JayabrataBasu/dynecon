@@ -4,19 +4,19 @@ import numpy as np
 import pytest
 from scipy.stats import multivariate_normal
 
-import econkit as ek
-from econkit import models
-from econkit.core.errors import ValidationError
-from econkit.estimation import (
+import dynecon as ek
+from dynecon import models
+from dynecon.core.errors import ValidationError
+from dynecon.estimation import (
     bayes_estimate,
     kalman_filter,
     loglik_state_space,
     metropolis,
     mle,
 )
-from econkit.estimation.bayes import ess, split_rhat
-from econkit.estimation.priors import Beta
-from econkit.model import Model, Param
+from dynecon.estimation.bayes import ess, split_rhat
+from dynecon.estimation.priors import Beta
+from dynecon.model import Model, Param
 
 
 def test_mle_ar1_equals_ols_and_known_standard_error() -> None:

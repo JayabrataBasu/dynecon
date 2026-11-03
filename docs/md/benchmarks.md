@@ -3,7 +3,7 @@
 Generated from `20261103_JayabrataBasu.json` by `scripts/gen_bench_doc.py`. Timings are the **minimum** of the repeats; compile time is the first call minus the steady-state median. All numbers come from one machine; never compare across machines.
 
 - Machine: Intel64 Family 6 Model 186 Stepping 3, GenuineIntel, 12 logical cores, RAM None GB, Windows-11-10.0.26200-SP0
-- Versions: econkit 0.1.0.dev0, numpy 2.5.4, scipy 1.18.1, numba 0.68.1, jax 0.12.0.1, python 3.14.8
+- Versions: dynecon 0.1.0.dev0, numpy 2.5.4, scipy 1.18.1, numba 0.68.1, jax 0.12.0.1, python 3.14.8
 - Date: 2026-11-03
 
 | case | backend | min (ms) | speedup vs NumPy | compile (s) | max abs diff vs NumPy |
@@ -46,7 +46,7 @@ Goals are never edited to fit results.
 
 ### Legacy pure-Python VFI (git tag `v0.1.0-baseline`)
 
-One Bellman iteration at (n_a, n_z) = (200, 7): legacy 1.012 s (measured over 2 iterations in a temporary worktree), Numba kernel 0.249 ms: **4058x** per iteration (goal 50x for the full solve; Howard acceleration and monotone search reduce the iteration count further).
+One Bellman iteration at (n_a, n_z) = (200, 7): legacy 0.186 s (measured over 2 iterations in a temporary worktree), Numba kernel 0.093 ms: **1992x** per iteration (goal 50x for the full solve; Howard acceleration and monotone search reduce the iteration count further).
 
 ## Notes
 

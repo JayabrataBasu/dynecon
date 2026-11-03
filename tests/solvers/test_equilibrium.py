@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 from builders import consumption_savings
 
-import econkit as ek
-from econkit.core.errors import ConvergenceError, ValidationError
-from econkit.simulation import aggregate, stationary_distribution_young
-from econkit.solvers.equilibrium import EquilibriumSolution, solve_stationary_equilibrium
+import dynecon as ek
+from dynecon.core.errors import ConvergenceError, ValidationError
+from dynecon.simulation import aggregate, stationary_distribution_young
+from dynecon.solvers.equilibrium import EquilibriumSolution, solve_stationary_equilibrium
 
 
 def factory(r: float):

@@ -7,16 +7,16 @@ mpl = pytest.importorskip("matplotlib")
 mpl.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-import econkit as ek  # noqa: E402
-from econkit import models  # noqa: E402
-from econkit.core.errors import ValidationError  # noqa: E402
-from econkit.estimation import metropolis, smm  # noqa: E402
-from econkit.estimation.priors import Normal  # noqa: E402
-from econkit.model import Model, Param  # noqa: E402
-from econkit.models import huggett  # noqa: E402
-from econkit.simulation import marginal_distribution, simulate_irf, stationary_distribution_young  # noqa: E402
-from econkit.viz import (  # noqa: E402
-    econkit_style,
+import dynecon as ek  # noqa: E402
+from dynecon import models  # noqa: E402
+from dynecon.core.errors import ValidationError  # noqa: E402
+from dynecon.estimation import metropolis, smm  # noqa: E402
+from dynecon.estimation.priors import Normal  # noqa: E402
+from dynecon.model import Model, Param  # noqa: E402
+from dynecon.models import huggett  # noqa: E402
+from dynecon.simulation import marginal_distribution, simulate_irf, stationary_distribution_young  # noqa: E402
+from dynecon.viz import (  # noqa: E402
+    dynecon_style,
     plot_convergence,
     plot_distribution,
     plot_equilibrium,
@@ -134,7 +134,7 @@ def test_equilibrium_plot() -> None:
 
 def test_style_context_does_not_leak() -> None:
     before = mpl.rcParams["axes.grid"]
-    with econkit_style():
+    with dynecon_style():
         assert mpl.rcParams["axes.grid"] is True
     assert mpl.rcParams["axes.grid"] == before
 
@@ -142,7 +142,7 @@ def test_style_context_does_not_leak() -> None:
 def test_sweep_plot() -> None:
     from builders import mean_consumption_metric
 
-    from econkit.experiment import ParameterSweep
+    from dynecon.experiment import ParameterSweep
 
     model = models.load("consumption_savings", n_a=40, n_z=3).compile()
     res = ParameterSweep(model, {"beta": [0.94, 0.92, 0.96]}, mean_consumption_metric).run()

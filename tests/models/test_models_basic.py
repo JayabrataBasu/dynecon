@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-import econkit as ek
-from econkit import models
-from econkit.models import mccall
-from econkit.models.brock_mirman import ANALYTIC as BM
-from econkit.models.consumption_savings import mpc_perfect_foresight
-from econkit.models.lucas_tree import log_utility_price_dividend
-from econkit.solvers.pricing import price_one_period_claim
+import dynecon as ek
+from dynecon import models
+from dynecon.models import mccall
+from dynecon.models.brock_mirman import ANALYTIC as BM
+from dynecon.models.consumption_savings import mpc_perfect_foresight
+from dynecon.models.lucas_tree import log_utility_price_dividend
+from dynecon.solvers.pricing import price_one_period_claim
 
 
 def test_consumption_savings_concave_and_mpc() -> None:

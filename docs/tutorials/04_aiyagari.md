@@ -16,8 +16,8 @@ equilibrium the interest rate falls below the complete-markets rate `1/beta - 1`
 
 ```{code-cell} ipython3
 import numpy as np
-from econkit.models import aiyagari
-from econkit.simulation import gini, marginal_distribution
+from dynecon.models import aiyagari
+from dynecon.simulation import gini, marginal_distribution
 
 kw = dict(sigma=2.0, rho=0.9, n_a=100, n_z=5)
 eq = aiyagari.equilibrium(sigma_e=0.2, **kw)
@@ -37,7 +37,7 @@ The wealth distribution is far more unequal than income:
 ```{code-cell} ipython3
 import matplotlib
 matplotlib.use("Agg")
-from econkit.viz import plot_lorenz
+from dynecon.viz import plot_lorenz
 a = eq.grids["assets"]
 wealth_mass = marginal_distribution(eq.distribution, 0)
 ax = plot_lorenz(a, wealth_mass)

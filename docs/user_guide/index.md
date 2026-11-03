@@ -3,11 +3,11 @@
 ## Installation
 
 ```bash
-pip install econkit                 # NumPy + SciPy only
-pip install "econkit[numba]"        # compiled kernels on CPU (recommended)
-pip install "econkit[jax]"          # exact derivatives, vmap, GPU
-pip install "econkit[data,viz]"     # pandas and matplotlib
-pip install "econkit[all]"          # everything optional
+pip install dynecon                 # NumPy + SciPy only
+pip install "dynecon[numba]"        # compiled kernels on CPU (recommended)
+pip install "dynecon[jax]"          # exact derivatives, vmap, GPU
+pip install "dynecon[data,viz]"     # pandas and matplotlib
+pip install "dynecon[all]"          # everything optional
 ```
 
 | Extra | Adds | Needed for |
@@ -15,11 +15,11 @@ pip install "econkit[all]"          # everything optional
 | `numba` | Numba | speed on CPU; the library runs without it |
 | `jax` | JAX | `backend="jax"`, `solve_many`, gradient-based `mle` |
 | `data` | pandas | `to_dataframe`, FRED parsing, `Series`-aware filters |
-| `viz` | matplotlib | `econkit.viz` plots |
+| `viz` | matplotlib | `dynecon.viz` plots |
 | `docs` | Sphinx stack | building this site |
 | `dev` | test and lint tools | contributing |
 
-`import econkit` loads none of the optional stacks.
+`import dynecon` loads none of the optional stacks.
 
 ## The mental model
 
@@ -41,7 +41,7 @@ Model (builder) ──compile()──► CompiledModel ──solve()──► So
 ## Conventions
 
 - **Randomness.** Every stochastic function takes `rng` (a seed, a `numpy.random.Generator` or `None`).
-- **Errors.** Everything derives from `econkit.errors.EconKitError`; validation problems are also
+- **Errors.** Everything derives from `dynecon.errors.DyneconError`; validation problems are also
   `ValueError`. Non-convergence warns (`ConvergenceWarning`) and sets `converged=False`; set
   `ek.config.strict_convergence = True` to raise instead.
 - **Results.** `Solution` carries `policy`, `value`, `diagnostics`, `metadata` (versions and the
@@ -68,6 +68,6 @@ with `backend="jax"` for many parameter values; read [backends](../md/backends.m
 ## FAQ
 
 **Do I have to write Numba code?** No. Your callables are NumPy functions; kernels only see arrays.
-**Why does `import econkit` not import Numba?** Kernels compile lazily on first use.
+**Why does `import dynecon` not import Numba?** Kernels compile lazily on first use.
 **Results differ slightly between backends.** They agree to about 1e-12; compare against NumPy.
 **EGM raised "endogenous grid is not monotone".** The problem is non-concave; use `method="vfi"`.

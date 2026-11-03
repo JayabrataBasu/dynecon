@@ -1,6 +1,6 @@
 """The public API is a literal set: changing it requires editing this test deliberately."""
 
-import econkit
+import dynecon
 
 EXPECTED = {
     "AR1Shock",
@@ -20,6 +20,6 @@ EXPECTED = {
 
 
 def test_public_api_surface() -> None:
-    assert set(econkit.__all__) == EXPECTED
+    assert set(dynecon.__all__) == EXPECTED
     for name in EXPECTED:
-        assert hasattr(econkit, name)
+        assert hasattr(dynecon, name)

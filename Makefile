@@ -1,4 +1,4 @@
-ENV_DIR := .econkit
+ENV_DIR := .venv
 ifneq ($(wildcard $(ENV_DIR)/Scripts),)
 BIN := $(ENV_DIR)/Scripts
 else
@@ -26,14 +26,14 @@ format:
 	$(RUFF) format .
 
 typecheck:
-	$(MYPY) econkit
+	$(MYPY) dynecon
 
 test-structure:
 	$(PYTHON) scripts/check_test_layout.py
 	$(PYTHON) scripts/check_progress.py
 
 deadcode:
-	$(BIN)/vulture econkit scripts/vulture_whitelist.py
+	$(BIN)/vulture dynecon scripts/vulture_whitelist.py
 	$(PYTHON) scripts/check_usage.py
 	$(PYTHON) scripts/check_near_future.py
 

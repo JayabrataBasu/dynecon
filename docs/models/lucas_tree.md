@@ -28,10 +28,10 @@ Fixed point of the price functional.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
-sol = ek.solve(models.load("lucas_tree", sigma=3.0).compile())
+sol = ek.solve(models.load('lucas_tree', sigma=3.0).compile())
 ```
 
 ## Benchmark and test

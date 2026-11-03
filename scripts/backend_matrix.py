@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import econkit  # noqa: F401  (importing registers every operation)
-from econkit.numerics._registry import list_registered
+import dynecon  # noqa: F401  (importing registers every operation)
+from dynecon.numerics._registry import list_registered
 
 BACKENDS = ["numpy", "numba", "jax"]
 

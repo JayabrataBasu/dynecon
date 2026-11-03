@@ -1,4 +1,4 @@
-# EconKit v1.0 - Progress
+# Dynecon v1.0 - Progress
 
 Checklist only. No percentages (R6). Tick a box only when the phase gates pass.
 
@@ -222,7 +222,7 @@ Checklist only. No percentages (R6). Tick a box only when the phase gates pass.
 
 ## Blockers
 
-- **PyPI name `econkit` is taken** (existing project, versions up to 0.5.8); the maintainer chose to keep it, so an upload under this name will be refused unless the name is obtained.
+- **PyPI name `dynecon` is taken** (existing project, versions up to 0.5.8); the maintainer chose to keep it, so an upload under this name will be refused unless the name is obtained.
 - D1 licence decided: BSD-3-Clause. D8 author metadata set (Jayabrata Basu).
 - Human gates: Review-2/3/4, release candidate, soak, final release.
 - Ticked boxes mean the step's code, tests and docs exist and the local gates passed on Python 3.14 /

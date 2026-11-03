@@ -27,11 +27,10 @@ Tabular VFI on a `finite_dp` problem.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
-from econkit.models import mccall
-
-w = mccall.reservation_wage(ek.solve(models.load("mccall").compile()))
+import dynecon as ek
+from dynecon import models
+from dynecon.models import mccall
+w = mccall.reservation_wage(ek.solve(models.load('mccall').compile()))
 ```
 
 ## Benchmark and test

@@ -32,8 +32,10 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   results.
 
 ### Changed
+- **Renamed to Dynecon** (`pip install dynecon`, `import dynecon`; was EconKit / `econkit`, a name taken on PyPI).
+- **Licence is now BSD-3-Clause** (was GPL-3.0).
 - Package layout rebuilt around the execution plan; version is single-sourced in
-  `econkit/_version.py`; SciPy is now a required dependency.
+  `dynecon/_version.py`; SciPy is now a required dependency.
 - `config.set_backend` validates names; default backend is `"auto"` (Numba when installed).
 
 ### Removed (git tag `v0.1.0-baseline` keeps the old code)

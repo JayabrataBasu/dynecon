@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 from builders import ALPHA, BETA_BM, brock_mirman, consumption_savings, permanent_income
 
-import econkit as ek
-from econkit.core.errors import ModelSpecificationError, ValidationError
-from econkit.model import Control, Model, Param, State
-from econkit.solvers.diagnostics import euler_errors
+import dynecon as ek
+from dynecon.core.errors import ModelSpecificationError, ValidationError
+from dynecon.model import Control, Model, Param, State
+from dynecon.solvers.diagnostics import euler_errors
 
 
 def test_brock_mirman_consumption_matches_closed_form() -> None:

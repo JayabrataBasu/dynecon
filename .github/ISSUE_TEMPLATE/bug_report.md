@@ -10,7 +10,7 @@ about: Something computes the wrong answer or crashes
 ```python
 ```
 
-**Environment** (paste the output of `python -c "import econkit as ek; print(ek.backends.describe())"`)
+**Environment** (paste the output of `python -c "import dynecon as ek; print(ek.backends.describe())"`)
 
 ```
 ```

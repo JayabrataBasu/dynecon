@@ -41,4 +41,4 @@ before computing Lorenz/Gini.
 `simulate_irf(sol, shock_steps=1, ...)` computes generalised IRFs by paired simulations with
 common random numbers (mean of shocked minus baseline). The shock moves the discrete shock
 state by `shock_steps` grid points; for log-AR(1) shocks that is a known multiple of the
-innovation standard deviation. For DSGE solutions use `econkit.solvers.perturbation.irf`.
+innovation standard deviation. For DSGE solutions use `dynecon.solvers.perturbation.irf`.

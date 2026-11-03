@@ -5,8 +5,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from econkit.core.errors import ValidationError
-from econkit.numerics.integration import gauss_hermite_normal, gauss_legendre
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.integration import gauss_hermite_normal, gauss_legendre
 
 
 def test_gauss_hermite_moments() -> None:

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use EconKit in research, please cite it as below."
-title: "EconKit: a Python library for computational economics"
+message: "If you use Dynecon in research, please cite it as below."
+title: "Dynecon: a Python library for computational economics"
 type: software
 authors:
   - family-names: Basu

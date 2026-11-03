@@ -1,4 +1,4 @@
-"""Smoke test an *installed* econkit (run from outside the repository, e.g. in a clean venv)."""
+"""Smoke test an *installed* dynecon (run from outside the repository, e.g. in a clean venv)."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ import sys
 
 import numpy as np
 
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 
 def main() -> int:
-    print("econkit", ek.__version__, "from", ek.__file__)
+    print("dynecon", ek.__version__, "from", ek.__file__)
     if "site-packages" not in ek.__file__:
         print("warning: not running from site-packages")
     sol = ek.solve(models.load("consumption_savings", n_a=60, n_z=3).compile())

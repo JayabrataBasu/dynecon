@@ -10,10 +10,10 @@ that clears a market in a heterogeneous-agent economy.
       brentq on f(p) = excess_demand(p, solution, mu)  ◄───────── aggregates
 ```
 
-- **Aiyagari** (`econkit.models.aiyagari.equilibrium`): households save in capital; excess demand
+- **Aiyagari** (`dynecon.models.aiyagari.equilibrium`): households save in capital; excess demand
   is `A(r) - K_d(r)` with `K_d = L ((r + delta) / alpha)^(1/(alpha-1))`. The equilibrium rate is
   below the complete-markets rate `1/beta - 1` (precautionary saving) and falls with income risk.
-- **Huggett** (`econkit.models.huggett.equilibrium`): bonds are in zero net supply; excess
+- **Huggett** (`dynecon.models.huggett.equilibrium`): bonds are in zero net supply; excess
   demand is aggregate bond holdings.
 
 ## What the result holds

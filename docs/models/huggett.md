@@ -26,10 +26,9 @@ EGM + Young distribution + Brent on the bond market.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
-from econkit.models import huggett
-
+import dynecon as ek
+from dynecon import models
+from dynecon.models import huggett
 eq = huggett.equilibrium(phi=2.0)
 ```
 

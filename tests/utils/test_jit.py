@@ -2,7 +2,7 @@ import importlib
 
 import pytest
 
-from econkit.utils import jit as jit_module
+from dynecon.utils import jit as jit_module
 
 
 def _f(x: float) -> float:
@@ -10,7 +10,7 @@ def _f(x: float) -> float:
 
 
 def test_disabled_returns_plain_function(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ECONKIT_DISABLE_JIT", "1")
+    monkeypatch.setenv("DYNECON_DISABLE_JIT", "1")
     assert jit_module.jit(_f) is _f
     assert jit_module.jit(parallel=True)(_f) is _f
 

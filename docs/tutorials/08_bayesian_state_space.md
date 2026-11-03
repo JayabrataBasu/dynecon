@@ -18,8 +18,8 @@ sample the posterior with adaptive Metropolis-Hastings.
 ```{code-cell} ipython3
 import numpy as np
 import jax, jax.numpy as jnp
-from econkit.estimation import metropolis
-from econkit.estimation.kalman_jax import kalman_loglik_jax
+from dynecon.estimation import metropolis
+from dynecon.estimation.kalman_jax import kalman_loglik_jax
 
 rng = np.random.default_rng(0)
 true_h, true_q, T = 0.5, 0.1, 300
@@ -44,7 +44,7 @@ print("posterior mean of h, q:", np.exp(res.mean))
 ```{code-cell} ipython3
 import matplotlib
 matplotlib.use("Agg")
-from econkit.viz import plot_mcmc_trace, plot_posterior
+from dynecon.viz import plot_mcmc_trace, plot_posterior
 ax = plot_mcmc_trace(res, "log_h")
 ax2 = plot_posterior(res, "log_q")
 ```

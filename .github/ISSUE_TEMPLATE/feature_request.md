@@ -5,7 +5,7 @@ about: Propose a model, method or capability
 
 **The economic problem or method**
 
-**Why existing tools / current EconKit cannot do it**
+**Why existing tools / current Dynecon cannot do it**
 
-**What would consume it** (a model, a tutorial, an estimator). EconKit only adds code that has a
+**What would consume it** (a model, a tutorial, an estimator). Dynecon only adds code that has a
 caller (rule R21).

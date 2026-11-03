@@ -4,7 +4,7 @@
     "cores": 12,
     "platform": "Windows-11-10.0.26200-SP0",
     "versions": {
-      "econkit": "0.1.0.dev0",
+      "dynecon": "0.1.0.dev0",
       "numpy": "2.5.4",
       "scipy": "1.18.1",
       "numba": "0.68.1",

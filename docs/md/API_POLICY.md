@@ -1,24 +1,24 @@
 # API policy
 
-EconKit follows [semantic versioning](https://semver.org). This page defines what is public.
+Dynecon follows [semantic versioning](https://semver.org). This page defines what is public.
 
 ## What is public
 
-- Every name in the top-level `econkit.__all__`:
+- Every name in the top-level `dynecon.__all__`:
   `Model, Param, State, Control, AR1Shock, Solution, solve, simulate, smm, config, backends,
   errors, __version__`.
 - Every name in the `__all__` of these documented sub-namespaces:
-  `econkit.model`, `econkit.models`, `econkit.numerics`, `econkit.simulation`,
-  `econkit.estimation`, `econkit.experiment`, `econkit.data`, `econkit.viz`,
-  `econkit.solvers.perturbation`, `econkit.solvers.equilibrium`, `econkit.solvers.batch`,
-  `econkit.core.errors`.
+  `dynecon.model`, `dynecon.models`, `dynecon.numerics`, `dynecon.simulation`,
+  `dynecon.estimation`, `dynecon.experiment`, `dynecon.data`, `dynecon.viz`,
+  `dynecon.solvers.perturbation`, `dynecon.solvers.equilibrium`, `dynecon.solvers.batch`,
+  `dynecon.core.errors`.
 - The documented keyword options of `solve()` per method (`VFIConfig`, `EGMConfig`,
   `PerturbationConfig`, `PricingConfig` field names and defaults). Config classes themselves
   are implementation details.
 
 ## What is private
 
-Everything under `econkit.numerics.backends`, anything beginning with an underscore, and the
+Everything under `dynecon.numerics.backends`, anything beginning with an underscore, and the
 compiled kernels. **Compiled layers are implementation details exempt from the API promise**:
 upgrading may make code faster or choose a different engine, but results agree with the NumPy
 reference within the documented tolerances.

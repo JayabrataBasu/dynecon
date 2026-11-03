@@ -19,7 +19,7 @@ from typing import Any
 
 import numpy as np
 
-from econkit.utils.provenance import collect_provenance
+from dynecon.utils.provenance import collect_provenance
 
 __all__ = ["Case", "machine_info", "run_case"]
 
@@ -45,7 +45,7 @@ def machine_info() -> dict[str, Any]:
         "versions": {
             k: v
             for k, v in collect_provenance().items()
-            if k in ("python", "numpy", "scipy", "numba", "jax", "econkit")
+            if k in ("python", "numpy", "scipy", "numba", "jax", "dynecon")
         },
     }
     try:

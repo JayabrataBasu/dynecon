@@ -5,8 +5,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from econkit.core.errors import DeterminacyError
-from econkit.solvers.perturbation.klein import klein_solve
+from dynecon.core.errors import DeterminacyError
+from dynecon.solvers.perturbation.klein import klein_solve
 
 
 def test_scalar_classification_written_first() -> None:

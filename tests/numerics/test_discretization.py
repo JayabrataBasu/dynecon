@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import ValidationError
-from econkit.numerics.discretization import rouwenhorst, tauchen
-from econkit.numerics.markov import stationary_distribution
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.discretization import rouwenhorst, tauchen
+from dynecon.numerics.markov import stationary_distribution
 
 
 def _moments(grid: np.ndarray, P: np.ndarray) -> tuple[float, float, float]:

@@ -8,8 +8,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 GOLDEN = Path(__file__).parent
 

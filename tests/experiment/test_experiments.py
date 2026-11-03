@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 from builders import failing_metric, mean_consumption_metric
 
-import econkit as ek
-from econkit import models
-from econkit.core.errors import EconKitError, ValidationError
-from econkit.experiment import (
+import dynecon as ek
+from dynecon import models
+from dynecon.core.errors import DyneconError, ValidationError
+from dynecon.experiment import (
     Experiment,
     ParameterSweep,
     PolicyExperiment,
@@ -20,8 +20,8 @@ from econkit.experiment import (
     evaluate_policy_value,
     monte_carlo,
 )
-from econkit.model import State
-from econkit.utils.serialization import decode, encode, numeric_leaves
+from dynecon.model import State
+from dynecon.utils.serialization import decode, encode, numeric_leaves
 
 BUILD = ("consumption_savings", {"n_a": 50, "n_z": 3, "a_max": 30.0})
 
@@ -53,7 +53,7 @@ def test_sweep_records_failures_and_fail_fast() -> None:
     assert np.isnan(res.column("anything")).all()
     with pytest.raises(ValidationError):
         res.best("x")
-    with pytest.raises(EconKitError, match="sweep failed"):
+    with pytest.raises(DyneconError, match="sweep failed"):
         ParameterSweep(model, [{"beta": 0.95}], failing_metric, fail_fast=True).run()
     bad = ParameterSweep(model, [{"beta": 0.2}], mean_consumption_metric).run()  # outside bounds
     assert bad.status == ["failed"]

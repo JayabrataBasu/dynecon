@@ -6,14 +6,14 @@ from typing import Any
 
 import numpy as np
 
-import econkit as ek
+import dynecon as ek
 from benchmarks.harness import Case
-from econkit import models
-from econkit.estimation import kalman_filter
-from econkit.numerics.interpolation import linear_interp_1d
-from econkit.simulation import iterate_distribution, simulate
-from econkit.solvers.dp.vfi import build_payoff_tensor
-from econkit.solvers.perturbation import irf
+from dynecon import models
+from dynecon.estimation import kalman_filter
+from dynecon.numerics.interpolation import linear_interp_1d
+from dynecon.simulation import iterate_distribution, simulate
+from dynecon.solvers.dp.vfi import build_payoff_tensor
+from dynecon.solvers.perturbation import irf
 
 
 def _cs(n_a: int, n_z: int = 7) -> Any:
@@ -36,7 +36,7 @@ def interp1d() -> Case:
 
 
 def bellman_cs() -> Case:
-    from econkit.numerics._dispatch import resolve_backend
+    from dynecon.numerics._dispatch import resolve_backend
 
     def setup() -> Any:
         m = _cs(1000)
@@ -115,7 +115,7 @@ def simulate_panel() -> Case:
 
 
 def aiyagari_ge() -> Case:
-    from econkit.models import aiyagari
+    from dynecon.models import aiyagari
 
     return Case(
         "aiyagari_ge",
@@ -167,8 +167,8 @@ def kalman_loglik() -> Case:
 def smm_ar1() -> Case:
     from scipy.signal import lfilter
 
-    from econkit.estimation import smm
-    from econkit.model import Model, Param
+    from dynecon.estimation import smm
+    from dynecon.model import Model, Param
 
     def setup() -> Any:
         m = Model("ar1")

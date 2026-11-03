@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import EconKitError, ValidationError
-from econkit.data import baxter_king, fetch_fred, hamilton_filter, hp_filter, parse_fred_csv
+from dynecon.core.errors import DyneconError, ValidationError
+from dynecon.data import baxter_king, fetch_fred, hamilton_filter, hp_filter, parse_fred_csv
 
 SAMPLE = """DATE,GDPC1
 2000-01-01,100.0
@@ -105,7 +105,7 @@ def test_fetch_wraps_network_errors(monkeypatch: pytest.MonkeyPatch) -> None:
         raise urllib.error.URLError("offline")
 
     monkeypatch.setattr(urllib.request, "urlopen", boom)
-    with pytest.raises(EconKitError, match="could not download"):
+    with pytest.raises(DyneconError, match="could not download"):
         fetch_fred("GDPC1")
 
 

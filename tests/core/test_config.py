@@ -2,11 +2,11 @@
 
 import pytest
 
-import econkit as ek
-from econkit import backends
-from econkit.config import Config
-from econkit.core.errors import BackendError, BackendUnavailableError, ValidationError
-from econkit.numerics._dispatch import resolve_backend
+import dynecon as ek
+from dynecon import backends
+from dynecon.config import Config
+from dynecon.core.errors import BackendError, BackendUnavailableError, ValidationError
+from dynecon.numerics._dispatch import resolve_backend
 
 
 def test_unknown_backend_raises() -> None:

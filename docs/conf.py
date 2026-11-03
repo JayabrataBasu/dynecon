@@ -1,8 +1,8 @@
-"""Sphinx configuration for the EconKit documentation."""
+"""Sphinx configuration for the Dynecon documentation."""
 
 from __future__ import annotations
 
-project = "EconKit"
+project = "Dynecon"
 author = "Jayabrata Basu"
 copyright = "2026, Jayabrata Basu"
 
@@ -26,7 +26,7 @@ nb_execution_raise_on_error = True
 nb_custom_formats = {}
 
 html_theme = "furo"
-html_title = "EconKit"
+html_title = "Dynecon"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -40,7 +40,7 @@ exclude_patterns = [
     "md/REVIEW_1.md",
     "md/V1_EXECUTION_PLAN.md",
     "md/V1_PROGRESS.md",
-    "md/EconKit_Architecture.md",
+    "md/Dynecon_Architecture.md",
     "md/economics_explainability.md",
     "**/.ipynb_checkpoints",
 ]

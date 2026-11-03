@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from econkit.utils.rng import as_generator, spawn
+from dynecon.utils.rng import as_generator, spawn
 
 
 def test_as_generator_reproducible() -> None:

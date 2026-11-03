@@ -16,8 +16,8 @@ borrow. We load the built-in model, solve it, plot the policy and simulate a pan
 
 ```{code-cell} ipython3
 import numpy as np
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 model = models.load("consumption_savings", n_a=100, n_z=5).compile()
 sol = ek.solve(model)                     # EGM: the model supplies marginal utility
@@ -29,7 +29,7 @@ The consumption policy against assets, one line per income state:
 ```{code-cell} ipython3
 import matplotlib
 matplotlib.use("Agg")
-from econkit.viz import plot_policy
+from dynecon.viz import plot_policy
 ax = plot_policy(sol, "consumption")
 ```
 

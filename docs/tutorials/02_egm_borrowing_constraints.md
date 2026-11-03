@@ -16,8 +16,8 @@ no root finding is needed. We compare it with value function iteration.
 
 ```{code-cell} ipython3
 import numpy as np
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
 model = models.load("consumption_savings", n_a=300, n_z=7, a_max=60.0).compile()
 egm = ek.solve(model, method="egm")

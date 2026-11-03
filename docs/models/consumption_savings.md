@@ -29,10 +29,10 @@ EGM (default); VFI for comparison.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
-sol = ek.solve(models.load("consumption_savings").compile())
+sol = ek.solve(models.load('consumption_savings').compile())
 ```
 
 ## Benchmark and test

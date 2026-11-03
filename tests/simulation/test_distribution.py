@@ -9,10 +9,10 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 from scipy.stats import norm
 
-import econkit as ek
-from econkit.core.errors import ValidationError
-from econkit.numerics.markov import stationary_distribution
-from econkit.simulation import (
+import dynecon as ek
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.markov import stationary_distribution
+from dynecon.simulation import (
     aggregate,
     build_transition_matrix,
     cdf,
@@ -23,8 +23,8 @@ from econkit.simulation import (
     quantile,
     stationary_distribution_young,
 )
-from econkit.simulation.distribution import lottery_weights
-from econkit.simulation.kernels import distribution_lottery_numpy
+from dynecon.simulation.distribution import lottery_weights
+from dynecon.simulation.kernels import distribution_lottery_numpy
 
 
 @pytest.fixture(scope="module")

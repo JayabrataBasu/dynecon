@@ -26,10 +26,10 @@ Exact law of motion; perturbation for the slope; Euler root-finding as a check.
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
-sol = ek.solve(models.load("olg2").compile())
+sol = ek.solve(models.load('olg2').compile())
 ```
 
 ## Benchmark and test

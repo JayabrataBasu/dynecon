@@ -17,9 +17,9 @@ This is a **partial-equilibrium** comparison of stationary economies (prices are
 
 ```{code-cell} ipython3
 import numpy as np
-from econkit import models
-from econkit.model import State
-from econkit.experiment import PolicyExperiment
+from dynecon import models
+from dynecon.model import State
+from dynecon.experiment import PolicyExperiment
 
 base = models.load("consumption_savings", n_a=120, n_z=5, a_max=40.0)
 

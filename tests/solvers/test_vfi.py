@@ -4,15 +4,15 @@ import numpy as np
 import pytest
 from builders import ALPHA, BETA_BM, brock_mirman, consumption_savings, permanent_income
 
-import econkit as ek
-from econkit.core.errors import (
+import dynecon as ek
+from dynecon.core.errors import (
     ConvergenceError,
     ConvergenceWarning,
     ModelSpecificationError,
     ValidationError,
 )
-from econkit.model import Control, Model, Param, State
-from econkit.solvers.dp.vfi import build_payoff_tensor
+from dynecon.model import Control, Model, Param, State
+from dynecon.solvers.dp.vfi import build_payoff_tensor
 
 
 @pytest.fixture(scope="module")

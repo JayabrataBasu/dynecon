@@ -3,10 +3,10 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-import econkit as ek
-from econkit.core.errors import ConvergenceError, ConvergenceWarning, ValidationError
-from econkit.numerics.fixedpoint import fixed_point
-from econkit.numerics.jacobian import numerical_jacobian
+import dynecon as ek
+from dynecon.core.errors import ConvergenceError, ConvergenceWarning, ValidationError
+from dynecon.numerics.fixedpoint import fixed_point
+from dynecon.numerics.jacobian import numerical_jacobian
 
 
 def test_cos_fixed_point() -> None:

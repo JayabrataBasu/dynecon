@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from econkit.core.errors import ValidationError
-from econkit.utils.provenance import collect_provenance
-from econkit.utils.validation import check_array, check_increasing, check_stochastic_matrix
+from dynecon.core.errors import ValidationError
+from dynecon.utils.provenance import collect_provenance
+from dynecon.utils.validation import check_array, check_increasing, check_stochastic_matrix
 
 
 def test_check_array_messages_name_argument() -> None:
@@ -39,5 +39,5 @@ def test_check_stochastic_matrix() -> None:
 
 def test_provenance_has_versions() -> None:
     p = collect_provenance()
-    assert p["numpy"] and p["scipy"] and p["python"] and p["econkit"]
+    assert p["numpy"] and p["scipy"] and p["python"] and p["dynecon"]
     assert "timestamp_utc" in p

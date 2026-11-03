@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-import econkit as ek
-from econkit import models
-from econkit.core.errors import ValidationError
-from econkit.estimation import MomentSet, MomentTarget, model_moments, quadratic_moment_loss
-from econkit.estimation.priors import Beta, Gamma, InverseGamma, Normal, Uniform
-from econkit.model import Param
-from econkit.model.specs import ParameterSet
+import dynecon as ek
+from dynecon import models
+from dynecon.core.errors import ValidationError
+from dynecon.estimation import MomentSet, MomentTarget, model_moments, quadratic_moment_loss
+from dynecon.estimation.priors import Beta, Gamma, InverseGamma, Normal, Uniform
+from dynecon.model import Param
+from dynecon.model.specs import ParameterSet
 
 
 def test_quadratic_loss_and_errors() -> None:

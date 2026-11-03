@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from econkit.model import AR1Shock, Control, Model, Param, State
+from dynecon.model import AR1Shock, Control, Model, Param, State
 
 
 def consumption_savings(

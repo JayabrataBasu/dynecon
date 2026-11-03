@@ -30,10 +30,10 @@ Perturbation (Klein).
 ## Usage
 
 ```python
-import econkit as ek
-from econkit import models
+import dynecon as ek
+from dynecon import models
 
-sol = ek.solve(models.load("nk3").compile())
+sol = ek.solve(models.load('nk3').compile())
 ```
 
 ## Benchmark and test

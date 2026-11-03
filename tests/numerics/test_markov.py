@@ -3,8 +3,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from econkit.core.errors import ValidationError
-from econkit.numerics.markov import markov_paths, simulate_markov, stationary_distribution
+from dynecon.core.errors import ValidationError
+from dynecon.numerics.markov import markov_paths, simulate_markov, stationary_distribution
 
 
 def test_two_state_closed_form() -> None:

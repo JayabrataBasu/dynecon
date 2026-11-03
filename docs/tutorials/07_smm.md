@@ -18,8 +18,8 @@ We recover the persistence and volatility of an AR(1) from its variance and auto
 ```{code-cell} ipython3
 import numpy as np
 from scipy.signal import lfilter
-from econkit.estimation import smm, identification_report
-from econkit.model import Model, Param
+from dynecon.estimation import smm, identification_report
+from dynecon.model import Model, Param
 
 m = Model("ar1")
 m.params(rho=Param(0.5, bounds=(0.0, 0.999), free=True), sigma=Param(1.0, bounds=(0.01, 5.0), free=True),

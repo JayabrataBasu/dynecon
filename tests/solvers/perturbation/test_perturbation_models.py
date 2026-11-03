@@ -6,14 +6,14 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 from scipy.linalg import solve_discrete_lyapunov
 
-import econkit as ek
-from econkit import models
-from econkit.core.errors import ConvergenceError, DeterminacyError, ModelSpecificationError
-from econkit.model import Model, Param
-from econkit.models.nk3 import closed_form_coefficients
-from econkit.models.olg2 import euler_steady_state, iterate_capital, steady_state_capital
-from econkit.solvers.perturbation import irf, simulate_linear, theoretical_moments
-from econkit.solvers.perturbation.steady_state import steady_state
+import dynecon as ek
+from dynecon import models
+from dynecon.core.errors import ConvergenceError, DeterminacyError, ModelSpecificationError
+from dynecon.model import Model, Param
+from dynecon.models.nk3 import closed_form_coefficients
+from dynecon.models.olg2 import euler_steady_state, iterate_capital, steady_state_capital
+from dynecon.solvers.perturbation import irf, simulate_linear, theoretical_moments
+from dynecon.solvers.perturbation.steady_state import steady_state
 
 
 def test_brock_mirman_loglinear_coefficients_and_irf() -> None:
@@ -100,7 +100,7 @@ def test_irf_and_moments_validation_and_store() -> None:
 
 
 def test_rbc_steady_state_and_irf_shape() -> None:
-    from econkit.models.rbc import steady_state as rbc_ss
+    from dynecon.models.rbc import steady_state as rbc_ss
 
     sol = ek.solve(models.load("rbc").compile())
     s = rbc_ss(0.33, 0.99, 0.025)

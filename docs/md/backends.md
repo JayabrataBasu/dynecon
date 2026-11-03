@@ -5,7 +5,7 @@ key. NumPy is the permanent reference and the universal fallback; Numba and JAX 
 implementations of the same operations, tested against NumPy for agreement.
 
 ```python
-import econkit as ek
+import dynecon as ek
 
 ek.config.set_backend("numba")  # validated; "auto" (default) = Numba if installed
 ek.backends.available_backends()  # ['numpy', 'numba', 'jax']
@@ -16,12 +16,12 @@ sol = ek.solve(model, backend="numpy")  # per-call override
 | Backend | Use it for | Notes |
 |---|---|---|
 | `numpy` | correctness, debugging, small problems, no optional dependencies | the reference every other backend is checked against |
-| `numba` | speed on CPU for tight loops (Bellman maximisation, simulation, histogram step) | compiles on first call (`cache=True`); `ECONKIT_DISABLE_JIT=1` runs the same code in pure Python |
+| `numba` | speed on CPU for tight loops (Bellman maximisation, simulation, histogram step) | compiles on first call (`cache=True`); `DYNECON_DISABLE_JIT=1` runs the same code in pure Python |
 | `jax` | exact derivatives (perturbation Jacobians, likelihood gradients), `vmap` over parameters (`solve_many`), GPU | enables 64-bit precision globally on first use; often **slower** than Numba on CPU |
 
 ## Resolution rule
 
-The requested backend is used if it implements the operation; otherwise EconKit falls back to
+The requested backend is used if it implements the operation; otherwise Dynecon falls back to
 NumPy, or raises `BackendError` when `config.strict_backend = True`. Requesting an uninstalled
 backend raises `BackendUnavailableError` in strict mode and otherwise warns once and uses NumPy.
 The backend actually used is recorded on `Solution.backend`.

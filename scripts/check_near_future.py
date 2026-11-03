@@ -34,7 +34,7 @@ def main() -> int:
     )
     current = window(int(unticked[0][1:].split(".")[0])) if unticked else len(WINDOWS) - 1
     bad = []
-    for path in (ROOT / "econkit").rglob("*.py"):
+    for path in (ROOT / "dynecon").rglob("*.py"):
         for no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             m = TAG.search(line)
             if not m:
