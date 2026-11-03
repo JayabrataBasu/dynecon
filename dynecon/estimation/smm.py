@@ -166,7 +166,7 @@ def smm(  # noqa: C901 - sequential two-step estimation with inference; steps ar
     om = omega if omega is not None else None
     if wkind == "optimal":
         om = estimate_omega(theta1) if om is None else om
-        W_final = np.linalg.pinv(om)
+        W_final = np.asarray(np.linalg.pinv(om), dtype=np.float64)
         res = fit(W_final, res.x)
     theta = ps.from_unconstrained(res.x, names)
     if om is None:

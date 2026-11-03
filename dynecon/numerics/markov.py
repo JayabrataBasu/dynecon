@@ -46,7 +46,7 @@ def stationary_distribution(P: Array) -> Array:
     pi[0] = 1.0
     for j in range(1, n):
         pi[j] = pi[:j] @ A[:j, j]
-    return pi / pi.sum()
+    return np.asarray(pi / pi.sum(), dtype=np.float64)
 
 
 def markov_paths(

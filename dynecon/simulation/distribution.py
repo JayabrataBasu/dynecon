@@ -200,9 +200,9 @@ def lorenz_curve(
     if np.any(v < 0):
         raise ValidationError("Lorenz curve needs non-negative values (shift wealth by the limit)")
     keep = w > 0
-    v, w = v[keep], w[keep]
+    v, w = v[keep].ravel(), w[keep].ravel()
     order = np.argsort(v, kind="stable")
-    v, w = v[order], w[order]
+    v, w = v[order].ravel(), w[order].ravel()
     total = float(np.sum(w * v))
     if total <= 0.0:
         raise ValidationError("values must have a positive weighted sum")

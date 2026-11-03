@@ -90,7 +90,7 @@ def mle(
     theta = np.asarray(res.x, dtype=np.float64)
     # Hessian of the log-likelihood
     H = -hess_fn(theta) if hess_fn is not None else -numerical_hessian(neg, theta)
-    cov = np.linalg.pinv(-H)
+    cov = np.asarray(np.linalg.pinv(-H), dtype=np.float64)
     return MLEResult(
         estimates=theta,
         std_errors=np.sqrt(np.clip(np.diag(cov), 0.0, None)),

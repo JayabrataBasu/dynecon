@@ -23,7 +23,9 @@ def is_available(name: str) -> bool:
     if name == "numba":
         return NUMBA_AVAILABLE
     if name == "jax":
-        return importlib.util.find_spec("jax") is not None
+        spec = importlib.util.find_spec("jax")
+        # a bare namespace directory named ``jax`` (no origin) is not the library
+        return spec is not None and spec.origin is not None
     return False
 
 

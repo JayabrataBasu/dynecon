@@ -133,7 +133,7 @@ def _solve_saving(
     callbacks = [progress] if cfg.verbose else []
     v0 = np.zeros((n_a, n_z))
     if initial is not None and np.shape(initial) == v0.shape and np.all(np.isfinite(initial)):
-        v0 = np.array(initial, dtype=np.float64)
+        v0 = np.array(initial, dtype=np.float64).reshape(n_a, n_z)
     res = fixed_point(
         operator,
         v0,
