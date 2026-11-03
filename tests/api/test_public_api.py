@@ -13,6 +13,7 @@ EXPECTED = {
     "backends",
     "config",
     "errors",
+    "simulate",
     "solve",
 }
 

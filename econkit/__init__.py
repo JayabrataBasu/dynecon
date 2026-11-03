@@ -6,6 +6,7 @@ from econkit.config import config
 from econkit.core import errors
 from econkit.core.solution import Solution
 from econkit.model import AR1Shock, Control, Model, Param, State
+from econkit.simulation import simulate
 from econkit.solvers import solve
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "backends",
     "config",
     "errors",
+    "simulate",
     "solve",
 ]

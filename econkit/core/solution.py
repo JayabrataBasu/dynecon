@@ -8,6 +8,7 @@ be traced back to exact primitives.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -46,6 +47,39 @@ class Solution:
     diagnostics: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
     model: CompiledModel | None = field(default=None, repr=False)
+
+    def policy_function(self, name: str) -> Callable[[Any, Any], Array]:
+        """Interpolating callable ``f(assets, shock_index)`` for a ``saving`` policy.
+
+        Linear interpolation along the asset grid (clamped at the ends) for each discrete
+        shock state, vectorised over broadcast arguments.
+
+        Economics note:
+        Evaluating the policy off the grid lets simulated agents hold any asset level,
+        not just grid points.
+        """
+        from econkit.model.problems import SavingProblem
+        from econkit.numerics.interpolation import linear_interp_1d
+
+        prob = None if self.model is None else self.model.problem
+        if not isinstance(prob, SavingProblem):
+            raise ValueError("policy_function needs a solution of a 'saving' problem")
+        if name not in self.policy:
+            raise ValueError(f"no policy named {name!r}; available: {sorted(self.policy)}")
+        grid = self.grids[prob.asset]
+        values = np.asarray(self.policy[name], dtype=np.float64)
+
+        def f(assets: Any, shock_index: Any = 0) -> Array:
+            a, j = np.broadcast_arrays(
+                np.asarray(assets, dtype=np.float64), np.asarray(shock_index, dtype=np.int64)
+            )
+            out = np.empty(a.shape, dtype=np.float64)
+            for jj in np.unique(j):
+                mask = j == jj
+                out[mask] = linear_interp_1d(a[mask], grid, values[:, jj])
+            return out
+
+        return f
 
     def summary(self) -> str:
         """Human-readable report."""
