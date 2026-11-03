@@ -16,6 +16,7 @@ from econkit.utils.rng import as_generator
 __all__ = [
     "autocorrelation",
     "block_bootstrap_se",
+    "bootstrap_statistics",
     "correlation",
     "newey_west_variance",
     "percentile",
@@ -82,14 +83,14 @@ def regression_slope(y: npt.ArrayLike, x: npt.ArrayLike) -> float:
     return float(np.cov(a, b, bias=True)[0, 1] / vx)
 
 
-def block_bootstrap_se(
+def bootstrap_statistics(
     series: npt.ArrayLike,
     statistic_fn: object,
     block_len: int,
-    n_boot: int = 200,
+    n_boot: int,
     rng: np.random.Generator | int | None = None,
-) -> float:
-    """Moving-block bootstrap standard error of ``statistic_fn(series)`` for a 1-D series."""
+) -> Array:
+    """Statistic on ``n_boot`` moving-block resamples (``block_len=1`` is the iid bootstrap)."""
     x = _arr(series)
     if x.ndim != 1:
         raise ValidationError("series must be 1-D")
@@ -105,6 +106,18 @@ def block_bootstrap_se(
         starts = gen.integers(0, n - block_len + 1, n_blocks)
         idx = (starts[:, None] + np.arange(block_len)[None, :]).ravel()[:n]
         stats[b] = statistic_fn(x[idx])
+    return stats
+
+
+def block_bootstrap_se(
+    series: npt.ArrayLike,
+    statistic_fn: object,
+    block_len: int,
+    n_boot: int = 200,
+    rng: np.random.Generator | int | None = None,
+) -> float:
+    """Moving-block bootstrap standard error of ``statistic_fn(series)`` for a 1-D series."""
+    stats = bootstrap_statistics(series, statistic_fn, block_len, n_boot, rng)
     return float(np.std(stats, ddof=1))
 
 

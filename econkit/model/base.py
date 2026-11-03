@@ -48,6 +48,19 @@ class Model:
         self._states[state.name] = state
         return state
 
+    def get_state(self, name: str) -> State:
+        """The declared state called ``name``."""
+        try:
+            return self._states[name]
+        except KeyError:
+            raise ValidationError(f"no state named {name!r}; have {list(self._states)}") from None
+
+    def replace_state(self, state: State) -> State:
+        """Replace an existing state of the same name (used by reform functions)."""
+        self.get_state(state.name)
+        self._states[state.name] = state
+        return state
+
     def add_control(self, control: Control) -> Control:
         if control.name in self._controls:
             raise ValidationError(f"Duplicate control name: {control.name}")

@@ -94,3 +94,12 @@ def brock_mirman(n_k: int = 200, n_z: int = 7, rho: float = 0.9, sigma_e: float 
         marginal_return=lambda k, z, p: p.alpha * z * k ** (p.alpha - 1.0),
     )
     return m
+
+
+def mean_consumption_metric(sol) -> dict[str, float]:
+    """Importable metric function for process-pool sweeps."""
+    return {"mean_c": float(sol.policy["consumption"].mean())}
+
+
+def failing_metric(sol) -> dict[str, float]:
+    raise ValueError("boom")

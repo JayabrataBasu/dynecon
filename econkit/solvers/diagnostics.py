@@ -19,7 +19,7 @@ from econkit.numerics.interpolation import linear_interp_1d
 if TYPE_CHECKING:
     from econkit.core.solution import Solution
 
-__all__ = ["bellman_residual", "euler_errors", "policy_monotone_in_assets"]
+__all__ = ["bellman_residual", "euler_error_grid", "euler_errors", "policy_monotone_in_assets"]
 
 
 def bellman_residual(
@@ -39,6 +39,12 @@ def policy_monotone_in_assets(policy: npt.NDArray[np.float64], tol: float = 1e-1
 
 
 def euler_errors(solution: Solution) -> npt.NDArray[np.float64]:
+    """Interior Euler errors as a flat vector (see :func:`euler_error_grid`)."""
+    grid = euler_error_grid(solution)
+    return np.asarray(grid[np.isfinite(grid)], dtype=np.float64)
+
+
+def euler_error_grid(solution: Solution) -> npt.NDArray[np.float64]:
     """Unit-free Euler-equation errors ``log10 |1 - c_implied / c|`` over interior states.
 
     ``c_implied = (u')^{-1}(beta E[R(a', z') u'(c(a', z'))])``. Constrained states (next
@@ -71,4 +77,4 @@ def euler_errors(solution: Solution) -> npt.NDArray[np.float64]:
     c_imp = np.asarray(prob.inverse_marginal_utility(beta * rhs, p), dtype=np.float64)
     with np.errstate(divide="ignore", invalid="ignore"):
         err = np.log10(np.maximum(np.abs(1.0 - c_imp / cons), 1e-16))
-    return np.asarray(err[interior & np.isfinite(err)], dtype=np.float64)
+    return np.where(interior & np.isfinite(err), err, np.nan)

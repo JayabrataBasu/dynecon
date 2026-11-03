@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -47,6 +48,75 @@ class Solution:
     diagnostics: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
     model: CompiledModel | None = field(default=None, repr=False)
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-safe representation (arrays as lists, NaN/inf encoded); the model is excluded."""
+        from econkit.utils.serialization import encode
+
+        fields = {
+            "method": self.method,
+            "converged": self.converged,
+            "iterations": self.iterations,
+            "residual": self.residual,
+            "elapsed": self.elapsed,
+            "backend": self.backend,
+            "model_name": self.model_name,
+            "params": self.params,
+            "grids": self.grids,
+            "policy": self.policy,
+            "value": self.value,
+            "diagnostics": self.diagnostics,
+            "metadata": self.metadata,
+        }
+        return {k: encode(v) for k, v in fields.items()}
+
+    def save(self, path: str | Path) -> Path:
+        """Write arrays to ``<path>.npz`` and everything else to ``<path>.json``."""
+        import json
+
+        from econkit.utils.serialization import encode
+
+        base = Path(path)
+        arrays: dict[str, Any] = {f"grid__{k}": v for k, v in self.grids.items()}
+        arrays |= {f"policy__{k}": np.asarray(v) for k, v in self.policy.items()}
+        if self.value is not None:
+            arrays["value"] = self.value
+        np.savez_compressed(base.with_suffix(".npz"), **arrays)
+        scalar = {
+            k: encode(v) for k, v in self.to_dict().items() if k not in ("grids", "policy", "value")
+        }
+        base.with_suffix(".json").write_text(json.dumps(scalar, indent=2), encoding="utf-8")
+        return base
+
+    @classmethod
+    def load(cls, path: str | Path, model: CompiledModel | None = None) -> Solution:
+        """Load a solution written by :meth:`save`; pass ``model`` to re-attach it."""
+        import json
+
+        from econkit.utils.serialization import decode
+
+        base = Path(path)
+        meta = decode(json.loads(base.with_suffix(".json").read_text(encoding="utf-8")))
+        with np.load(base.with_suffix(".npz")) as data:
+            grids = {k[6:]: data[k] for k in data.files if k.startswith("grid__")}
+            policy = {k[8:]: data[k] for k in data.files if k.startswith("policy__")}
+            value = data["value"] if "value" in data.files else None
+        return cls(
+            method=meta["method"],
+            converged=meta["converged"],
+            iterations=meta["iterations"],
+            residual=meta["residual"],
+            elapsed=meta["elapsed"],
+            backend=meta["backend"],
+            model_name=meta["model_name"],
+            params=meta["params"],
+            grids=grids,
+            policy=policy,
+            value=value,
+            diagnostics=meta["diagnostics"],
+            metadata=meta["metadata"],
+            model=model,
+        )
 
     def policy_function(self, name: str) -> Callable[[Any, Any], Array]:
         """Interpolating callable ``f(assets, shock_index)`` for a ``saving`` policy.
