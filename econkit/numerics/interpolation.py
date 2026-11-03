@@ -15,16 +15,18 @@ import numpy.typing as npt
 from econkit.core.errors import ValidationError
 from econkit.numerics._dispatch import resolve_backend
 from econkit.numerics._registry import register
-from econkit.numerics.backends.interp_numba import interp_linear_numba
-from econkit.numerics.backends.interp_numpy import interp_linear_numpy
+from econkit.numerics.backends.interp_numba import interp_columns_numba, interp_linear_numba
+from econkit.numerics.backends.interp_numpy import interp_columns_numpy, interp_linear_numpy
 from econkit.utils.jit import NUMBA_AVAILABLE
 from econkit.utils.validation import check_array, check_increasing
 
-__all__ = ["linear_interp_1d"]
+__all__ = ["linear_interp_1d", "linear_interp_columns"]
 
 register("linear_interp_1d", "numpy", interp_linear_numpy)
+register("linear_interp_columns", "numpy", interp_columns_numpy)
 if NUMBA_AVAILABLE:
     register("linear_interp_1d", "numba", interp_linear_numba)
+    register("linear_interp_columns", "numba", interp_columns_numba)
 
 _MODES = {"clamp": 0, "linear": 1}
 
@@ -58,3 +60,22 @@ def linear_interp_1d(
     out = impl(np.ascontiguousarray(x_a.ravel()), xp_a, fp_a, _MODES[extrapolate])
     result: npt.NDArray[np.float64] = np.asarray(out, dtype=np.float64).reshape(x_a.shape)
     return result
+
+
+def linear_interp_columns(
+    xq: Any, xk: Any, fk: Any, *, extrapolate: str = "clamp", backend: str | None = None
+) -> npt.NDArray[np.float64]:
+    """Row-wise interpolation: row ``c`` of ``xq`` on the knots ``(xk[c], fk[c])``.
+
+    Knots must be strictly increasing within each row (checked by the caller, as in EGM where
+    monotonicity is validated separately); this skips per-call validation for speed.
+    """
+    if extrapolate not in _MODES:
+        raise ValidationError(f"extrapolate must be one of {sorted(_MODES)}, got {extrapolate!r}")
+    q = np.ascontiguousarray(xq, dtype=np.float64)
+    k = np.ascontiguousarray(xk, dtype=np.float64)
+    f = np.ascontiguousarray(fk, dtype=np.float64)
+    if q.ndim != 2 or k.shape != f.shape or k.ndim != 2 or k.shape[0] != q.shape[0]:
+        raise ValidationError("xq, xk, fk must be 2-D with one row of knots per query row")
+    _, impl = resolve_backend("linear_interp_columns", backend=backend)
+    return np.asarray(impl(q, k, f, _MODES[extrapolate]), dtype=np.float64)

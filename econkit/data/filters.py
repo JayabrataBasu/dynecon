@@ -13,8 +13,6 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from scipy import sparse
-from scipy.sparse.linalg import spsolve
 
 from econkit.core.errors import ValidationError
 
@@ -52,6 +50,9 @@ def hp_filter(y: Any, lamb: float = 1600.0) -> tuple[Any, Any]:
     n = arr.shape[0]
     if n < 4 or not lamb > 0:
         raise ValidationError("need at least 4 observations and lamb > 0")
+    from scipy import sparse
+    from scipy.sparse.linalg import spsolve
+
     K = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(n - 2, n), format="csc")
     A = sparse.identity(n, format="csc") + lamb * (K.T @ K)
     trend = np.asarray(spsolve(A.tocsc(), arr), dtype=np.float64)

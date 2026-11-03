@@ -11,7 +11,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
-from scipy.linalg import solve_discrete_lyapunov
 
 from econkit.core.errors import ValidationError
 from econkit.solvers.perturbation.analysis import PerturbationSolution
@@ -101,6 +100,8 @@ def loglik_state_space(
     ``measurement_error`` is the standard deviation (scalar or per observable) of additive
     noise; with fewer shocks than observables it must be positive (stochastic singularity).
     """
+    from scipy.linalg import solve_discrete_lyapunov
+
     for name in observables:
         if name not in solution.variables:
             raise ValidationError(f"unknown observable {name!r}; have {list(solution.variables)}")

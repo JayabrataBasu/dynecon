@@ -1,4 +1,8 @@
-"""Plots of solutions: policy, value, Euler errors and convergence."""
+"""Plots of solutions: policy, value, Euler errors and convergence.
+
+Economics note:
+Policy functions and Euler errors show how households respond and how accurate the solution is.
+"""
 
 from __future__ import annotations
 

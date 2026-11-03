@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-from scipy.optimize import root
 
 from econkit.core.errors import ConvergenceError
 from econkit.model.problems import DSGEProblem, Vars
@@ -27,6 +26,8 @@ def _levels(v: Array, log_mask: npt.NDArray[np.bool_]) -> Array:
 
 def steady_state(prob: DSGEProblem, p: ParamView, tol: float = 1e-12) -> Array:
     """Steady state in levels: analytic ``steady_state(p)`` or numerically from ``guess(p)``."""
+    from scipy.optimize import root
+
     names = prob.variables
     if prob.steady_state is not None:
         y = np.asarray(prob.steady_state(p), dtype=np.float64)

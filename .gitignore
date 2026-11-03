@@ -237,3 +237,13 @@ __marimo__/
 *.nav
 # Generated
 .phase/
+
+# Sphinx build output
+docs/_build/
+docs/api/generated/
+runs/
+dist/
+build/
+*.egg-info/
+coverage.xml
+.coverage

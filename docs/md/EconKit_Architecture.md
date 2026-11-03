@@ -342,11 +342,11 @@ model.params(
     r=Param(0.03, bounds=(-0.05, 0.1), description="Net interest rate"),
 )
 
-model.state(
-    "assets", bounds=(0.0, 50.0), grid_type="curved", n_points=200
+model.add_state(
+    State("assets", bounds=(0.0, 50.0), grid_type="exp", n_points=200)
 )  # lower bound = borrowing limit
-model.state("income", shock=AR1Shock(rho=0.9, sigma_e=0.1, n_states=7, log=True))
-model.control("consumption")
+model.add_state(State("income", shock=AR1Shock(rho=0.9, sigma_e=0.1, n_states=7, log=True)))
+model.add_control(Control("consumption"))
 
 model.set_problem(
     "saving",
@@ -365,7 +365,7 @@ compiled = model.compile()  # validates, discretises, returns an immutable Compi
 sol = ek.solve(compiled)  # method="auto": EGM when the marginal fields are given, else VFI
 ```
 
-*Naming note.* The object names (`Model`, `Param`, `State`, `Control`, `AR1Shock`), `set_problem`, `compile` and `solve` are fixed by the execution plan. The two builder calls that attach states and controls are written here in the form of the current `Model` builder; execution-plan step P4.10 keeps the existing builder methods unchanged ("no fluent aliases"), so if their exact spelling differs from this sketch, the repository's builder is authoritative and this example is corrected.
+*Implementation note (updated).* The repository builder uses `add_state(State(...))` and `add_control(Control(...))`; the curved grid type is `"exp"`. The object names (`Model`, `Param`, `State`, `Control`, `AR1Shock`), `set_problem`, `compile` and `solve` are fixed by the execution plan. The two builder calls that attach states and controls are written here in the form of the current `Model` builder; execution-plan step P4.10 keeps the existing builder methods unchanged ("no fluent aliases"), so if their exact spelling differs from this sketch, the repository's builder is authoritative and this example is corrected.
 
 The same template describes a growth model by changing two lines: for Brock–Mirman, `resources = z * a**p.alpha` and `marginal_return = p.alpha * z * a**(p.alpha - 1)`.
 

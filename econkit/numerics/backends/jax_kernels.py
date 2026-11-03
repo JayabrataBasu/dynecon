@@ -83,7 +83,18 @@ def markov_paths_jax(cdf: Array, u: Array, init: Array) -> Array:
     return np.asarray(out, dtype=np.int64)
 
 
+@functools.partial(jax.jit, static_argnames=("mode",))
+def _interp_columns_jit(xq: Any, xk: Any, fk: Any, mode: int) -> Any:
+    return jax.vmap(lambda a, b, c: interp_linear(a, b, c, mode))(xq, xk, fk)
+
+
+def linear_interp_columns_jax(xq: Array, xk: Array, fk: Array, mode: int) -> Array:
+    out = _interp_columns_jit(jnp.asarray(xq), jnp.asarray(xk), jnp.asarray(fk), mode)
+    return np.asarray(out)
+
+
 register("linear_interp_1d", "jax", linear_interp_1d_jax)
+register("linear_interp_columns", "jax", linear_interp_columns_jax)
 register("bellman_saving", "jax", bellman_saving_jax)
 register("distribution_lottery", "jax", distribution_lottery_jax)
 register("markov_paths", "jax", markov_paths_jax)

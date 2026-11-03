@@ -11,7 +11,6 @@ import math
 
 import numpy as np
 import numpy.typing as npt
-from scipy.special import ndtr
 
 from econkit.core.errors import ValidationError
 
@@ -31,6 +30,8 @@ def _check(rho: float, sigma_e: float, n_states: int) -> None:
 
 def tauchen(rho: float, sigma_e: float, n_states: int, m: float = 3.0) -> tuple[Array, Array]:
     """Tauchen (1986) grid and transition matrix for ``z' = rho z + eps``, ``eps ~ N(0, s^2)``."""
+    from scipy.special import ndtr
+
     _check(rho, sigma_e, n_states)
     sigma_z = sigma_e / math.sqrt(1.0 - rho * rho)
     grid = np.linspace(-m * sigma_z, m * sigma_z, n_states, dtype=np.float64)

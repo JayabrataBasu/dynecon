@@ -17,3 +17,11 @@ def interp_linear_numpy(x: Array, xp: Array, fp: Array, mode: int) -> Array:
         t = np.clip(t, 0.0, 1.0)
     f0 = fp[idx]
     return np.asarray(f0 + t * (fp[idx + 1] - f0), dtype=np.float64)
+
+
+def interp_columns_numpy(xq: Array, xk: Array, fk: Array, mode: int) -> Array:
+    """Row-wise interpolation: row ``c`` of ``xq`` is evaluated on the knots ``(xk[c], fk[c])``."""
+    out = np.empty_like(xq)
+    for c in range(xq.shape[0]):
+        out[c] = interp_linear_numpy(xq[c], xk[c], fk[c], mode)
+    return out

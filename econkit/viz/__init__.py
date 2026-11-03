@@ -1,4 +1,9 @@
-"""Matplotlib plots (optional ``viz`` extra); importing this package imports matplotlib lazily."""
+"""Matplotlib plots (optional ``viz`` extra); importing this package imports matplotlib lazily.
+
+Economics note:
+Plots make the economic content of results (policy kinks, distributions, impulse
+responses) visible and comparable.
+"""
 
 from econkit.viz.distribution import plot_distribution, plot_lorenz
 from econkit.viz.equilibrium import plot_equilibrium, plot_sweep

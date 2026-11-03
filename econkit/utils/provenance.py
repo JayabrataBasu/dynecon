@@ -1,4 +1,8 @@
-"""Provenance record: versions, platform, git commit, timestamp."""
+"""Provenance record: versions, platform, git commit, timestamp.
+
+Economics note:
+Recording the software and machine behind a result is part of making it reproducible.
+"""
 
 from __future__ import annotations
 

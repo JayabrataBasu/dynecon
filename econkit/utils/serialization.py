@@ -1,4 +1,9 @@
-"""JSON-safe encoding of results (NumPy types, NaN and infinity encoded explicitly)."""
+"""JSON-safe encoding of results (NumPy types, NaN and infinity encoded explicitly).
+
+Economics note:
+Results must survive being written to disk and read back unchanged, including NaN and
+infinity, so stored experiments can be compared numerically.
+"""
 
 from __future__ import annotations
 

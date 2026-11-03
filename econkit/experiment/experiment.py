@@ -123,7 +123,7 @@ class Experiment:
         return model, sol, sim, moments
 
     def run(self, rng: int = 0) -> ExperimentResult:
-        """Execute and write config, provenance, solution, result and log files to a new run folder."""
+        """Execute and write config, provenance, solution, result, log to a new run folder."""
         config = self.config(rng)
         model, sol, sim, moments = self._execute(config)
         stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%f")

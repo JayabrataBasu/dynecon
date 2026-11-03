@@ -22,7 +22,7 @@ from econkit.model.compiled import CompiledModel
 from econkit.model.problems import SavingProblem
 from econkit.numerics._dispatch import resolve_backend
 from econkit.numerics.fixedpoint import fixed_point
-from econkit.numerics.interpolation import linear_interp_1d
+from econkit.numerics.interpolation import linear_interp_columns
 from econkit.solvers.diagnostics import euler_errors, policy_monotone_in_assets
 from econkit.solvers.registry import SOLVERS, resolve_config
 from econkit.utils.provenance import collect_provenance
@@ -105,15 +105,14 @@ def solve_egm(
             raise ModelSpecificationError(
                 "endogenous grid is not monotone; the problem is non-concave, use method='vfi'"
             )
-        out = np.empty_like(C)
-        for j in range(n_z):
-            xk, fk = m_end[:, j], c_end[:, j]
-            if m_grid[0, j] < xk[0]:  # constrained segment c = m - a_min
-                xk = np.concatenate(([m_grid[0, j]], xk))
-                fk = np.concatenate(([m_grid[0, j] - a_min], fk))
-            out[:, j] = linear_interp_1d(
-                m_grid[:, j], xk, fk, extrapolate="linear", backend=backend
-            )
+        constrained = m_grid[0] < m_end[0]  # per shock state: the borrowing constraint binds
+        x0 = np.where(constrained, m_grid[0], m_end[0] - 1.0)
+        f0 = np.where(constrained, m_grid[0] - a_min, c_end[0] - 1.0)
+        xk = np.vstack([x0[None, :], m_end])
+        fk = np.vstack([f0[None, :], c_end])
+        out: Array = linear_interp_columns(
+            m_grid.T, xk.T, fk.T, extrapolate="linear", backend=backend
+        ).T
         return out
 
     C0 = np.maximum(m_grid - a_min, 1e-8)

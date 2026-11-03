@@ -8,13 +8,14 @@ impulse responses and the full second-moment structure are available in closed f
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any  # noqa: F401  (resolves annotations inherited from Solution for the docs)
 
 import numpy as np
 import numpy.typing as npt
-from scipy.linalg import solve_discrete_lyapunov
 
 from econkit.core.errors import ValidationError
 from econkit.core.solution import Solution
+from econkit.model.compiled import CompiledModel  # noqa: F401  (resolves inherited annotations)
 from econkit.simulation.result import SimulationResult
 from econkit.utils.rng import as_generator
 
@@ -114,6 +115,8 @@ def theoretical_moments(
     solution: PerturbationSolution, lags: tuple[int, ...] = (1,)
 ) -> TheoreticalMoments:
     """Covariance, autocovariances and shock variance decomposition via the Lyapunov equation."""
+    from scipy.linalg import solve_discrete_lyapunov
+
     P, S, C = solution.P, solution.Sigma, solution.observation_matrix
     gamma0 = solve_discrete_lyapunov(P, S @ S.T)
     cov = C @ gamma0 @ C.T
@@ -141,6 +144,8 @@ def simulate_linear(
 
     The initial state is drawn from the stationary distribution ``N(0, Gamma_0)``.
     """
+    from scipy.linalg import solve_discrete_lyapunov
+
     if n_periods < 1 or n_agents < 1 or burn_in < 0:
         raise ValidationError("need n_periods >= 1, n_agents >= 1, burn_in >= 0")
     gen = as_generator(rng)

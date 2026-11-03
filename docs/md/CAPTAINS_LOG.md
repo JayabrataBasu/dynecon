@@ -998,3 +998,112 @@ Progress scale:
 
 - Result: Session 13 objectives completed with implementation, tests, and documentation synchronization.
 - Primary deliverables: integrated pipeline helper, structured simulation diagnostics, and optional JAX dispatch pilot.
+
+
+## Session 14 (execution of V1 plan: P0 to P17, one long autonomous run)
+
+### Corrections to the record (plan section 1.2)
+
+- The earlier claim "~100% of Phase 1" was wrong: EGM, built-in models, a real SMM estimator,
+  plotting, property-based tests and tutorials did not exist. They exist now (see below); the
+  only honest progress measure is `docs/md/V1_PROGRESS.md`.
+- `.github/` and the architecture / backend-roadmap documents were git-ignored; they are now
+  tracked (decisions D3, D4). CI files exist but **have never run on GitHub** ("CI file created,
+  first GitHub run unverified").
+- The JAX "pilot" Tauchen/Rouwenhorst wrappers added no JAX computation; they were deleted. JAX
+  now has real kernels, autodiff Jacobians, gradients and batched EGM.
+
+### What was done
+
+- **P0**: tagged `v0.1.0-baseline` first; packaging (auto-discovery, SciPy required, extras, single
+  version source), pytest/coverage config, CI workflows, CHANGELOG, pre-commit, phase extractor,
+  progress/usage/near-future/docstring checks, `scripts/ci.py` (portable `make ci`; `make` is not
+  installed on the author's Windows machine).
+- **P1-P3** numerics and core; **P4** model DSL; **P5-P6** VFI and EGM; **P7** simulation and Young
+  distributions; **P8** equilibrium engine; **P9** Klein perturbation; **P10** nine models;
+  **P11** estimation; **P12** JAX; **P13** filters/FRED/plots; **P14** experiments; **P15** benchmark
+  harness and recorded results; **P16** docs (guides, theory pages, nine executable tutorials,
+  Sphinx scaffold, model pages); **P17** API snapshot, build, clean-room install.
+- Deleted (replaced, not wrapped): `solvers/canonical.py` and the liquid/illiquid prototype,
+  `VFISolution`/`value_function_iteration`/`VFISolver`, convergence-artifact exporters (nothing called
+  them), `simulate_markov_asset_policy`, `run_solve_simulate_moments_pipeline`, `core/types.py`,
+  `core/protocols.py`, `Model.equation`/`EquationSpec`, JAX wrappers, `gauss_laguerre_exp`,
+  `golden_section_max`, `brent_max`, `expectation_discrete`, `scripts/benchmark_solver_backends.py`,
+  `docs/latex/econkit_math.tex` (ported to `docs/theory/`).
+- Tests removed with the deleted code (R9): the canonical-helper, adapter, VFI-scaffold, artifact
+  schema, optimiser, JAX-wrapper and `simulate_markov_asset_policy` tests. Ported assertions:
+  feasibility/monotonicity/convergence of the consumption-savings policy (now `tests/solvers/test_vfi.py`),
+  Bellman-residual and monotonicity diagnostics, simulation moments and diagnostics (now
+  `tests/simulation/`), moment loss (now `tests/estimation/`), strict-backend failure path
+  (`tests/core/test_config.py`).
+
+### Deviations from the plan (all deliberate; the plan's wording is in parentheses)
+
+1. `dsge` equations are `equations(yp, y, p)` (plan: `(yp, y, e, p)`): the shock argument `e` would
+   be unused because innovations enter through `shock_loadings` (R21d).
+2. Discretisation and quadrature are single NumPy/SciPy implementations (plan P3.8 suggested parity
+   cases): they are cold-path operations (R4).
+3. Default backend is `"auto"` (Numba when installed) so compiled kernels activate with no
+   configuration, as the architecture promises; `auto` never picks JAX.
+4. EGM step 1 (interpolating next-period consumption) is the identity because next assets lie on
+   the state grid; the only interpolation is the final one in cash-on-hand, done by the batched
+   `linear_interp_columns` operation (added after profiling).
+5. `simulate` draws all shock uniforms from one generator up front (plan: per-agent spawned
+   streams). Draws are still made before the kernel, so results are independent of thread count.
+6. IRFs (P7.5): the shock moves the discrete shock state by `shock_steps` grid points (a 1% shock is
+   not representable on a 7-state chain); the test checks the exact log-linear response.
+7. P8.4(2): `sigma_e = 1e-6` has no sign change in the capital-market bracket (households do not
+   accumulate wealth when risk is negligible and `beta(1+r) < 1`); the test uses `sigma_e = 0.01`,
+   which gives `r*` within 1e-4 of `1/beta - 1`.
+8. P10.9: the plan says the price-dividend ratio is *decreasing* in the dividend for `sigma > 1`; the
+   algebra (and the numerics) give *increasing* for `sigma > 1`, decreasing for `sigma < 1`. Tests assert
+   the verified signs.
+9. A `Model` holds one problem, so Brock-Mirman and RBC choose their form with a `problem=` option
+   (`saving` or `dsge`) rather than declaring both.
+10. The Lucas tree required a fourth template, `pricing` (it has a consumer, the model and its solver).
+11. P14.4: the aggregate CEV evaluates both value functions on the **baseline** stationary
+    distribution (reform values interpolated onto the baseline grid). Averaging each regime's value
+    over its own distribution mixed the policy effect with the change in the wealth distribution and
+    gave a negative CEV for a relaxed borrowing limit.
+12. `Param.transform` has a default `"auto"` (logit for two-sided bounds, log for one-sided) so bounded
+    parameters never need clipping.
+13. `import econkit` must not load Numba (P13.9): `utils.jit` became lazy (kernels materialise on first
+    call and are rebound in all modules), and SciPy submodules are imported inside functions. Import
+    time measured 0.30 s.
+14. Benchmarks: `simulate_panel` uses 2x10^4 agents (not 10^5) to bound memory. EGM misses its
+    "20x faster than Numba VFI" goal (see `docs/md/benchmarks.md`).
+15. Coverage excludes `@jit` function bodies (they cannot be line-traced); they are verified by parity
+    tests (R3). Ruff selects an explicit rule set; line-length is not enforced in `scripts/`,
+    `benchmarks/` and `tests/`.
+
+### Verification
+
+- Last complete coverage run: 256 passed / 1 skipped, total line+branch coverage 94% (before adding
+  `tests/model/test_validation_branches.py`, which lifts `model/validation.py` above the 90% floor, and
+  the parity-coverage meta-test). All static gates (ruff, mypy, vulture, usage, near-future,
+  docstring audit) pass via `python scripts/ci.py --skip-tests`.
+- **Only Python 3.14.8 on Windows 11 was used** (the 3.12/3.13 launcher entries on this machine are
+  broken). Python 3.10-3.12, Linux and macOS (the CI matrix) are untested. NumPy 2.5, SciPy 1.18,
+  Numba 0.68 and JAX 0.12 were installed; the declared minimum versions (`numpy>=1.25`,
+  `scipy>=1.11`) are untested.
+- Clean-room install of the built wheel in a fresh venv (no Numba, no JAX) passes
+  `scripts/smoke_installed.py`.
+
+### Blockers (need the maintainer)
+
+- **PyPI name `econkit` is taken** (versions up to 0.5.8 by another project; `pip index versions econkit`).
+  P17 cannot publish under this name; choose another distribution name (the import name can stay
+  `econkit`) and update `pyproject.toml`, README, CITATION.cff.
+- **D1 licence undecided** (GPL-3.0 kept). Blocks P17.2.
+- **D8**: author e-mail/URLs in metadata should be confirmed.
+- CI workflows, the docs workflow, Dependabot and the `release.yml` trusted-publishing setup have not
+  been exercised on GitHub. Actions are pinned by tag, not by commit SHA (P17.11 incomplete).
+- Human gates not performed: Review-2/3/4, release candidate (P17.5), soak (P17.6), final release
+  (P17.8), post-release steps (P17.9-P17.10), docs hosting (P16.8). No tags were pushed and nothing was
+  published.
+- The FRED `fredgraph.csv` endpoint is unverified against the live service (no network use in tests).
+- P10.13 (optional QuantEcon cross-validation) not done.
+
+### Next step
+
+Resolve the blockers above, run CI on GitHub across the matrix, then the human review gates.

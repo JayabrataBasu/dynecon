@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-from scipy.sparse import identity
-from scipy.sparse.linalg import spsolve
 
 from econkit.core.errors import ValidationError
 from econkit.core.solution import Solution
@@ -29,6 +27,9 @@ def evaluate_policy_value(solution: Solution) -> Array:
 
     Works for any ``saving`` solution, including EGM solutions that carry no value function.
     """
+    from scipy.sparse import identity
+    from scipy.sparse.linalg import spsolve
+
     model = solution.model
     prob = None if model is None else model.problem
     if model is None or not isinstance(prob, SavingProblem):

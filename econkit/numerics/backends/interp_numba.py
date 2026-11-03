@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from econkit.utils.jit import jit
+from econkit.utils.jit import jit, prange
 
 Array = npt.NDArray[np.float64]
 
@@ -32,4 +32,13 @@ def interp_linear_numba(x: Array, xp: Array, fp: Array, mode: int) -> Array:
     out = np.empty(x.shape[0], dtype=np.float64)
     for i in range(x.shape[0]):
         out[i] = interp_linear_scalar(x[i], xp, fp, mode)
+    return out
+
+
+@jit(parallel=True)
+def interp_columns_numba(xq: Array, xk: Array, fk: Array, mode: int) -> Array:
+    out = np.empty_like(xq)
+    for c in prange(xq.shape[0]):
+        for i in range(xq.shape[1]):
+            out[c, i] = interp_linear_scalar(xq[c, i], xk[c], fk[c], mode)
     return out

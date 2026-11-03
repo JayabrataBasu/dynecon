@@ -12,7 +12,6 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from scipy.optimize import minimize
 
 from econkit.core.errors import ValidationError
 from econkit.estimation.results import MLEResult
@@ -54,6 +53,8 @@ def mle(
     ``gradient="jax"`` uses exact JAX derivatives (gradient and Hessian); ``loglik`` must then
     be JAX-traceable. Otherwise derivatives are finite differences.
     """
+    from scipy.optimize import minimize
+
     x0 = np.asarray(theta0, dtype=np.float64)
     if x0.ndim != 1:
         raise ValidationError("theta0 must be a vector")

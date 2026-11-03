@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12"]
+        experimental: [false]
+        include:
+          - os: ubuntu-latest
+            python: "3.13"
+            experimental: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Gates (layout, lint, types, tests, dead code)
+        shell: bash
+        run: |
+          python scripts/check_test_layout.py
+          python scripts/check_progress.py
+          ruff check .
+          mypy econkit
+          pytest -m "not slow and not jax"
+          vulture econkit scripts/vulture_whitelist.py
+          python scripts/check_usage.py
+          python scripts/check_near_future.py
+
+  no-numba:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip uninstall -y numba
+      - run: pytest -m "not numba and not jax and not slow"
+
+  jax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -e ".[dev,jax]"
+      - run: pytest -m jax
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -e ".[dev,jax]"
+      - run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+  pip-audit:
+    # non-gating supply-chain check (plan P17.11)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -e ".[dev]" pip-audit
+      - run: pip-audit

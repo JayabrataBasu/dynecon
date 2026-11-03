@@ -9,11 +9,10 @@ policy, preserving the policy mean and avoiding simulation noise.
 from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
-from scipy import sparse
-from scipy.sparse.linalg import spsolve
 
 from econkit.core.errors import ConvergenceWarning, ValidationError
 from econkit.core.solution import Solution
@@ -36,6 +35,9 @@ __all__ = [
     "quantile",
     "stationary_distribution_young",
 ]
+
+if TYPE_CHECKING:
+    from scipy import sparse
 
 Array = npt.NDArray[np.float64]
 
@@ -72,6 +74,8 @@ def build_transition_matrix(solution: Solution) -> sparse.csr_matrix:
 
     This is the NumPy/SciPy reference for the matrix-free histogram step.
     """
+    from scipy import sparse
+
     a, _, P = _parts(solution)
     n_a, n_z = solution.policy[f"{_asset_name(solution)}_next"].shape
     k, w, _ = lottery_weights(solution)
@@ -147,6 +151,9 @@ def stationary_distribution_young(
 
 def _direct_stationary(T: sparse.csr_matrix) -> Array:
     """Solve ``mu = T' mu`` with ``sum(mu) = 1`` by a sparse LU factorisation."""
+    from scipy import sparse
+    from scipy.sparse.linalg import spsolve
+
     n = T.shape[0]
     lhs = (sparse.identity(n, format="csr") - T.T).tolil()
     lhs[n - 1, :] = np.ones(n)

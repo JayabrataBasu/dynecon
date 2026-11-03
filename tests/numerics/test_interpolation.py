@@ -79,3 +79,29 @@ def test_properties(nodes: list[float], data: st.DataObject) -> None:
     np.testing.assert_allclose(
         linear_interp_1d(far, xp, a * xp + b, extrapolate="linear"), a * far + b, atol=1e-6
     )
+
+
+@pytest.mark.parametrize("backend", BACKENDS + [pytest.param("jax", marks=pytest.mark.jax)])
+@pytest.mark.parametrize("mode", ["clamp", "linear"])
+def test_columns_match_rowwise_1d(backend: str, mode: str) -> None:
+    from econkit.numerics.interpolation import linear_interp_columns
+
+    if backend == "numba":
+        pytest.importorskip("numba")
+    if backend == "jax":
+        pytest.importorskip("jax")
+    rng = np.random.default_rng(3)
+    xk = np.sort(rng.uniform(-2, 2, (4, 30)), axis=1) + np.arange(30) * 1e-3
+    fk = rng.standard_normal((4, 30))
+    xq = rng.uniform(-3, 3, (4, 50))
+    out = linear_interp_columns(xq, xk, fk, extrapolate=mode, backend=backend)
+    for c in range(4):
+        np.testing.assert_allclose(
+            out[c],
+            linear_interp_1d(xq[c], xk[c], fk[c], extrapolate=mode, backend="numpy"),
+            atol=1e-12,
+        )
+    with pytest.raises(ValidationError):
+        linear_interp_columns(xq, xk[:3], fk[:3])
+    with pytest.raises(ValidationError):
+        linear_interp_columns(xq, xk, fk, extrapolate="cubic")

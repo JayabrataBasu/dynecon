@@ -13,7 +13,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
-from scipy.optimize import minimize
 
 from econkit.core.errors import IdentificationError, ValidationError
 from econkit.estimation.results import SMMResult
@@ -79,6 +78,8 @@ def loss_profile(
     result: SMMResult, name: str, grid: Sequence[float], reoptimize: bool = False
 ) -> Array:
     """SMM loss along ``name`` over ``grid``; with ``reoptimize`` the other parameters re-fit."""
+    from scipy.optimize import minimize
+
     if name not in result.names:
         raise ValidationError(f"unknown parameter {name!r}; have {result.names}")
     others = [n for n in result.names if n != name]

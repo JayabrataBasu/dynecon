@@ -1,4 +1,9 @@
-"""Input validation helpers raising ``ValidationError`` that name the argument."""
+"""Input validation helpers raising ``ValidationError`` that name the argument.
+
+Economics note:
+Catching a malformed grid or transition matrix at the boundary prevents silently wrong
+economic results.
+"""
 
 from __future__ import annotations
 

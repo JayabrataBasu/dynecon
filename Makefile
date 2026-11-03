@@ -10,7 +10,7 @@ RUFF := $(BIN)/ruff
 MYPY := $(BIN)/mypy
 PYTEST := $(BIN)/pytest
 
-.PHONY: install test lint typecheck format test-structure deadcode coverage build ci phase docs bench
+.PHONY: install test lint typecheck format test-structure deadcode docstrings coverage build ci phase docs bench tutorials
 
 install:
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
@@ -37,6 +37,9 @@ deadcode:
 	$(PYTHON) scripts/check_usage.py
 	$(PYTHON) scripts/check_near_future.py
 
+docstrings:
+	$(PYTHON) scripts/check_docstrings.py
+
 coverage:
 	$(PYTEST) --cov --cov-report=term-missing --cov-report=xml
 
@@ -47,9 +50,13 @@ phase:
 	$(PYTHON) scripts/phase.py $(P) > .phase/P$(P).md
 
 docs:
-	@echo "docs build arrives in P16"
+	$(PYTHON) scripts/gen_model_docs.py
+	$(BIN)/sphinx-build -b html docs docs/_build/html --keep-going
+
+tutorials:
+	$(PYTHON) scripts/run_tutorials.py
 
 bench:
-	@echo "benchmark harness arrives in P15"
+	$(PYTHON) -m benchmarks.run --all
 
-ci: test-structure lint typecheck test deadcode
+ci: test-structure lint typecheck test deadcode docstrings

@@ -14,7 +14,6 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from scipy.optimize import brentq
 
 from econkit.core.errors import ConvergenceError, ValidationError
 from econkit.core.solution import Solution
@@ -60,6 +59,8 @@ def solve_stationary_equilibrium(
     Raises :class:`ConvergenceError` (with the endpoint excess demands) if the bracket has no
     sign change.
     """
+    from scipy.optimize import brentq
+
     lo, hi = bracket
     if not lo < hi:
         raise ValidationError("bracket must satisfy lo < hi")

@@ -1,4 +1,8 @@
-"""Plots for estimation: moment fit and MCMC diagnostics."""
+"""Plots for estimation: moment fit and MCMC diagnostics.
+
+Economics note:
+Moment-fit and posterior plots show what the data do and do not pin down.
+"""
 
 from __future__ import annotations
 

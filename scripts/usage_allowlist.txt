@@ -1,1 +1,98 @@
-# One name per line, with a one-line reason after '#'.
+# One name per line, with a one-line reason after '#'. New public symbols must have a library caller
+# and a test, or be listed here with a reason (rule R21b).
+Beta  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+CALIBRATION_SOURCE  # covered indirectly through the public function that produces/consumes it
+Config  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+DEFAULTS  # covered indirectly through the public function that produces/consumes it
+DSGEProblem  # covered indirectly through the public function that produces/consumes it
+EGMConfig  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+Experiment  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+ExperimentResult  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+FiniteDPProblem  # covered indirectly through the public function that produces/consumes it
+FixedPointResult  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+Gamma  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+IdentificationReport  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+InverseGamma  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+KNOWN_BACKENDS  # covered indirectly through the public function that produces/consumes it
+KalmanResult  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+MCMCResult  # covered indirectly through the public function that produces/consumes it
+MLEResult  # covered indirectly through the public function that produces/consumes it
+ModelSpec  # covered indirectly through the public function that produces/consumes it
+MomentTarget  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+Normal  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+ParameterSweep  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+PerturbationSolution  # covered indirectly through the public function that produces/consumes it
+PolicyComparison  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+PricingConfig  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+PricingProblem  # covered indirectly through the public function that produces/consumes it
+Prior  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+ReproductionReport  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+SMMConfig  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+SMMResult  # covered indirectly through the public function that produces/consumes it
+SOLVERS  # covered indirectly through the public function that produces/consumes it
+SavingProblem  # covered indirectly through the public function that produces/consumes it
+Solver  # covered indirectly through the public function that produces/consumes it
+SweepResult  # covered indirectly through the public function that produces/consumes it
+TheoreticalMoments  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+Uniform  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+VFIConfig  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+Vars  # covered indirectly through the public function that produces/consumes it
+asset_upper_bound  # covered indirectly through the public function that produces/consumes it
+available_backends  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+bayes_estimate  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+block_bootstrap_se  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+bootstrap_ci  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+bootstrap_statistics  # covered indirectly through the public function that produces/consumes it
+build_model  # covered indirectly through the public function that produces/consumes it
+build_payoff_tensor  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+cev_from_values  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+closed_form_coefficients  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+compile_spec  # covered indirectly through the public function that produces/consumes it
+crra  # covered indirectly through the public function that produces/consumes it
+crra_marginal  # covered indirectly through the public function that produces/consumes it
+crra_marginal_inverse  # covered indirectly through the public function that produces/consumes it
+euler_steady_state  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+evaluate_policy_value  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+exp_grid  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+fetch_fred  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+fingerprint_model  # covered indirectly through the public function that produces/consumes it
+get_pyplot  # covered indirectly through the public function that produces/consumes it
+iterate_capital  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+iterate_distribution  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+kalman_filter  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+klein_solve  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+linearize_jax  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+log_utility_price_dividend  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+loglik_state_space  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+loss_profile  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+make_moment_fn  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+mle  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+monte_carlo  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+mpc_perfect_foresight  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+newey_west_variance  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+normalise_build  # covered indirectly through the public function that produces/consumes it
+numerical_hessian  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+plot_convergence  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_distribution  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_equilibrium  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_euler_errors  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_irf  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_moment_fit  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_simulation  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_sweep  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+plot_value  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+prange  # covered indirectly through the public function that produces/consumes it
+price_one_period_claim  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+quadratic_moment_loss  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+quantile  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+resolve_config  # covered indirectly through the public function that produces/consumes it
+simulate_irf  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+simulate_markov  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+solve_egm  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules; covered indirectly through the public function that produces/consumes it
+solve_pricing  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+solve_vfi  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+split_rhat  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+uniform_grid  # user-facing entry point or result type; exercised by tests/tutorials, not by other library modules
+unit_mean_income_chain  # covered indirectly through the public function that produces/consumes it
+validate_model  # covered indirectly through the public function that produces/consumes it
+wage  # covered indirectly through the public function that produces/consumes it

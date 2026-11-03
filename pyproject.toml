@@ -71,8 +71,9 @@ select = ["E", "F", "W", "I", "UP", "ERA", "ARG", "C90"]
 max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ARG"]
-"scripts/**" = ["ARG"]
+"tests/**" = ["ARG", "E501"]
+"scripts/**" = ["ARG", "E501"]  # long prose/format strings in generators
+"benchmarks/**" = ["ARG", "E501"]
 "econkit/models/**" = ["ARG001", "ARG005"]  # template callables have fixed signatures
 
 [tool.vulture]
@@ -96,7 +97,14 @@ source = ["econkit"]
 branch = true
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]
+# Numba-compiled kernels cannot be line-traced; they are verified by parity tests against the
+# NumPy reference (rule R3) instead.
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "^@jit",
+]
 
 [tool.mypy]
 python_version = "3.10"

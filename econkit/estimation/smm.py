@@ -14,8 +14,6 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from scipy import stats
-from scipy.optimize import minimize
 
 from econkit.core.errors import (
     ConvergenceError,
@@ -146,6 +144,8 @@ def smm(  # noqa: C901 - sequential two-step estimation with inference; steps ar
         opts: dict[str, Any] = {"maxiter": max_iter}
         if method == "Nelder-Mead":
             opts.update(maxfev=max_iter, xatol=1e-7, fatol=1e-14)
+        from scipy.optimize import minimize
+
         return minimize(obj, start, method=method, options=opts)
 
     W1 = np.eye(q) if w_given is None else w_given
@@ -202,6 +202,8 @@ def smm(  # noqa: C901 - sequential two-step estimation with inference; steps ar
     j_stat = j_p = None
     if df > 0:
         j_stat = float(n_obs / (1 + 1 / n_sim) * g @ np.linalg.pinv(om) @ g)
+        from scipy import stats
+
         j_p = float(stats.chi2.sf(j_stat, df))
 
     def loss_fn(params: dict[str, float]) -> float:

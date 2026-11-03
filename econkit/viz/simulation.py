@@ -1,4 +1,8 @@
-"""Plots of simulations and impulse responses."""
+"""Plots of simulations and impulse responses.
+
+Economics note:
+Simulated paths and impulse responses show the dynamics a model generates.
+"""
 
 from __future__ import annotations
 

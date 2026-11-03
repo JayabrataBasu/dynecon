@@ -1,4 +1,8 @@
-"""Plots of distributions: marginal mass with CDF, and Lorenz curves."""
+"""Plots of distributions: marginal mass with CDF, and Lorenz curves.
+
+Economics note:
+The shape of the wealth distribution and its Lorenz curve summarise inequality.
+"""
 
 from __future__ import annotations
 

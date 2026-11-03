@@ -1,4 +1,9 @@
-"""First-order perturbation (Klein 2000) for ``dsge`` problems."""
+"""First-order perturbation (Klein 2000) for ``dsge`` problems.
+
+Economics note:
+First-order perturbation approximates a DSGE model around its steady state, the workhorse
+of quantitative macroeconomics.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,8 @@
-"""Plots for equilibrium and parameter sweeps."""
+"""Plots for equilibrium and parameter sweeps.
+
+Economics note:
+Excess-demand curves show where a market clears and how comparative statics shift it.
+"""
 
 from __future__ import annotations
 

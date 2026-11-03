@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-from scipy.linalg import ordqz
 
 from econkit.core.errors import DeterminacyError
 
@@ -32,6 +31,8 @@ def klein_solve(A: Array, B: Array, n_x: int) -> tuple[Array, Array, Array]:
     motion ``x_{t+1} = P x_t + Sigma e_{t+1}``. Raises :class:`DeterminacyError` when the
     number of stable roots differs from ``n_x``.
     """
+    from scipy.linalg import ordqz
+
     n = A.shape[0]
     if A.shape != (n, n) or B.shape != (n, n) or not 0 <= n_x <= n:
         raise ValueError("A and B must be square of equal size with 0 <= n_x <= n")

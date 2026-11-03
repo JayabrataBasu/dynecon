@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-from scipy.optimize import brentq
 
 from econkit.model import Model, Param
 from econkit.models.registry import register, split_overrides
@@ -57,6 +56,8 @@ def iterate_capital(k0: float, periods: int, alpha: float, beta: float, n: float
 
 def euler_steady_state(alpha: float, beta: float, n: float) -> float:
     """Steady state from the household Euler equation by root finding (independent check)."""
+
+    from scipy.optimize import brentq
 
     def euler(k: float) -> float:
         wage = (1.0 - alpha) * k**alpha
