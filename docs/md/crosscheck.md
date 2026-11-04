@@ -4,7 +4,7 @@ Generated from `crosscheck/results/quantecon.json` by `scripts/gen_crosscheck_do
 regenerate the data with `python scripts/crosscheck_quantecon.py`. Only numbers in this
 file may be quoted elsewhere.
 
-- Versions: dynecon 0.1.1, quantecon 0.13.1, numpy 2.5.4, python 3.14.8
+- Versions: dynecon 0.2.0, quantecon 0.13.1, numpy 2.5.4, python 3.14.8
 
 [QuantEcon](https://quantecon.org) is an established open-source library for computational economics. Agreement with an independent implementation on identical inputs is evidence that Dynecon's results are right; a disagreement is either a documented convention difference or a bug to fix.
 
@@ -32,10 +32,10 @@ Compared: dynecon.estimation.kalman_filter vs quantecon.Kalman (+ scipy likeliho
 
 | quantity | largest abs. difference | tolerance | worst case |
 |---|---|---|---|
-| predicted_state | 3.89e-15 | 1e-10 | - |
-| predicted_cov | 3.33e-15 | 1e-10 | - |
-| filtered_state | 4.44e-15 | 1e-10 | - |
-| loglik | 1.14e-13 | 1e-10 | - |
+| predicted_state | 4.25e-13 | 1e-10 | - |
+| predicted_cov | 2.44e-13 | 1e-10 | - |
+| filtered_state | 6.43e-13 | 1e-10 | - |
+| loglik | 4.26e-12 | 1e-10 | - |
 
 - Random stable systems (1-4 states, 1-3 observables, 80 periods, fixed seed).
 - Dynecon takes covariances (H, Q); QuantEcon takes factors (C, H) with covariances CC' and HH'. Both treat the initial (a0, P0) as the prior for the first period.
@@ -63,7 +63,7 @@ Compared: dynecon.solve(method='vfi') + stationary_distribution_young vs quantec
 # Performance and accuracy against other libraries
 
 Generated from `crosscheck/results/libs_benchmark.json` by `scripts/gen_crosscheck_doc.py`;
-regenerate the data with `scripts/benchmark_vs_libs.py`. Wall-clock seconds, minimum of 7 warm runs; first-call (JIT) times are in the JSON. Single machine (Windows-11-10.0.26200-SP0, 12 logical cores), Python 3.14.8, dynecon 0.1.1, quantecon 0.13.1, sequence-jacobian 1.0.0, numpy 2.5.4. Both libraries receive the same grid, income values and transition matrix; one machine and one problem family, so treat the ratios as indicative.
+regenerate the data with `scripts/benchmark_vs_libs.py`. Wall-clock seconds, minimum of 7 warm runs; first-call (JIT) times are in the JSON. Single machine (Windows-11-10.0.26200-SP0, 12 logical cores), Python 3.14.8, dynecon 0.2.0, quantecon 0.13.1, sequence-jacobian 1.0.0, numpy 2.5.4. Both libraries receive the same grid, income values and transition matrix; one machine and one problem family, so treat the ratios as indicative.
 
 ## Household EGM + stationary distribution vs Sequence-Space Jacobian (SSJ)
 
@@ -71,11 +71,11 @@ SSJ's `hh` block is also an endogenous-grid solver, so this compares like with l
 
 | assets | SSJ (s) | Dynecon Numba (s) | Dynecon NumPy (s) | Dynecon / SSJ (Numba) | policy diff | distribution diff |
 |---|---|---|---|---|---|---|
-| 200 | 0.040 | 0.036 | 0.112 | 0.9x | 1.2e-07 | 2.0e-09 |
-| 500 | 0.078 | 0.067 | 0.131 | 0.9x | 1.1e-07 | 2.6e-09 |
-| 1000 | 0.119 | 0.108 | 0.185 | 0.9x | 1.1e-07 | 2.5e-09 |
+| 200 | 0.020 | 0.039 | 0.050 | 2.0x | 1.2e-07 | 2.0e-09 |
+| 500 | 0.042 | 0.070 | 0.080 | 1.7x | 1.1e-07 | 2.6e-09 |
+| 1000 | 0.073 | 0.112 | 0.133 | 1.5x | 1.1e-07 | 2.5e-09 |
 
-Dynecon is faster on this task (Dynecon/SSJ time ratio 0.86x to 0.90x). The two agree to 1e-07 in the policy and 3e-09 in the distribution, which is the size expected from iteration tolerances of 1e-8 and 1e-10.
+SSJ is faster on this task (Dynecon/SSJ time ratio 1.54x to 1.98x). The two agree to 1e-07 in the policy and 3e-09 in the distribution, which is the size expected from iteration tolerances of 1e-8 and 1e-10.
 
 ## Discrete savings problem vs QuantEcon `DiscreteDP`
 
@@ -83,8 +83,8 @@ Same discrete-choice problem and grid (see the cross-check above), tolerance 1e-
 
 | states | QuantEcon policy iter. (s) | QuantEcon value iter. (s) | Dynecon VFI Numba (s) | speed-up vs policy iter. | policy mismatches |
 |---|---|---|---|---|---|
-| 180 | 0.062 | 0.160 | 0.005 | 11.4x | 0 |
-| 300 | 0.218 | 1.697 | 0.008 | 26.2x | 0 |
-| 450 | 0.324 | 4.696 | 0.013 | 24.0x | 0 |
+| 180 | 0.129 | 0.303 | 0.011 | 11.9x | 0 |
+| 300 | 0.223 | 2.665 | 0.013 | 17.1x | 0 |
+| 450 | 0.441 | 7.107 | 0.015 | 29.3x | 0 |
 
 Not benchmarked: HARK (its income process and normalisation differ, so no identical problem has been set up yet) and econpizza/Dynare (different problem classes).

@@ -8,7 +8,9 @@ A Python library for computational economics: specify, solve, simulate and estim
 economic models, with a NumPy reference implementation, optional Numba acceleration and an
 optional JAX backend for exact derivatives.
 
-> **Status: pre-1.0 (0.1.1).** Published on PyPI; the API may still change before 1.0.
+> **Status: pre-1.0 (0.2.0).** Published on PyPI; the API may still change before 1.0.
+> New in 0.2.0: exact-gradient estimation of heterogeneous-agent models (`smm_exact`). It has been
+> tested on model-generated data only; testing on real data is planned for 0.3.0.
 > Documentation: <https://dynecon.readthedocs.io>. Progress is tracked as a checklist
 > in [`docs/md/V1_PROGRESS.md`](docs/md/V1_PROGRESS.md); known limits are in
 > [`docs/md/known_limits.md`](docs/md/known_limits.md).

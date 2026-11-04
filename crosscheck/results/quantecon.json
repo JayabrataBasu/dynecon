@@ -1,5 +1,5 @@
 {
-  "dynecon": "0.1.1",
+  "dynecon": "0.2.0",
   "quantecon": "0.13.1",
   "numpy": "2.5.4",
   "python": "3.14.8",
@@ -34,10 +34,10 @@
       "compared": "dynecon.estimation.kalman_filter vs quantecon.Kalman (+ scipy likelihood)",
       "n_cases": 20,
       "max_abs_diff": {
-        "predicted_state": 3.885780586188048e-15,
-        "predicted_cov": 3.3306690738754696e-15,
-        "filtered_state": 4.440892098500626e-15,
-        "loglik": 1.1368683772161603e-13
+        "predicted_state": 4.2454928461665986e-13,
+        "predicted_cov": 2.438049762076844e-13,
+        "filtered_state": 6.434852650727407e-13,
+        "loglik": 4.263256414560601e-12
       },
       "worst_case": {},
       "tolerance": {

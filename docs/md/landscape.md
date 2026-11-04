@@ -9,7 +9,7 @@ is absent. Re-check before quoting publicly.
 
 | Package | Latest (PyPI) | Python | Licence | Compute stack | What it is (per its README/PyPI) |
 |---|---|---|---|---|---|
-| **Dynecon** | 0.1.1 (2026-11-04) | >=3.10 | BSD-3 | NumPy/SciPy, optional Numba, optional JAX | Model DSL; VFI/EGM household solvers; stationary equilibrium; Klein perturbation; simulation; SMM, MLE, Kalman, MCMC |
+| **Dynecon** | 0.2.0 (2026-11-04) | >=3.10 | BSD-3 | NumPy/SciPy, optional Numba, optional JAX | Model DSL; VFI/EGM household solvers; stationary equilibrium; Klein perturbation; simulation; SMM, MLE, Kalman, MCMC |
 | **QuantEcon.py** | 0.13.1 (2026-10-17) | >=3.12 | BSD (not in metadata) | Numba, NumPy, SciPy | Toolbox of algorithms and lecture code (DiscreteDP, Kalman, LQ, Markov tools). No household/Aiyagari class (checked in 0.13.1) |
 | **Econ-ARK / HARK** | 0.17.2 (2026-05-01) | >=3.10 | Apache-2.0 | Numba, NumPy, pandas | Toolkit for heterogeneous-agent structural models, simulation-based aggregates. README calls itself beta and "not extensively tested" |
 | **Sequence-Space Jacobian** | 1.0.0 (2022-01-10, only PyPI release) | >=3.7 | MIT | Numba, NumPy, SciPy (no JAX stated) | HetBlocks/DAG models, linearized and nonlinear IRFs, SSJ method; a Krusell-Smith notebook computes a log-likelihood |
@@ -64,13 +64,15 @@ The decision is the maintainer's.
 
 Installed and benchmarked on identical problems (one Windows machine): SSJ and QuantEcon only.
 - Household EGM + stationary distribution vs SSJ: results agree (policy ~2e-7, distribution ~3e-9) but
-  **Dynecon is about 10-14% faster** after the 0.2.0 solver changes (Anderson-accelerated EGM, cached
-  provenance): Dynecon/SSJ time ratio 0.86x to 0.90x with Numba at matched tolerances. Before them SSJ was
-  1.3x to 1.9x faster (0.1.1). One machine; see crosscheck.md for the table.
-- Discrete savings problem vs QuantEcon `DiscreteDP`: identical answers; Dynecon VFI is 2.0x to 8.7x
-  faster than DiscreteDP policy iteration (more against value iteration) on 180 to 450 states.
+  **SSJ is still faster**, by about 1.5x to 2x (Dynecon/SSJ time ratio 1.5x to 2.0x with Numba at matched
+  tolerances, interleaved runs in one process: SSJ 0.020 s vs Dynecon 0.04 s at 200 assets). The 0.2.0 solver changes
+  (Anderson-accelerated EGM) cut Dynecon's own time by about 20-35% (iterations roughly halve) but do not close the gap.
+  Likely cause (not profiled): per-iteration Python overhead in Dynecon's loop. One machine; see crosscheck.md for the table.
+- Discrete savings problem vs QuantEcon `DiscreteDP`: identical answers; Dynecon VFI is 12x to 29x
+  faster than DiscreteDP policy iteration (more against value iteration) on 180 to 450 states (0.2.0 run; 0.1.1
+  measured 2.0x to 8.7x, the difference is likely the per-solve `git` call removed in 0.2.0, not profiled separately).
 - Not benchmarked: HARK (no identical problem set up yet), econpizza, dolo, gEconpy, Dynare.
-- Implication: speed is roughly on par with SSJ, not a headline; correctness evidence, packaging and the
+- Implication: speed is not a differentiator against SSJ; correctness evidence, packaging and the
   differentiable-estimation feature are.
 
 ## Caveats on this research

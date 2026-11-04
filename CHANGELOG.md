@@ -4,6 +4,11 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-04
+
+Headline: differentiable (exact-gradient) estimation of heterogeneous-agent models. Verified against
+finite differences and on model-generated data; not yet tested on real data (planned for 0.3.0).
+
 ### Added
 - `dynecon.estimation.sensitivity.stationary_moments`: exact Jacobian of stationary-distribution
   moments with respect to parameters (implicit differentiation of the EGM and Young-lottery
@@ -16,8 +21,8 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 - `AR1Shock(normalize=True)`: values divided by their stationary mean (unit-mean income).
 
 ### Changed
-- EGM uses Anderson acceleration by default (`anderson=0` restores plain iteration): 2-4x fewer
-  iterations, same solution to the solver tolerance; it falls back to the plain iteration if the
+- EGM uses Anderson acceleration by default (`anderson=0` restores plain iteration): fewer
+  iterations (about 2x at tolerance 1e-8, 20-35% less wall-clock time), same solution to the solver tolerance; it falls back to the plain iteration if the
   accelerated run fails. Provenance facts that cannot change within a process (including the git
   commit) are collected once instead of on every solve.
 - Built-in `huggett` now has `rho`, `sigma_e` parameters and an `a_max` option like `aiyagari`.
