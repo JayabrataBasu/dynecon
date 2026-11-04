@@ -86,7 +86,7 @@ def kalman_filter(
             sign, logdet = np.linalg.slogdet(F)
             if sign <= 0:
                 raise ValidationError("innovation covariance is not positive definite")
-            Finv = np.linalg.inv(F)
+            Finv = np.asarray(np.linalg.inv(F), dtype=np.float64)
             loglik += -0.5 * (idx.size * np.log(2 * np.pi) + logdet + v @ Finv @ v)
             used += idx.size
             K = P @ Zt.T @ Finv
