@@ -7,7 +7,7 @@ Recording the software and machine behind a result is part of making it reproduc
 from __future__ import annotations
 
 import datetime as _dt
-import importlib
+import importlib.metadata
 import platform
 import subprocess
 import sys
@@ -19,10 +19,11 @@ from dynecon._version import __version__
 __all__ = ["collect_provenance"]
 
 
-def _version(module: str) -> str | None:
+def _version(distribution: str) -> str | None:
+    """Installed version from package metadata; never imports the (possibly heavy) package."""
     try:
-        return str(importlib.import_module(module).__version__)
-    except Exception:  # noqa: BLE001 - any import failure means "not available"
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
         return None
 
 

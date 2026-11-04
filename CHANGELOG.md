@@ -12,6 +12,10 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   the `jax` availability check ignores a bare directory named `jax`, NumPy-stub typing fixes.
 - GitHub Actions pinned by commit SHA.
 
+### Fixed
+- `solve()` imported JAX (and Numba) just to record versions in provenance when they were installed;
+  versions now come from package metadata, so the optional stacks load only when used.
+
 ## [0.1.0] - 2026-11-03
 
 ### Added

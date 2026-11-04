@@ -77,6 +77,35 @@ jobs:
           name: coverage
           path: coverage.xml
 
+  min-versions:
+    # installs the declared dependency floors (python 3.10) to check they are honest
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [core, jax]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.10"
+      - name: Install floors
+        run: |
+          {
+            echo "numpy==1.25.*"
+            echo "scipy==1.11.*"
+            echo "numba==0.59.*"
+            echo "jax==0.4.25"
+            echo "jaxlib==0.4.25"
+            echo "ml_dtypes<0.5"
+          } > floors.txt
+          python -m pip install -c floors.txt -e . pytest hypothesis pandas matplotlib
+          if [ "${{ matrix.stack }}" = "jax" ]; then python -m pip install -c floors.txt jax jaxlib; fi
+          python -m pip list | grep -i -E "^(numpy|scipy|numba|jax|jaxlib) "
+      - name: Tests
+        run: |
+          if [ "${{ matrix.stack }}" = "jax" ]; then pytest -m jax; else pytest -m "not slow and not jax"; fi
+
   pip-audit:
     # non-gating supply-chain check (plan P17.11)
     runs-on: ubuntu-latest

@@ -41,3 +41,14 @@ def test_provenance_has_versions() -> None:
     p = collect_provenance()
     assert p["numpy"] and p["scipy"] and p["python"] and p["dynecon"]
     assert "timestamp_utc" in p
+
+
+def test_provenance_does_not_import_optional_stacks() -> None:
+    import subprocess
+    import sys
+
+    code = (
+        "import sys; from dynecon.utils.provenance import collect_provenance as c; c(); "
+        "assert 'jax' not in sys.modules and 'numba' not in sys.modules"
+    )
+    assert subprocess.run([sys.executable, "-c", code]).returncode == 0
