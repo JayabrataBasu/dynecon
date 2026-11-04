@@ -60,13 +60,13 @@ def build_ge(**kw):
 
     m = Model("ge")
     m.params(
-        beta=Param(0.95, (0.5, 0.999), True, "discount"),
+        beta=Param(0.95, (0.9, 0.985), True, "discount"),
         sigma=Param(2.0, (0.5, 10.0), True, "CRRA"),
-        r=Param(0.03, (-0.05, 0.2), False, "interest rate"),
+        r=Param(0.03, (-0.1, 0.2), False, "interest rate"),
         alpha=Param(0.36, (0.1, 0.9), True, "capital share"),
         delta=Param(0.08, (0.01, 0.3), True, "depreciation"),
         rho=Param(0.9, (0.0, 0.99), True, "persistence"),
-        sigma_e=Param(0.1, (0.01, 0.5), True, "innovation sd"),
+        sigma_e=Param(0.1, (0.02, 0.3), True, "innovation sd"),
     )
     m.add_state(
         State("assets", bounds=(0.0, 60.0), grid_type="exp", n_points=40, grid_curvature=3.0)
