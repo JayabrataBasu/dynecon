@@ -50,6 +50,8 @@ def public_modules() -> list[Any]:
             "jax_kernels",
             "kalman_jax",
             "jacobian_jax",
+            "sensitivity",
+            "smm_exact",
         ):
             continue
         mods.append(importlib.import_module(info.name))
