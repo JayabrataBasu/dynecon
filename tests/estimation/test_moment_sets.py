@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from scipy.integrate import trapezoid
 
 import dynecon as ek
 from dynecon import models
@@ -93,11 +94,11 @@ def test_transforms_round_trip_and_jacobian() -> None:
 def test_priors_integrate_to_one_and_sample(prior, lo: float, hi: float) -> None:
     grid = np.linspace(lo + 1e-9, hi - 1e-9, 20_001)
     dens = np.exp([prior.logpdf(x) for x in grid])
-    area = np.trapezoid(dens, grid)
+    area = trapezoid(dens, grid)
     assert abs(area - 1.0) < 1e-3
     rng = np.random.default_rng(0)
     draws = np.array([prior.sample(rng) for _ in range(4000)])
-    mean_theory = float(np.trapezoid(grid * dens, grid))
+    mean_theory = float(trapezoid(grid * dens, grid))
     se = draws.std(ddof=1) / np.sqrt(draws.size)
     assert abs(draws.mean() - mean_theory) < 4 * se
     if np.isfinite(prior.support[0]):
