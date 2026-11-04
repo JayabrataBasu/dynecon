@@ -92,7 +92,7 @@ faster than Numba on CPU.
 Full documentation: <https://dynecon.readthedocs.io>.
 
 - Guides: [`docs/md/`](docs/md) (DSL, backends, simulation, equilibrium, perturbation, estimation, experiments).
-- Nine executable tutorials: [`docs/tutorials/`](docs/tutorials).
+- Ten executable tutorials: [`docs/tutorials/`](docs/tutorials).
 - Theory pages: [`docs/theory/`](docs/theory).
 - Architecture and execution plan: [`docs/md/Dynecon_Architecture.md`](docs/md/Dynecon_Architecture.md),
   [`docs/md/V1_EXECUTION_PLAN.md`](docs/md/V1_EXECUTION_PLAN.md).

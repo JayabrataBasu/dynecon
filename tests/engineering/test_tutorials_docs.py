@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 TUTORIALS = sorted((ROOT / "docs" / "tutorials").glob("[0-9][0-9]_*.md"))
 
 
-def test_nine_tutorials_exist() -> None:
-    assert len(TUTORIALS) == 9
+def test_ten_tutorials_exist() -> None:
+    assert len(TUTORIALS) == 10
 
 
 @pytest.mark.slow

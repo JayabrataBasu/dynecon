@@ -4,6 +4,14 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 
 ## [Unreleased]
 
+### Added
+- `dynecon.estimation.sensitivity.stationary_moments`: exact Jacobian of stationary-distribution
+  moments with respect to parameters (implicit differentiation of the EGM and Young-lottery
+  equations; needs the `jax` extra). `equilibrium_moments` adds the market-clearing price via the
+  implicit function theorem.
+- `dynecon.estimation.smm_exact.smm_exact`: gradient-based SMM with those Jacobians (partial or
+  general equilibrium). Tutorial 10 compares it with derivative-free `smm`.
+
 ## [0.1.1] - 2026-11-04
 
 ### Changed

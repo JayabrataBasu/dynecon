@@ -15,4 +15,5 @@ fails the build. They are stored as jupytext Markdown; `jupytext --to ipynb file
 07_smm
 08_bayesian_state_space
 09_policy_welfare
+10_exact_gradient_smm
 ```
