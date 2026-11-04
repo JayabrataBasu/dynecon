@@ -44,6 +44,7 @@ md/benchmarks
 md/known_limits
 md/API_POLICY
 md/BACKEND_ROADMAP
+md/V1_CRITERIA
 ```
 
 ```{toctree}
