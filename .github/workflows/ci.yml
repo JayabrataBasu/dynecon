@@ -126,7 +126,7 @@ jobs:
         run: |
           python -m venv "$RUNNER_TEMP/clean"
           if [ -d "$RUNNER_TEMP/clean/Scripts" ]; then PY="$RUNNER_TEMP/clean/Scripts/python"; else PY="$RUNNER_TEMP/clean/bin/python"; fi
-          WHEEL="$(ls "$PWD"/dist/*.whl)"
+          WHEEL="$(ls dist/*.whl)"
           "$PY" -m pip install "${WHEEL}[numba,jax,data,viz]"
           mkdir "$RUNNER_TEMP/smoke"
           cp scripts/smoke_installed.py scripts/smoke_extras.py "$RUNNER_TEMP/smoke/"
