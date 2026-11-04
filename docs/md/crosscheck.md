@@ -59,3 +59,32 @@ Compared: dynecon.solve(method='vfi') + stationary_distribution_young vs quantec
 - Policy mismatches are counted over grid indices (0 means identical choices).
 - On a discrete grid the optimal-policy chain has several recurrent classes, so its stationary distribution is not unique and cannot be compared point by point. The check is instead that Dynecon's distribution is invariant under QuantEcon's own controlled chain (mu P = mu) and sums to one.
 - The EGM solver is continuous-choice, so it is not expected to match a discrete-grid solution exactly; its accuracy is covered by the Euler-error diagnostics.
+
+# Performance and accuracy against other libraries
+
+Generated from `crosscheck/results/libs_benchmark.json` by `scripts/gen_crosscheck_doc.py`;
+regenerate the data with `scripts/benchmark_vs_libs.py`. Wall-clock seconds, minimum of 7 warm runs; first-call (JIT) times are in the JSON. Single machine (Windows-11-10.0.26200-SP0, 12 logical cores), Python 3.14.8, dynecon 0.1.1, quantecon 0.13.1, sequence-jacobian 1.0.0, numpy 2.5.4. Both libraries receive the same grid, income values and transition matrix; one machine and one problem family, so treat the ratios as indicative.
+
+## Household EGM + stationary distribution vs Sequence-Space Jacobian (SSJ)
+
+SSJ's `hh` block is also an endogenous-grid solver, so this compares like with like. Tolerances are matched (policy 1e-8, distribution 1e-10).
+
+| assets | SSJ (s) | Dynecon Numba (s) | Dynecon NumPy (s) | Dynecon / SSJ (Numba) | policy diff | distribution diff |
+|---|---|---|---|---|---|---|
+| 200 | 0.045 | 0.088 | 0.188 | 1.9x | 2.3e-07 | 2.0e-09 |
+| 500 | 0.090 | 0.121 | 0.269 | 1.3x | 2.2e-07 | 2.6e-09 |
+| 1000 | 0.136 | 0.217 | 0.373 | 1.6x | 2.2e-07 | 2.5e-09 |
+
+SSJ is faster than Dynecon on this task. The two agree to about 2e-7 in the policy and 3e-9 in the distribution, which is the size expected from iteration tolerances of 1e-8 and 1e-10.
+
+## Discrete savings problem vs QuantEcon `DiscreteDP`
+
+Same discrete-choice problem and grid (see the cross-check above), tolerance 1e-8, model construction excluded for QuantEcon. `DiscreteDP` is a generic solver that does not exploit the monotone structure of the savings policy.
+
+| states | QuantEcon policy iter. (s) | QuantEcon value iter. (s) | Dynecon VFI Numba (s) | speed-up vs policy iter. | policy mismatches |
+|---|---|---|---|---|---|
+| 180 | 0.070 | 0.368 | 0.035 | 2.0x | 0 |
+| 300 | 0.218 | 1.632 | 0.034 | 6.4x | 0 |
+| 450 | 0.371 | 4.692 | 0.043 | 8.7x | 0 |
+
+Not benchmarked: HARK (its income process and normalisation differ, so no identical problem has been set up yet) and econpizza/Dynare (different problem classes).

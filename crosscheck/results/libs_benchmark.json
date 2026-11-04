@@ -1,0 +1,217 @@
+{
+  "versions": {
+    "dynecon": "0.1.1",
+    "quantecon": "0.13.1",
+    "sequence_jacobian": "1.0.0",
+    "numpy": "2.5.4",
+    "python": "3.14.8"
+  },
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu": "Intel64 Family 6 Model 186 Stepping 3, GenuineIntel",
+    "logical_cores": 12
+  },
+  "repeats": 7,
+  "household_vs_ssj": [
+    {
+      "problem": "consumption-savings, CRRA 2, r=0.03, beta=0.96, AR(1) income, n_a=200, n_z=7",
+      "n_a": 200,
+      "n_z": 7,
+      "accuracy_vs_ssj_at_matched_tolerance": {
+        "policy_max_abs_diff": 2.2574844393830062e-07,
+        "distribution_max_abs_diff": 2.0379442022822047e-09,
+        "aggregate_assets_ssj": 1.6293895188554766,
+        "aggregate_assets_dynecon": 1.6293894431098597
+      },
+      "timings": {
+        "ssj_defaults (backward 1e-8, forward 1e-10)": {
+          "first_call_s": 0.04973890003748238,
+          "min_s": 0.044940699997823685,
+          "median_s": 0.05090319999726489
+        },
+        "dynecon_numba matched (1e-8, 1e-10)": {
+          "first_call_s": 0.09816029999637976,
+          "min_s": 0.08754809998208657,
+          "median_s": 0.0992120000300929
+        },
+        "dynecon_numpy matched (1e-8, 1e-10)": {
+          "first_call_s": 0.1893392000347376,
+          "min_s": 0.18794059997890145,
+          "median_s": 0.220852600003127
+        },
+        "dynecon_numba defaults (1e-10, 1e-12)": {
+          "first_call_s": 0.10279200004879385,
+          "min_s": 0.1024015000439249,
+          "median_s": 0.11417349998373538
+        }
+      }
+    },
+    {
+      "problem": "consumption-savings, CRRA 2, r=0.03, beta=0.96, AR(1) income, n_a=500, n_z=7",
+      "n_a": 500,
+      "n_z": 7,
+      "accuracy_vs_ssj_at_matched_tolerance": {
+        "policy_max_abs_diff": 2.1781366399409308e-07,
+        "distribution_max_abs_diff": 2.5791220478743604e-09,
+        "aggregate_assets_ssj": 1.6215801864595147,
+        "aggregate_assets_dynecon": 1.6215800874970572
+      },
+      "timings": {
+        "ssj_defaults (backward 1e-8, forward 1e-10)": {
+          "first_call_s": 0.07885819999501109,
+          "min_s": 0.08955120004247874,
+          "median_s": 0.10050840000621974
+        },
+        "dynecon_numba matched (1e-8, 1e-10)": {
+          "first_call_s": 0.14024929999141023,
+          "min_s": 0.1208908999687992,
+          "median_s": 0.15203979995567352
+        },
+        "dynecon_numpy matched (1e-8, 1e-10)": {
+          "first_call_s": 0.3131546000367962,
+          "min_s": 0.2685800999752246,
+          "median_s": 0.3044685000204481
+        },
+        "dynecon_numba defaults (1e-10, 1e-12)": {
+          "first_call_s": 0.19809759996132925,
+          "min_s": 0.17525979998754337,
+          "median_s": 0.18710690003354102
+        }
+      }
+    },
+    {
+      "problem": "consumption-savings, CRRA 2, r=0.03, beta=0.96, AR(1) income, n_a=1000, n_z=7",
+      "n_a": 1000,
+      "n_z": 7,
+      "accuracy_vs_ssj_at_matched_tolerance": {
+        "policy_max_abs_diff": 2.16822044762921e-07,
+        "distribution_max_abs_diff": 2.497766202202989e-09,
+        "aggregate_assets_ssj": 1.6203660484633648,
+        "aggregate_assets_dynecon": 1.6203659506912473
+      },
+      "timings": {
+        "ssj_defaults (backward 1e-8, forward 1e-10)": {
+          "first_call_s": 0.15087769995443523,
+          "min_s": 0.13635089999297634,
+          "median_s": 0.16162610001629218
+        },
+        "dynecon_numba matched (1e-8, 1e-10)": {
+          "first_call_s": 0.25581929995678365,
+          "min_s": 0.21683670004131272,
+          "median_s": 0.2252388999913819
+        },
+        "dynecon_numpy matched (1e-8, 1e-10)": {
+          "first_call_s": 0.3990468999836594,
+          "min_s": 0.3728461000137031,
+          "median_s": 0.4254324000212364
+        },
+        "dynecon_numba defaults (1e-10, 1e-12)": {
+          "first_call_s": 0.25238449999596924,
+          "min_s": 0.24835889996029437,
+          "median_s": 0.25455630000215024
+        }
+      }
+    }
+  ],
+  "savings_vs_quantecon": [
+    {
+      "problem": "discrete savings (CRRA 2, r=0.03, beta=0.96), n_a=60, n_z=3",
+      "n_a": 60,
+      "n_z": 3,
+      "accuracy_vs_quantecon": {
+        "value_max_abs_diff": 1.6827797821861168e-08,
+        "policy_mismatches": 0,
+        "n_states": 180
+      },
+      "timings": {
+        "quantecon_policy_iteration (solve only, 1e-8)": {
+          "first_call_s": 0.1254211000050418,
+          "min_s": 0.06990480003878474,
+          "median_s": 0.10039460001280531
+        },
+        "quantecon_value_iteration (solve only, 1e-8)": {
+          "first_call_s": 0.571676200022921,
+          "min_s": 0.36831099999835715,
+          "median_s": 0.4602320000412874
+        },
+        "dynecon_vfi_numba (1e-8)": {
+          "first_call_s": 0.049702499993145466,
+          "min_s": 0.03457930003060028,
+          "median_s": 0.04008369997609407
+        },
+        "dynecon_vfi_numpy (1e-8)": {
+          "first_call_s": 0.03631379996659234,
+          "min_s": 0.0344706000178121,
+          "median_s": 0.03790660004597157
+        }
+      },
+      "quantecon_model_build_s": 0.009500699990894645
+    },
+    {
+      "problem": "discrete savings (CRRA 2, r=0.03, beta=0.96), n_a=100, n_z=3",
+      "n_a": 100,
+      "n_z": 3,
+      "accuracy_vs_quantecon": {
+        "value_max_abs_diff": 1.6599773999814715e-08,
+        "policy_mismatches": 0,
+        "n_states": 300
+      },
+      "timings": {
+        "quantecon_policy_iteration (solve only, 1e-8)": {
+          "first_call_s": 0.2189037000061944,
+          "min_s": 0.2176529000280425,
+          "median_s": 0.2655942999990657
+        },
+        "quantecon_value_iteration (solve only, 1e-8)": {
+          "first_call_s": 1.704505700035952,
+          "min_s": 1.6322223999886774,
+          "median_s": 1.8235980999888852
+        },
+        "dynecon_vfi_numba (1e-8)": {
+          "first_call_s": 0.06244989996775985,
+          "min_s": 0.03405289998045191,
+          "median_s": 0.036076400021556765
+        },
+        "dynecon_vfi_numpy (1e-8)": {
+          "first_call_s": 0.03704019996803254,
+          "min_s": 0.03469330002553761,
+          "median_s": 0.04242599999997765
+        }
+      },
+      "quantecon_model_build_s": 0.026620700024068356
+    },
+    {
+      "problem": "discrete savings (CRRA 2, r=0.03, beta=0.96), n_a=150, n_z=3",
+      "n_a": 150,
+      "n_z": 3,
+      "accuracy_vs_quantecon": {
+        "value_max_abs_diff": 1.640108138190044e-08,
+        "policy_mismatches": 0,
+        "n_states": 450
+      },
+      "timings": {
+        "quantecon_policy_iteration (solve only, 1e-8)": {
+          "first_call_s": 0.4726146999746561,
+          "min_s": 0.3705341999884695,
+          "median_s": 0.4119100000243634
+        },
+        "quantecon_value_iteration (solve only, 1e-8)": {
+          "first_call_s": 6.21727149997605,
+          "min_s": 4.6920178000000305,
+          "median_s": 5.514923899958376
+        },
+        "dynecon_vfi_numba (1e-8)": {
+          "first_call_s": 0.07191040000179783,
+          "min_s": 0.04266300000017509,
+          "median_s": 0.0473577999509871
+        },
+        "dynecon_vfi_numpy (1e-8)": {
+          "first_call_s": 0.05052659998182207,
+          "min_s": 0.0475019000004977,
+          "median_s": 0.05279220000375062
+        }
+      },
+      "quantecon_model_build_s": 0.08463599998503923
+    }
+  ]
+}
