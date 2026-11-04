@@ -4,6 +4,14 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-04
+
+### Changed
+- Documentation is hosted at <https://dynecon.readthedocs.io>; project metadata and README link to it.
+- CI fixes from the first public run: sweep workers use `spawn` (no fork after OpenMP),
+  the `jax` availability check ignores a bare directory named `jax`, NumPy-stub typing fixes.
+- GitHub Actions pinned by commit SHA.
+
 ## [0.1.0] - 2026-11-03
 
 ### Added

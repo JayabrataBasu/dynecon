@@ -4,15 +4,16 @@ A Python library for computational economics: specify, solve, simulate and estim
 economic models, with a NumPy reference implementation, optional Numba acceleration and an
 optional JAX backend for exact derivatives.
 
-> **Status: pre-1.0 (0.1.0).** Feature-complete against the v1.0 execution plan except the
-> human-gated release steps (PyPI upload and the package name). Progress is tracked as a checklist
+> **Status: pre-1.0 (0.1.1).** Published on PyPI; the API may still change before 1.0.
+> Documentation: <https://dynecon.readthedocs.io>. Progress is tracked as a checklist
 > in [`docs/md/V1_PROGRESS.md`](docs/md/V1_PROGRESS.md); known limits are in
 > [`docs/md/known_limits.md`](docs/md/known_limits.md).
 
 ## Install
 
 ```bash
-pip install -e ".[dev]"            # from a clone; or: pip install dynecon  (once published)
+pip install dynecon               # from PyPI
+pip install -e ".[dev]"           # or from a clone, for development
 ```
 
 Runtime dependencies are NumPy and SciPy. Extras: `numba`, `jax`, `data` (pandas), `viz`
@@ -80,6 +81,8 @@ the default 1e-10 tolerance, not faster than Numba VFI (see the benchmark page).
 faster than Numba on CPU.
 
 ## Documentation
+
+Full documentation: <https://dynecon.readthedocs.io>.
 
 - Guides: [`docs/md/`](docs/md) (DSL, backends, simulation, equilibrium, perturbation, estimation, experiments).
 - Nine executable tutorials: [`docs/tutorials/`](docs/tutorials).

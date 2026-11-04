@@ -31,7 +31,7 @@ dependencies = [
 Homepage = "https://github.com/JayabrataBasu/dynecon"
 Source = "https://github.com/JayabrataBasu/dynecon"
 Issues = "https://github.com/JayabrataBasu/dynecon/issues"
-Documentation = "https://github.com/JayabrataBasu/dynecon/tree/master/docs"
+Documentation = "https://dynecon.readthedocs.io"
 
 [project.optional-dependencies]
 numba = ["numba>=0.59"]
