@@ -85,8 +85,8 @@ def smm_exact(
             price,
             bracket(at) if callable(bracket) else bracket,
             excess,
-            tol=1e-12,
-            solve_options={"tol": 1e-13, "max_iter": 100_000},
+            tol=1e-10,
+            solve_options={"tol": 1e-11, "max_iter": 100_000},
         )
         assert eq.model is not None
         m_eq, G, _ = equilibrium_moments(eq.model, names, price, excess_fn, moment_fn)

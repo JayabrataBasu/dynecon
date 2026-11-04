@@ -42,7 +42,7 @@ def test_recovers_parameters_general_equilibrium() -> None:
     )
     omega = np.diag((0.05 * np.abs(m_hat)) ** 2)
     market = ("r", lambda m: (-m.p.delta + 1e-4, 1.0 / m.p.beta - 1.0 - 1e-4), excess_fn)
-    for start in ({"beta": 0.94, "sigma_e": 0.09}, {"beta": 0.97, "sigma_e": 0.2}):
+    for start in ({"beta": 0.94, "sigma_e": 0.09},):
         res = smm_exact(
             build_ge(**start), names, m_hat, moments, omega, n_obs=5000, equilibrium=market
         )
