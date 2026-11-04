@@ -16,8 +16,10 @@ Source: Huggett (1993) style; textbook calibration (annual).
 |---|---:|---|---|
 | `beta` | 0.96 | (0.5, 0.9999) | Discount factor |
 | `sigma` | 2 | (0.2, 10.0) | CRRA coefficient |
+| `rho` | 0.9 | (0.0, 0.99) | Income persistence |
+| `sigma_e` | 0.2 | (0.01, 1.0) | Income innovation sd |
 
-Structural options (not parameters): `r=0.02`, `rho=0.9`, `sigma_e=0.2`, `phi=2.0`, `n_a=200`, `n_z=7`.
+Structural options (not parameters): `r=0.02`, `phi=2.0`, `n_a=200`, `n_z=7`, `a_max=None`.
 
 ## Solution method
 

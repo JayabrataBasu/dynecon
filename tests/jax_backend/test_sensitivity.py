@@ -177,3 +177,31 @@ def test_builtin_aiyagari_equilibrium_derivatives() -> None:
         _, rm, mm = solved(**dict(base, **{name: base[name] - h}))
         np.testing.assert_allclose(dr[j], (rp - rm) / (2 * h), rtol=1e-3, atol=1e-6, err_msg=name)
         np.testing.assert_allclose(G[:, j], (mp - mm) / (2 * h), rtol=1e-3, atol=1e-5, err_msg=name)
+
+
+def test_builtin_huggett_equilibrium_derivatives() -> None:
+    import jax.numpy as jnp
+
+    from dynecon.estimation.sensitivity import equilibrium_moments
+    from dynecon.models import huggett
+
+    names = ["beta", "sigma", "rho", "sigma_e"]
+    base = {"beta": 0.96, "sigma": 2.0, "rho": 0.9, "sigma_e": 0.2}
+    grid = {"n_a": 40, "n_z": 3, "a_max": 60.0}
+
+    def solved(**o):
+        e = huggett.equilibrium(**grid, **o)
+        mu, s = e.distribution, e.household_solution
+        a_next, c = s.policy["assets_next"], s.policy["consumption"]
+        return e, e.price, np.array([(mu * c).sum(), (mu * a_next**2).sum()])
+
+    eq, r0, m0 = solved(**base)
+    fn = lambda mu, c, a_next, *_: jnp.stack([(mu * c).sum(), (mu * a_next**2).sum()])  # noqa: E731
+    m, G, dr = equilibrium_moments(eq.model, names, "r", huggett.excess_demand, fn)
+    np.testing.assert_allclose(m, m0, rtol=1e-6)
+    for j, name in enumerate(names):
+        h = 1e-4 * max(abs(base[name]), 0.1)
+        _, rp, mp = solved(**dict(base, **{name: base[name] + h}))
+        _, rm, mm = solved(**dict(base, **{name: base[name] - h}))
+        np.testing.assert_allclose(dr[j], (rp - rm) / (2 * h), rtol=1e-3, atol=1e-6, err_msg=name)
+        np.testing.assert_allclose(G[:, j], (mp - mm) / (2 * h), rtol=1e-3, atol=1e-5, err_msg=name)

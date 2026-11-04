@@ -1,23 +1,8 @@
-"""Shared pieces of the Aiyagari and Huggett economies (income chain, grid bounds)."""
+"""Shared pieces of the Aiyagari and Huggett economies (grid bounds)."""
 
 from __future__ import annotations
 
-import numpy as np
-import numpy.typing as npt
-
-from dynecon.numerics.discretization import rouwenhorst
-from dynecon.numerics.markov import stationary_distribution
-
-__all__ = ["asset_upper_bound", "unit_mean_income_chain"]
-
-Array = npt.NDArray[np.float64]
-
-
-def unit_mean_income_chain(rho: float, sigma_e: float, n_z: int) -> tuple[Array, Array]:
-    """Rouwenhorst chain for ``log z`` with ``z = exp(.)`` normalised to unit stationary mean."""
-    grid, P = rouwenhorst(rho, sigma_e, n_z)
-    z = np.exp(grid)
-    return z / float(stationary_distribution(P) @ z), P
+__all__ = ["asset_upper_bound"]
 
 
 def asset_upper_bound(
