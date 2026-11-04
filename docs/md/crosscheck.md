@@ -40,3 +40,22 @@ Compared: dynecon.estimation.kalman_filter vs quantecon.Kalman (+ scipy likeliho
 - Random stable systems (1-4 states, 1-3 observables, 80 periods, fixed seed).
 - Dynecon takes covariances (H, Q); QuantEcon takes factors (C, H) with covariances CC' and HH'. Both treat the initial (a0, P0) as the prior for the first period.
 - The log-likelihood includes the full Gaussian constant.
+
+## Household savings problem (VFI): agrees within tolerance
+
+Compared: dynecon.solve(method='vfi') + stationary_distribution_young vs quantecon.markov.DiscreteDP (policy iteration) + controlled_mc stationary distribution.
+
+3 parameter combinations.
+
+| quantity | largest abs. difference | tolerance | worst case |
+|---|---|---|---|
+| value | 1.55e-12 | 1e-09 | - |
+| policy_mismatches | 0.00e+00 | 0e+00 | 0 of 760 states |
+| stationary_residual | 1.96e-13 | 1e-10 | recurrent classes per case: 13, 1, 19 |
+| mass_error | 2.22e-16 | 1e-12 | - |
+
+- QuantEcon 0.13 has no household/Aiyagari class, so the same discrete-choice problem (state = assets x income, action = next-asset grid index) is built for `DiscreteDP` with an independently written CRRA utility and budget constraint.
+- Inputs shared by construction: Dynecon's asset grid, income values and transition matrix. Cases: CRRA 2.0 / 1.5 / 3.0, r 0.02-0.03, beta 0.95-0.96, borrowing limit 0 and -1.
+- Policy mismatches are counted over grid indices (0 means identical choices).
+- On a discrete grid the optimal-policy chain has several recurrent classes, so its stationary distribution is not unique and cannot be compared point by point. The check is instead that Dynecon's distribution is invariant under QuantEcon's own controlled chain (mu P = mu) and sums to one.
+- The EGM solver is continuous-choice, so it is not expected to match a discrete-grid solution exactly; its accuracy is covered by the Euler-error diagnostics.

@@ -17,8 +17,10 @@ from typing import Any
 import numpy as np
 
 import dynecon
+from dynecon import models
 from dynecon.estimation import kalman_filter
 from dynecon.numerics import rouwenhorst, stationary_distribution, tauchen
+from dynecon.simulation import stationary_distribution_young
 
 OUT = Path(__file__).resolve().parents[1] / "crosscheck" / "results" / "quantecon.json"
 
@@ -137,7 +139,98 @@ def compare_kalman() -> dict[str, Any]:
     }
 
 
-SECTIONS = (compare_discretization, compare_kalman)
+def _household_case(n_a: int, n_z: int, sigma: float, r: float, beta: float, a_min: float) -> dict:
+    """One savings problem solved by Dynecon VFI and by QuantEcon ``DiscreteDP`` on the same grid."""
+    from quantecon.markov import DiscreteDP
+
+    model = models.load(
+        "consumption_savings", n_a=n_a, n_z=n_z, sigma=sigma, r=r, beta=beta, a_min=a_min
+    ).compile()
+    sol = dynecon.solve(model, method="vfi", tol=1e-12, max_iter=20000)
+    a = model.grids["assets"]
+    income = model.shock_process("income")
+    z, P = income.values, income.P
+    n_s = n_a * n_z
+    reward = np.full((n_s, n_a), -np.inf)  # state s = i * n_z + j, action k = next-asset index
+    trans = np.zeros((n_s, n_a, n_s))
+    for i in range(n_a):
+        for j in range(n_z):
+            cons = (1 + r) * a[i] + z[j] - a  # independent CRRA / budget, not Dynecon's code
+            ok = cons > 0
+            reward[i * n_z + j, ok] = (
+                np.log(cons[ok]) if sigma == 1 else cons[ok] ** (1 - sigma) / (1 - sigma)
+            )
+            for k in range(n_a):
+                trans[i * n_z + j, k, k * n_z : (k + 1) * n_z] = P[j]
+    ddp = DiscreteDP(reward, trans, beta)
+    res = ddp.solve(method="policy_iteration", epsilon=1e-12, max_iter=2000)
+    chain = ddp.controlled_mc(res.sigma)
+    mu = stationary_distribution_young(sol)
+    return {
+        "value": float(np.abs(res.v.reshape(n_a, n_z) - sol.value).max()),
+        "policy_mismatches": int(
+            (res.sigma.reshape(n_a, n_z) != sol.policy["assets_next_index"]).sum()
+        ),
+        "stationary_residual": float(np.abs(mu.ravel() @ chain.P - mu.ravel()).max()),
+        "mass_error": float(abs(mu.sum() - 1.0)),
+        "recurrent_classes": len(chain.recurrent_classes),
+        "n_states": n_s,
+    }
+
+
+def compare_household() -> dict[str, Any]:
+    """Savings problem: Dynecon VFI vs QuantEcon ``DiscreteDP`` (value, policy, stationary dist.)."""
+    cases = [
+        (60, 3, 2.0, 0.03, 0.96, 0.0),
+        (80, 5, 1.5, 0.02, 0.95, 0.0),
+        (60, 3, 3.0, 0.03, 0.96, -1.0),
+    ]
+    results = [_household_case(*c) for c in cases]
+    worst = {
+        "value": max(r["value"] for r in results),
+        "policy_mismatches": float(sum(r["policy_mismatches"] for r in results)),
+        "stationary_residual": max(r["stationary_residual"] for r in results),
+        "mass_error": max(r["mass_error"] for r in results),
+    }
+    tolerance = {
+        "value": 1e-9,
+        "policy_mismatches": 0.0,
+        "stationary_residual": 1e-10,
+        "mass_error": 1e-12,
+    }
+    total = sum(r["n_states"] for r in results)
+    return {
+        "name": "Household savings problem (VFI)",
+        "compared": "dynecon.solve(method='vfi') + stationary_distribution_young vs"
+        " quantecon.markov.DiscreteDP (policy iteration) + controlled_mc stationary distribution",
+        "n_cases": len(cases),
+        "max_abs_diff": worst,
+        "worst_case": {
+            "policy_mismatches": f"{int(worst['policy_mismatches'])} of {total} states",
+            "stationary_residual": "recurrent classes per case: "
+            + ", ".join(str(r["recurrent_classes"]) for r in results),
+        },
+        "tolerance": tolerance,
+        "passed": all(worst[k] <= tolerance[k] for k in worst),
+        "notes": [
+            "QuantEcon 0.13 has no household/Aiyagari class, so the same discrete-choice problem"
+            " (state = assets x income, action = next-asset grid index) is built for `DiscreteDP`"
+            " with an independently written CRRA utility and budget constraint.",
+            "Inputs shared by construction: Dynecon's asset grid, income values and transition"
+            " matrix. Cases: CRRA 2.0 / 1.5 / 3.0, r 0.02-0.03, beta 0.95-0.96, borrowing limit"
+            " 0 and -1.",
+            "Policy mismatches are counted over grid indices (0 means identical choices).",
+            "On a discrete grid the optimal-policy chain has several recurrent classes, so its"
+            " stationary distribution is not unique and cannot be compared point by point. The"
+            " check is instead that Dynecon's distribution is invariant under QuantEcon's own"
+            " controlled chain (mu P = mu) and sums to one.",
+            "The EGM solver is continuous-choice, so it is not expected to match a discrete-grid"
+            " solution exactly; its accuracy is covered by the Euler-error diagnostics.",
+        ],
+    }
+
+
+SECTIONS = (compare_discretization, compare_kalman, compare_household)
 
 
 def main() -> int:
