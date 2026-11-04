@@ -53,6 +53,7 @@ dev = [
   "pandas>=2.0",
   "matplotlib>=3.7",
 ]
+crosscheck = ["quantecon>=0.7"]
 all = ["dynecon[numba,jax,data,viz]"]
 
 [tool.setuptools.dynamic]
@@ -93,6 +94,7 @@ markers = [
   "jax: requires jax",
   "network: requires internet (never run in CI by default)",
   "plot: needs matplotlib",
+  "crosscheck: compares against other libraries (needs the crosscheck extra)",
 ]
 filterwarnings = ["error::DeprecationWarning:dynecon.*"]
 

@@ -134,6 +134,20 @@ jobs:
           "$PY" -I smoke_installed.py
           "$PY" -I smoke_extras.py
 
+  crosscheck:
+    # agreement with QuantEcon (non-gating while the comparison set grows)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev,crosscheck]"
+      - run: pytest -m crosscheck
+      - run: python scripts/crosscheck_quantecon.py
+
   pip-audit:
     # non-gating supply-chain check (plan P17.11)
     runs-on: ubuntu-latest

@@ -1,0 +1,33 @@
+{
+  "dynecon": "0.1.1",
+  "quantecon": "0.13.1",
+  "numpy": "2.5.4",
+  "python": "3.14.8",
+  "sections": [
+    {
+      "name": "Markov discretization (Tauchen, Rouwenhorst)",
+      "compared": "dynecon.numerics.tauchen/rouwenhorst vs quantecon.markov.tauchen/rouwenhorst",
+      "n_cases": 80,
+      "max_abs_diff": {
+        "grid": 0.0,
+        "P": 6.661338147750939e-16,
+        "stationary": 2.1400836658358457e-10
+      },
+      "worst_case": {
+        "P": "tauchen, rho=0.99, sigma_e=0.05, n=15",
+        "stationary": "tauchen, rho=0.99, sigma_e=0.05, n=5"
+      },
+      "tolerance": {
+        "grid": 1e-12,
+        "P": 1e-12,
+        "stationary": 1e-08
+      },
+      "passed": true,
+      "notes": [
+        "Argument order differs: Dynecon (rho, sigma_e, n_states), QuantEcon (n, rho, sigma).",
+        "Both take sigma as the innovation standard deviation and use the same grid (+-3 unconditional sd for Tauchen, +-sd*sqrt(n-1) for Rouwenhorst).",
+        "Stationary distributions differ most for near-unit-root chains (rho=0.99), where the problem is ill-conditioned; this is numerical conditioning, not a convention gap."
+      ]
+    }
+  ]
+}
