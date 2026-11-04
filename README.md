@@ -1,5 +1,9 @@
 # Dynecon
 
+[![PyPI](https://img.shields.io/pypi/v/dynecon)](https://pypi.org/project/dynecon/)
+[![Docs](https://readthedocs.org/projects/dynecon/badge/?version=latest)](https://dynecon.readthedocs.io)
+[![CI](https://github.com/JayabrataBasu/dynecon/actions/workflows/ci.yml/badge.svg)](https://github.com/JayabrataBasu/dynecon/actions/workflows/ci.yml)
+
 A Python library for computational economics: specify, solve, simulate and estimate dynamic
 economic models, with a NumPy reference implementation, optional Numba acceleration and an
 optional JAX backend for exact derivatives.
