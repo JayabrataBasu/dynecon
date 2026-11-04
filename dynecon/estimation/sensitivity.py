@@ -26,7 +26,7 @@ from dynecon.model.specs import AR1Shock, MarkovShock, ParamView
 from dynecon.simulation.distribution import lottery_weights, stationary_distribution_young
 from dynecon.solvers.api import solve
 
-__all__ = ["stationary_moments"]
+__all__ = ["equilibrium_moments", "stationary_moments"]
 
 Array = npt.NDArray[np.float64]
 # shortcut: dense implicit solves, memory ~ states^2; upgrade to matrix-free GMRES for larger grids.
@@ -89,7 +89,9 @@ def stationary_moments(
     parameter view. Returns ``(m, G)`` with ``G[i, j] = d m_i / d free_params[j]`` (natural scale).
 
     The model must be a ``saving`` problem solvable by EGM whose equations use JAX-compatible
-    operations (the built-in utilities are). Raises ``ConvergenceError`` if the JAX residuals do
+    operations (the built-in utilities are). Derivatives are those of ``model.with_params``: the
+    grid and any ``MarkovShock`` are held fixed, and parameters act through the parameter view
+    ``p`` and ``AR1Shock(rho, sigma_e)``. Raises ``ConvergenceError`` if the JAX residuals do
     not vanish at the NumPy solution, which also catches non-traceable model functions.
     """
     prob = model.problem
@@ -170,3 +172,34 @@ def stationary_moments(
     d_mu, d_C, d_th = jax.jacfwd(moments, (0, 1, 2))(mu0, C0, th0)
     G = d_mu @ dmu + d_C @ dC + d_th
     return np.asarray(moments(mu0, C0, th0)), np.asarray(G)
+
+
+def equilibrium_moments(
+    model: CompiledModel,
+    free_params: Sequence[str],
+    price: str,
+    excess_fn: Callable[..., Any],
+    moment_fn: Callable[..., Any],
+    **options: Any,
+) -> tuple[Array, Array, Array]:
+    """Moments at a stationary equilibrium and their exact total Jacobian, with ``dprice``.
+
+    ``model`` is solved at the clearing price (parameter ``price``); ``excess_fn`` (same signature
+    as ``moment_fn``) returns the scalar excess demand. By the implicit function theorem
+    ``dprice/dtheta = -F_theta / F_price`` and ``dm/dtheta = m_theta + m_price * dprice/dtheta``,
+    all taken from one :func:`stationary_moments` call. Returns ``(m, G, dprice)``. The price must
+    enter the household equations through ``p`` (a wage computed from ``p.price`` is fine; one
+    baked in when the model was built, as in the built-in ``aiyagari``, is not).
+    """
+    names = list(free_params)
+
+    def both(*args: Any) -> Any:
+        return jnp.concatenate(
+            [jnp.ravel(jnp.asarray(excess_fn(*args))), jnp.ravel(jnp.asarray(moment_fn(*args)))]
+        )
+
+    m_all, G_all = stationary_moments(model, [price, *names], both, **options)
+    if abs(m_all[0]) > 1e-6:
+        raise ConvergenceError(f"model is not at equilibrium: excess demand {m_all[0]:.3g}")
+    dprice = -G_all[0, 1:] / G_all[0, 0]
+    return m_all[1:], G_all[1:, 1:] + np.outer(G_all[1:, 0], dprice), dprice

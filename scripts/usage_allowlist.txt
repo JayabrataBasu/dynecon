@@ -97,3 +97,4 @@ unit_mean_income_chain  # covered indirectly through the public function that pr
 validate_model  # covered indirectly through the public function that produces/consumes it
 wage  # covered indirectly through the public function that produces/consumes it
 stationary_moments  # user-facing entry point; caller arrives with gradient-based SMM (#17)
+equilibrium_moments  # user-facing entry point; caller arrives with gradient-based SMM (#17)

@@ -50,3 +50,100 @@ def test_bad_inputs_raise() -> None:
     big = models.load("consumption_savings", n_a=1000, n_z=7).compile()
     with pytest.raises(ValidationError):
         stationary_moments(big, ["beta"], moment_fn)
+
+
+def build_ge(**kw):
+    """Aiyagari-style economy: wage and capital demand computed from the parameter view."""
+    from dynecon.model import Model
+    from dynecon.model.specs import AR1Shock, Control, Param, State
+    from dynecon.models.utility import crra, crra_marginal, crra_marginal_inverse
+
+    m = Model("ge")
+    m.params(
+        beta=Param(0.95, (0.5, 0.999), True, "discount"),
+        sigma=Param(2.0, (0.5, 10.0), True, "CRRA"),
+        r=Param(0.03, (-0.05, 0.2), False, "interest rate"),
+        alpha=Param(0.36, (0.1, 0.9), True, "capital share"),
+        delta=Param(0.08, (0.01, 0.3), True, "depreciation"),
+        rho=Param(0.9, (0.0, 0.99), True, "persistence"),
+        sigma_e=Param(0.1, (0.01, 0.5), True, "innovation sd"),
+    )
+    m.add_state(
+        State("assets", bounds=(0.0, 60.0), grid_type="exp", n_points=40, grid_curvature=3.0)
+    )
+    m.add_state(State("income", shock=AR1Shock("rho", "sigma_e", 3, log=True)))
+    m.add_control(Control("consumption"))
+    m.set_problem(
+        "saving",
+        asset="assets",
+        shock="income",
+        control="consumption",
+        discount="beta",
+        utility=lambda c, p: crra(c, p.sigma),
+        marginal_utility=lambda c, p: crra_marginal(c, p.sigma),
+        inverse_marginal_utility=lambda x, p: crra_marginal_inverse(x, p.sigma),
+        resources=lambda a, z, p: (1.0 + p.r) * a + (1.0 - p.alpha) * kd(p) ** p.alpha * z,
+        marginal_return=lambda a, z, p: 1.0 + p.r,
+    )
+    return m.compile().with_params(**kw)
+
+
+def kd(p):
+    return ((p.r + p.delta) / p.alpha) ** (1.0 / (p.alpha - 1.0))
+
+
+def excess_fn(mu, c, a_next, a_grid, z, p):
+    return (mu * a_next).sum() - kd(p)
+
+
+def equilibrium_numpy(**kw):
+    from dynecon.solvers.equilibrium import solve_stationary_equilibrium
+
+    base = build_ge(**kw)
+
+    def excess(r, sol, mu):
+        k = float((mu * sol.policy["assets_next"]).sum())
+        d = float(((r + base.p.delta) / base.p.alpha) ** (1.0 / (base.p.alpha - 1.0)))
+        return k - d, {}
+
+    return solve_stationary_equilibrium(
+        lambda r: base.with_params(r=r),
+        "r",
+        (0.001, 1.0 / base.p.beta - 1.0 - 1e-4),
+        excess,
+        tol=1e-13,
+        solve_options={"tol": 1e-14, "max_iter": 100_000},
+    )
+
+
+def test_equilibrium_derivatives_match_finite_differences() -> None:
+    from dynecon.estimation.sensitivity import equilibrium_moments
+
+    names = ["beta", "sigma", "alpha", "delta", "rho", "sigma_e"]
+    base = {"beta": 0.95, "sigma": 2.0, "alpha": 0.36, "delta": 0.08, "rho": 0.9, "sigma_e": 0.1}
+    eq = equilibrium_numpy(**base)
+    m, G, dr = equilibrium_moments(eq.model, names, "r", excess_fn, moment_fn)
+
+    def numpy_eq(**kw):
+        e = equilibrium_numpy(**kw)
+        mu, s = e.distribution, e.household_solution
+        a_next, c = s.policy["assets_next"], s.policy["consumption"]
+        ma = (mu * a_next).sum()
+        return e.price, np.array([ma, (mu * c).sum(), (mu * a_next**2).sum() - ma**2])
+
+    r0, m0 = numpy_eq(**base)
+    np.testing.assert_allclose(m, m0, rtol=1e-8)
+    for j, name in enumerate(names):
+        h = 1e-5 * max(abs(base[name]), 0.1)
+        rp, mp = numpy_eq(**dict(base, **{name: base[name] + h}))
+        rm, mm = numpy_eq(**dict(base, **{name: base[name] - h}))
+        np.testing.assert_allclose(dr[j], (rp - rm) / (2 * h), rtol=2e-4, atol=1e-7, err_msg=name)
+        np.testing.assert_allclose(G[:, j], (mp - mm) / (2 * h), rtol=2e-4, atol=1e-6, err_msg=name)
+
+
+def test_equilibrium_moments_rejects_non_equilibrium() -> None:
+    from dynecon.core.errors import ConvergenceError
+    from dynecon.estimation.sensitivity import equilibrium_moments
+
+    with pytest.raises(ConvergenceError):
+        equilibrium_moments(build_ge(), ["beta"], "r", excess_fn, moment_fn)
