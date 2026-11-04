@@ -47,9 +47,9 @@ def smm_exact(
     ``weights`` is ``"identity"``, ``"optimal"`` (two-step, ``W = omega^-1``) or a matrix. Pass
     ``equilibrium=(price, bracket, excess_fn)`` to clear a market at every parameter value
     (see :func:`equilibrium_moments`); ``bracket`` is a ``(lo, hi)`` pair or a function of the
-    model (the upper end usually depends on the discount factor). Bounds come from the parameter set; the optimiser is
-    L-BFGS-B with the exact gradient ``2 G' W g``; keep the bounds tight enough that the
-    household problem and the market bracket stay valid (a failed solve raises).
+    model (the upper end usually depends on the discount factor). Bounds come from the parameter
+    set; the optimiser is L-BFGS-B with the exact gradient ``2 G' W g``. Keep the bounds tight
+    enough that the household problem and the market bracket stay valid (a failed solve raises).
     """
     names = list(free_params)
     m_hat = np.asarray(data_moments, dtype=np.float64).ravel()
@@ -88,6 +88,7 @@ def smm_exact(
             tol=1e-12,
             solve_options={"tol": 1e-13, "max_iter": 100_000},
         )
+        assert eq.model is not None
         m_eq, G, _ = equilibrium_moments(eq.model, names, price, excess_fn, moment_fn)
         return m_eq, G
 

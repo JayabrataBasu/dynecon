@@ -7,9 +7,10 @@ from dynecon import models
 
 pytestmark = pytest.mark.jax
 pytest.importorskip("jax.numpy")
+from test_sensitivity import build_ge, excess_fn, moment_fn  # noqa: E402
+
 from dynecon.estimation.sensitivity import stationary_moments  # noqa: E402
 from dynecon.estimation.smm_exact import smm_exact  # noqa: E402
-from test_sensitivity import build_ge, excess_fn, moment_fn  # noqa: E402
 
 
 def test_recovers_parameters_partial_equilibrium() -> None:
@@ -26,8 +27,9 @@ def test_recovers_parameters_partial_equilibrium() -> None:
 
 
 def test_recovers_parameters_general_equilibrium() -> None:
-    from dynecon.estimation.sensitivity import equilibrium_moments
     from test_sensitivity import equilibrium_numpy
+
+    from dynecon.estimation.sensitivity import equilibrium_moments
 
     def moments(mu, c, a_next, a_grid, z, p):  # mean consumption is redundant in equilibrium
         mean_a, mean_c = (mu * a_next).sum(), (mu * c).sum()
