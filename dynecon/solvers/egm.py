@@ -9,6 +9,7 @@ the borrowing constraint.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Any
@@ -16,7 +17,12 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-from dynecon.core.errors import ModelSpecificationError, ValidationError
+from dynecon.core.errors import (
+    ConvergenceWarning,
+    DyneconError,
+    ModelSpecificationError,
+    ValidationError,
+)
 from dynecon.core.solution import Solution
 from dynecon.model.compiled import CompiledModel
 from dynecon.model.problems import SavingProblem
@@ -39,6 +45,7 @@ class EGMConfig:
     tol: float = 1e-10
     max_iter: int = 10000
     damping: float = 1.0
+    anderson: int = 5  # extrapolation memory; 0 = plain iteration (forced off when damping < 1)
 
     def __post_init__(self) -> None:
         if not self.tol > 0.0:
@@ -118,9 +125,32 @@ def solve_egm(
     C0 = np.maximum(m_grid - a_min, 1e-8)
     if initial is not None and np.shape(initial) == C0.shape and np.all(np.asarray(initial) > 0):
         C0 = np.array(initial, dtype=np.float64)
-    res = fixed_point(
-        operator, C0, tol=cfg.tol, max_iter=cfg.max_iter, damping=cfg.damping, name="egm"
-    )
+
+    def run(m: int) -> Any:
+        return fixed_point(
+            operator,
+            C0,
+            tol=cfg.tol,
+            max_iter=cfg.max_iter,
+            damping=cfg.damping,
+            anderson=m,
+            lower=1e-8,
+            name="egm",
+        )
+
+    accel = cfg.anderson if cfg.damping == 1.0 else 0
+    with warnings.catch_warnings():
+        warnings.simplefilter("error" if accel else "default", ConvergenceWarning)
+        if accel:
+            warnings.simplefilter("ignore", RuntimeWarning)  # garbage trial iterates
+        try:
+            res = run(accel)
+        except (DyneconError, ConvergenceWarning, np.linalg.LinAlgError):
+            if not accel:
+                raise
+            res = None
+    if res is None or not np.isfinite(res.x).all():
+        res = run(0)  # acceleration is an optimisation only: the plain iteration is the fallback
     cons = res.x
     a_next = m_grid - cons
     sol = Solution(

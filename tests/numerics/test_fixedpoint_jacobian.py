@@ -80,3 +80,27 @@ def test_jacobian_polynomial_map() -> None:
     exact = np.array([[2 * x[0] * x[1], x[0] ** 2], [1.0, 9 * x[1] ** 2]])
     np.testing.assert_allclose(J, exact, atol=1e-8)
     np.testing.assert_allclose(numerical_jacobian(F, x, eps=1e-5, relative=False), J, atol=1e-6)
+
+
+def test_anderson_same_fixed_point_in_fewer_steps() -> None:
+    a = np.diag(np.linspace(0.5, 0.995, 20))  # slow contraction
+    op = lambda x: a @ x + 1.0  # noqa: E731
+    plain = fixed_point(op, np.zeros(20), tol=1e-10, max_iter=100_000)
+    fast = fixed_point(op, np.zeros(20), tol=1e-10, max_iter=100_000, anderson=5)
+    assert fast.converged and fast.iterations < plain.iterations / 3
+    np.testing.assert_allclose(fast.x, plain.x, atol=1e-7)
+
+
+def test_anderson_undoes_a_domain_violation() -> None:
+    def op(x: np.ndarray) -> np.ndarray:
+        if x.min() < 0.0:
+            raise ValidationError("outside the domain")
+        return 0.9 * x + 0.1
+
+    res = fixed_point(op, np.full(3, 0.5), tol=1e-10, max_iter=2000, anderson=3, lower=0.0)
+    assert res.converged and abs(res.x[0] - 1.0) < 1e-8
+
+
+def test_anderson_rejects_damping() -> None:
+    with pytest.raises(ValidationError):
+        fixed_point(lambda x: x, np.zeros(1), tol=1e-8, max_iter=5, anderson=2, damping=0.5)

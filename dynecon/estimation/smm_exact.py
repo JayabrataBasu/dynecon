@@ -37,7 +37,7 @@ def _weights(weights: str | Array, q: int) -> tuple[str, Array]:
     return "custom", np.asarray(weights, dtype=np.float64)
 
 
-def smm_exact(
+def smm_exact(  # noqa: C901 - two-step estimation with inference; steps are inline
     model: CompiledModel,
     free_params: Sequence[str],
     data_moments: npt.ArrayLike,
@@ -48,6 +48,7 @@ def smm_exact(
     weights: str | Array = "optimal",
     equilibrium: tuple[str, Any, Callable[..., Any]] | None = None,
     max_iter: int = 200,
+    starts: Sequence[npt.ArrayLike] = (),
 ) -> SMMResult:
     """Estimate ``free_params`` so that stationary-distribution moments match ``data_moments``.
 
@@ -59,7 +60,9 @@ def smm_exact(
     model (the upper end usually depends on the discount factor). Bounds come from the parameter
     set; the optimiser is L-BFGS-B with the exact gradient ``2 G' W g``. Parameter values where
     the model cannot be solved get a large penalty (counted in ``diagnostics["failed_evals"]``);
-    tight bounds help. A failure at the starting point raises.
+    tight bounds help. A failure at the starting point raises. ``starts`` are extra start vectors
+    (ordered as ``free_params``); the first-step fit is run from each and the lowest loss is kept,
+    which guards against a poor local minimum (unusable extra starts are skipped).
     """
     names = list(free_params)
     m_hat = np.asarray(data_moments, dtype=np.float64).ravel()
@@ -123,6 +126,12 @@ def smm_exact(
 
     wkind, W = _weights(weights, q)
     res = fit(W, ps.vector(names))
+    for extra in starts:
+        try:
+            alt = fit(W, np.asarray(extra, dtype=np.float64))
+        except DyneconError:
+            continue
+        res = alt if alt.fun < res.fun else res
     if weights == "optimal":
         W = np.asarray(np.linalg.pinv(omega), dtype=np.float64)
         res = fit(W, res.x)

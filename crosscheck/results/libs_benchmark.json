@@ -18,31 +18,31 @@
       "n_a": 200,
       "n_z": 7,
       "accuracy_vs_ssj_at_matched_tolerance": {
-        "policy_max_abs_diff": 2.2574844393830062e-07,
-        "distribution_max_abs_diff": 2.0379442022822047e-09,
+        "policy_max_abs_diff": 1.2081515166073586e-07,
+        "distribution_max_abs_diff": 2.0156674523930107e-09,
         "aggregate_assets_ssj": 1.6293895188554766,
-        "aggregate_assets_dynecon": 1.6293894431098597
+        "aggregate_assets_dynecon": 1.6293894445887958
       },
       "timings": {
         "ssj_defaults (backward 1e-8, forward 1e-10)": {
-          "first_call_s": 0.04973890003748238,
-          "min_s": 0.044940699997823685,
-          "median_s": 0.05090319999726489
+          "first_call_s": 0.04291429999284446,
+          "min_s": 0.040334500023163855,
+          "median_s": 0.049161799950525165
         },
         "dynecon_numba matched (1e-8, 1e-10)": {
-          "first_call_s": 0.09816029999637976,
-          "min_s": 0.08754809998208657,
-          "median_s": 0.0992120000300929
+          "first_call_s": 0.0484207000117749,
+          "min_s": 0.036191899969708174,
+          "median_s": 0.03724289999809116
         },
         "dynecon_numpy matched (1e-8, 1e-10)": {
-          "first_call_s": 0.1893392000347376,
-          "min_s": 0.18794059997890145,
-          "median_s": 0.220852600003127
+          "first_call_s": 0.12954459997126833,
+          "min_s": 0.11167920002480969,
+          "median_s": 0.12432000000262633
         },
         "dynecon_numba defaults (1e-10, 1e-12)": {
-          "first_call_s": 0.10279200004879385,
-          "min_s": 0.1024015000439249,
-          "median_s": 0.11417349998373538
+          "first_call_s": 0.046373299963306636,
+          "min_s": 0.04034410003805533,
+          "median_s": 0.06053869996685535
         }
       }
     },
@@ -51,31 +51,31 @@
       "n_a": 500,
       "n_z": 7,
       "accuracy_vs_ssj_at_matched_tolerance": {
-        "policy_max_abs_diff": 2.1781366399409308e-07,
-        "distribution_max_abs_diff": 2.5791220478743604e-09,
+        "policy_max_abs_diff": 1.1456361903583456e-07,
+        "distribution_max_abs_diff": 2.552845448922092e-09,
         "aggregate_assets_ssj": 1.6215801864595147,
-        "aggregate_assets_dynecon": 1.6215800874970572
+        "aggregate_assets_dynecon": 1.6215800893198624
       },
       "timings": {
         "ssj_defaults (backward 1e-8, forward 1e-10)": {
-          "first_call_s": 0.07885819999501109,
-          "min_s": 0.08955120004247874,
-          "median_s": 0.10050840000621974
+          "first_call_s": 0.08950090000871569,
+          "min_s": 0.07783219998236746,
+          "median_s": 0.08739179995609447
         },
         "dynecon_numba matched (1e-8, 1e-10)": {
-          "first_call_s": 0.14024929999141023,
-          "min_s": 0.1208908999687992,
-          "median_s": 0.15203979995567352
+          "first_call_s": 0.06946319999406114,
+          "min_s": 0.06666499999118969,
+          "median_s": 0.09419249999336898
         },
         "dynecon_numpy matched (1e-8, 1e-10)": {
-          "first_call_s": 0.3131546000367962,
-          "min_s": 0.2685800999752246,
-          "median_s": 0.3044685000204481
+          "first_call_s": 0.17928680003387854,
+          "min_s": 0.13086450000992045,
+          "median_s": 0.17439270002068952
         },
         "dynecon_numba defaults (1e-10, 1e-12)": {
-          "first_call_s": 0.19809759996132925,
-          "min_s": 0.17525979998754337,
-          "median_s": 0.18710690003354102
+          "first_call_s": 0.1260741999722086,
+          "min_s": 0.0908262999728322,
+          "median_s": 0.1127136999857612
         }
       }
     },
@@ -84,31 +84,31 @@
       "n_a": 1000,
       "n_z": 7,
       "accuracy_vs_ssj_at_matched_tolerance": {
-        "policy_max_abs_diff": 2.16822044762921e-07,
-        "distribution_max_abs_diff": 2.497766202202989e-09,
+        "policy_max_abs_diff": 1.1434414659561298e-07,
+        "distribution_max_abs_diff": 2.4868235665165273e-09,
         "aggregate_assets_ssj": 1.6203660484633648,
-        "aggregate_assets_dynecon": 1.6203659506912473
+        "aggregate_assets_dynecon": 1.6203659514568358
       },
       "timings": {
         "ssj_defaults (backward 1e-8, forward 1e-10)": {
-          "first_call_s": 0.15087769995443523,
-          "min_s": 0.13635089999297634,
-          "median_s": 0.16162610001629218
+          "first_call_s": 0.15684830001555383,
+          "min_s": 0.1194948999909684,
+          "median_s": 0.142007399990689
         },
         "dynecon_numba matched (1e-8, 1e-10)": {
-          "first_call_s": 0.25581929995678365,
-          "min_s": 0.21683670004131272,
-          "median_s": 0.2252388999913819
+          "first_call_s": 0.11012959998333827,
+          "min_s": 0.1079221999971196,
+          "median_s": 0.1401363000040874
         },
         "dynecon_numpy matched (1e-8, 1e-10)": {
-          "first_call_s": 0.3990468999836594,
-          "min_s": 0.3728461000137031,
-          "median_s": 0.4254324000212364
+          "first_call_s": 0.26752330001909286,
+          "min_s": 0.18465470004593953,
+          "median_s": 0.25431389996083453
         },
         "dynecon_numba defaults (1e-10, 1e-12)": {
-          "first_call_s": 0.25238449999596924,
-          "min_s": 0.24835889996029437,
-          "median_s": 0.25455630000215024
+          "first_call_s": 0.13180180004565045,
+          "min_s": 0.13072870002361014,
+          "median_s": 0.14572299999417737
         }
       }
     }
@@ -125,27 +125,27 @@
       },
       "timings": {
         "quantecon_policy_iteration (solve only, 1e-8)": {
-          "first_call_s": 0.1254211000050418,
-          "min_s": 0.06990480003878474,
-          "median_s": 0.10039460001280531
+          "first_call_s": 0.09204809996299446,
+          "min_s": 0.06230409996351227,
+          "median_s": 0.12410620000446215
         },
         "quantecon_value_iteration (solve only, 1e-8)": {
-          "first_call_s": 0.571676200022921,
-          "min_s": 0.36831099999835715,
-          "median_s": 0.4602320000412874
+          "first_call_s": 0.2442536000162363,
+          "min_s": 0.16027350001968443,
+          "median_s": 0.1825537999975495
         },
         "dynecon_vfi_numba (1e-8)": {
-          "first_call_s": 0.049702499993145466,
-          "min_s": 0.03457930003060028,
-          "median_s": 0.04008369997609407
+          "first_call_s": 0.006098399986512959,
+          "min_s": 0.005449499993119389,
+          "median_s": 0.005684400035534054
         },
         "dynecon_vfi_numpy (1e-8)": {
-          "first_call_s": 0.03631379996659234,
-          "min_s": 0.0344706000178121,
-          "median_s": 0.03790660004597157
+          "first_call_s": 0.007465000031515956,
+          "min_s": 0.00680500001180917,
+          "median_s": 0.011117600020952523
         }
       },
-      "quantecon_model_build_s": 0.009500699990894645
+      "quantecon_model_build_s": 0.006294799968600273
     },
     {
       "problem": "discrete savings (CRRA 2, r=0.03, beta=0.96), n_a=100, n_z=3",
@@ -158,27 +158,27 @@
       },
       "timings": {
         "quantecon_policy_iteration (solve only, 1e-8)": {
-          "first_call_s": 0.2189037000061944,
-          "min_s": 0.2176529000280425,
-          "median_s": 0.2655942999990657
+          "first_call_s": 0.5411758999689482,
+          "min_s": 0.2184854000224732,
+          "median_s": 0.2755598000367172
         },
         "quantecon_value_iteration (solve only, 1e-8)": {
-          "first_call_s": 1.704505700035952,
-          "min_s": 1.6322223999886774,
-          "median_s": 1.8235980999888852
+          "first_call_s": 1.7751204000087455,
+          "min_s": 1.6969501999556087,
+          "median_s": 1.9580243999953382
         },
         "dynecon_vfi_numba (1e-8)": {
-          "first_call_s": 0.06244989996775985,
-          "min_s": 0.03405289998045191,
-          "median_s": 0.036076400021556765
+          "first_call_s": 0.01682530000107363,
+          "min_s": 0.008347800001502037,
+          "median_s": 0.008586400013882667
         },
         "dynecon_vfi_numpy (1e-8)": {
-          "first_call_s": 0.03704019996803254,
-          "min_s": 0.03469330002553761,
-          "median_s": 0.04242599999997765
+          "first_call_s": 0.008383799984585494,
+          "min_s": 0.009383900032844394,
+          "median_s": 0.01054739998653531
         }
       },
-      "quantecon_model_build_s": 0.026620700024068356
+      "quantecon_model_build_s": 0.02776359999552369
     },
     {
       "problem": "discrete savings (CRRA 2, r=0.03, beta=0.96), n_a=150, n_z=3",
@@ -191,27 +191,27 @@
       },
       "timings": {
         "quantecon_policy_iteration (solve only, 1e-8)": {
-          "first_call_s": 0.4726146999746561,
-          "min_s": 0.3705341999884695,
-          "median_s": 0.4119100000243634
+          "first_call_s": 0.39619180001318455,
+          "min_s": 0.32422010001027957,
+          "median_s": 0.39543630002299324
         },
         "quantecon_value_iteration (solve only, 1e-8)": {
-          "first_call_s": 6.21727149997605,
-          "min_s": 4.6920178000000305,
-          "median_s": 5.514923899958376
+          "first_call_s": 4.738166800001636,
+          "min_s": 4.69578010000987,
+          "median_s": 4.749754299991764
         },
         "dynecon_vfi_numba (1e-8)": {
-          "first_call_s": 0.07191040000179783,
-          "min_s": 0.04266300000017509,
-          "median_s": 0.0473577999509871
+          "first_call_s": 0.021617699996568263,
+          "min_s": 0.013481399975717068,
+          "median_s": 0.018144500034395605
         },
         "dynecon_vfi_numpy (1e-8)": {
-          "first_call_s": 0.05052659998182207,
-          "min_s": 0.0475019000004977,
-          "median_s": 0.05279220000375062
+          "first_call_s": 0.024895899987313896,
+          "min_s": 0.0223396000219509,
+          "median_s": 0.0250823000096716
         }
       },
-      "quantecon_model_build_s": 0.08463599998503923
+      "quantecon_model_build_s": 0.07131209998624399
     }
   ]
 }

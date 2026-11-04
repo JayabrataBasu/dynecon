@@ -7,6 +7,7 @@ Recording the software and machine behind a result is part of making it reproduc
 from __future__ import annotations
 
 import datetime as _dt
+import functools
 import importlib.metadata
 import platform
 import subprocess
@@ -42,8 +43,9 @@ def _git_commit() -> str | None:
         return None
 
 
-def collect_provenance() -> dict[str, Any]:
-    """Return versions of the stack, platform, git commit (if any) and a UTC timestamp."""
+@functools.lru_cache(maxsize=1)
+def _static() -> dict[str, Any]:
+    """Facts fixed for the process (the git subprocess alone cost ~0.03 s per solve)."""
     return {
         "dynecon": __version__,
         "numpy": _version("numpy"),
@@ -53,5 +55,12 @@ def collect_provenance() -> dict[str, Any]:
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "git_commit": _git_commit(),
+    }
+
+
+def collect_provenance() -> dict[str, Any]:
+    """Return versions of the stack, platform, git commit (if any) and a UTC timestamp."""
+    return {
+        **_static(),
         "timestamp_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
     }

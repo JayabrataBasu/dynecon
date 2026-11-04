@@ -11,9 +11,16 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   implicit function theorem.
 - `dynecon.estimation.smm_exact.smm_exact`: gradient-based SMM with those Jacobians (partial or
   general equilibrium). Tutorial 10 compares it with derivative-free `smm`.
+- `smm_exact(starts=[...])` (multi-start) and a matrix-free GMRES path for models above 4000 states.
+- `fixed_point(anderson=m)`: opt-in Anderson acceleration with safeguards.
 - `AR1Shock(normalize=True)`: values divided by their stationary mean (unit-mean income).
 
 ### Changed
+- EGM uses Anderson acceleration by default (`anderson=0` restores plain iteration): 2-4x fewer
+  iterations, same solution to the solver tolerance; it falls back to the plain iteration if the
+  accelerated run fails. Provenance facts that cannot change within a process (including the git
+  commit) are collected once instead of on every solve.
+- Built-in `huggett` now has `rho`, `sigma_e` parameters and an `a_max` option like `aiyagari`.
 - Built-in `aiyagari`: `rho` and `sigma_e` are now model parameters (so they can be estimated), the
   wage is computed from the parameter view instead of being fixed when the model is built, income is
   an `AR1Shock(normalize=True)`, and `a_max` can be fixed (`aiyagari.equilibrium(a_max=80.0)`).

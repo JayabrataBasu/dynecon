@@ -64,11 +64,13 @@ The decision is the maintainer's.
 
 Installed and benchmarked on identical problems (one Windows machine): SSJ and QuantEcon only.
 - Household EGM + stationary distribution vs SSJ: results agree (policy ~2e-7, distribution ~3e-9) but
-  **SSJ is faster**, by about 1.3x to 1.9x over Dynecon with Numba at matched tolerances.
+  **Dynecon is about 10-14% faster** after the 0.2.0 solver changes (Anderson-accelerated EGM, cached
+  provenance): Dynecon/SSJ time ratio 0.86x to 0.90x with Numba at matched tolerances. Before them SSJ was
+  1.3x to 1.9x faster (0.1.1). One machine; see crosscheck.md for the table.
 - Discrete savings problem vs QuantEcon `DiscreteDP`: identical answers; Dynecon VFI is 2.0x to 8.7x
   faster than DiscreteDP policy iteration (more against value iteration) on 180 to 450 states.
 - Not benchmarked: HARK (no identical problem set up yet), econpizza, dolo, gEconpy, Dynare.
-- Implication: speed is not a differentiator against SSJ; correctness evidence, packaging and the
+- Implication: speed is roughly on par with SSJ, not a headline; correctness evidence, packaging and the
   differentiable-estimation feature are.
 
 ## Caveats on this research

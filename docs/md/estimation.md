@@ -96,8 +96,11 @@ print(res.summary())
   functions should compute prices such as the wage from the parameter view `p` (as `aiyagari` does)
   and not capture them at build time. `AR1Shock` parameters (`rho`, `sigma_e`) are differentiable.
   The asset grid and any `MarkovShock` are held fixed.
-* Limits: dense implicit solves, so at most 4000 states (for example 200 assets x 20 shocks);
-  derivatives are piecewise smooth where the borrowing constraint starts to bind. Tutorial 10
+* Size: up to 4000 states (for example 200 assets x 20 shocks) the implicit systems are solved
+  densely; above that a matrix-free GMRES takes over (checked against finite differences at 6000
+  states; the first call per grid shape also pays a one-off JAX compile of several seconds).
+  `smm_exact(..., starts=[...])` also fits from extra start vectors and keeps the best.
+* Limits: derivatives are piecewise smooth where the borrowing constraint starts to bind. Tutorial 10
   compares this estimator with the derivative-free `smm` (fewer model evaluations, same estimates).
 
 ## Maximum likelihood and Kalman filter

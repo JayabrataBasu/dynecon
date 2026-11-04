@@ -49,10 +49,28 @@ def benchmark_lines() -> list[str]:
             f"| {r['n_a']} | {ssj:.3f} | {numba:.3f} | {numpy_:.3f} | {numba / ssj:.1f}x | "
             f"{acc['policy_max_abs_diff']:.1e} | {acc['distribution_max_abs_diff']:.1e} |"
         )
+    ratios = [
+        _best(r["timings"], "dynecon_numba matched") / _best(r["timings"], "ssj")
+        for r in data["household_vs_ssj"]
+    ]
+    worst = max(
+        r["accuracy_vs_ssj_at_matched_tolerance"]["policy_max_abs_diff"]
+        for r in data["household_vs_ssj"]
+    )
+    worst_d = max(
+        r["accuracy_vs_ssj_at_matched_tolerance"]["distribution_max_abs_diff"]
+        for r in data["household_vs_ssj"]
+    )
+    who = (
+        "SSJ is faster"
+        if min(ratios) > 1
+        else ("Dynecon is faster" if max(ratios) < 1 else "neither is consistently faster")
+    )
     lines += [
         "",
-        "SSJ is faster than Dynecon on this task. The two agree to about 2e-7 in the policy and 3e-9 in the "
-        "distribution, which is the size expected from iteration tolerances of 1e-8 and 1e-10.",
+        f"{who} on this task (Dynecon/SSJ time ratio {min(ratios):.2f}x to {max(ratios):.2f}x). "
+        f"The two agree to {worst:.0e} in the policy and {worst_d:.0e} in the distribution, "
+        "which is the size expected from iteration tolerances of 1e-8 and 1e-10.",
         "",
         "## Discrete savings problem vs QuantEcon `DiscreteDP`",
         "",

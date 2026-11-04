@@ -63,9 +63,22 @@ def kalman_filter(
     filt_a = np.empty((n_t, n_a))
     gains = np.zeros((n_t, n_a, n_y))
     loglik, used = 0.0, 0
+    steady: tuple[Array, Array, float] | None = None  # (K, F^-1, log|F|) once P has converged
+    const = n_y * np.log(2 * np.pi)
     for t in range(n_t):
         pred_a[t], pred_P[t] = a, P
         idx = np.flatnonzero(~np.isnan(obs[t]))
+        if steady is not None and idx.size == n_y:  # time-invariant system, full data: P is fixed
+            K, Finv, logdet = steady
+            v = obs[t] - Z @ a
+            loglik += -0.5 * (const + logdet + v @ Finv @ v)
+            used += n_y
+            gains[t] = K
+            a_f = a + K @ v
+            filt_a[t] = a_f
+            a = T @ a_f
+            continue
+        steady = None  # a gap makes P move again; settle detection restarts
         if idx.size:
             Zt, Ht = Z[idx], H[np.ix_(idx, idx)]
             v = obs[t, idx] - Zt @ a
@@ -73,18 +86,21 @@ def kalman_filter(
             sign, logdet = np.linalg.slogdet(F)
             if sign <= 0:
                 raise ValidationError("innovation covariance is not positive definite")
-            Finv_v = np.linalg.solve(F, v)
-            loglik += -0.5 * (idx.size * np.log(2 * np.pi) + logdet + v @ Finv_v)
+            Finv = np.linalg.inv(F)
+            loglik += -0.5 * (idx.size * np.log(2 * np.pi) + logdet + v @ Finv @ v)
             used += idx.size
-            K = P @ Zt.T @ np.linalg.inv(F)
+            K = P @ Zt.T @ Finv
             gains[t][:, idx] = K
             a_f = a + K @ v
             P_f = P - K @ Zt @ P
         else:
             a_f, P_f = a, P
         filt_a[t] = a_f
-        a, P = T @ a_f, T @ P_f @ T.T + Q
-        P = 0.5 * (P + P.T)
+        a, P_new = T @ a_f, T @ P_f @ T.T + Q
+        P_new = 0.5 * (P_new + P_new.T)
+        if idx.size == n_y and np.max(np.abs(P_new - P)) <= 1e-13 * max(1.0, np.max(np.abs(P))):
+            steady = (K, Finv, float(logdet))
+        P = P_new
     return KalmanResult(float(loglik), pred_a, pred_P, filt_a, gains, used)
 
 

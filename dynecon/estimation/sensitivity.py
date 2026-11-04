@@ -15,6 +15,7 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
+import jax.scipy.sparse.linalg
 import numpy as np
 import numpy.typing as npt
 
@@ -29,8 +30,8 @@ from dynecon.solvers.api import solve
 __all__ = ["equilibrium_moments", "stationary_moments"]
 
 Array = npt.NDArray[np.float64]
-# shortcut: dense implicit solves, memory ~ states^2; upgrade to matrix-free GMRES for larger grids.
-MAX_STATES = 4000
+DENSE_STATES = 4000  # up to here the implicit systems are solved densely (exact, memory ~ n^2)
+MAX_STATES = 200_000  # sanity cap; the GMRES path was checked against dense and at 6000 states
 
 
 def _rouwenhorst(rho: Any, sigma_e: Any, n: int) -> tuple[Any, Any]:
@@ -67,6 +68,17 @@ def _shock(model: CompiledModel, name: str, vals: dict[str, Any]) -> tuple[Any, 
         pi = jnp.linalg.solve((jnp.eye(n) - P.T).at[-1].set(1.0), jnp.zeros(n).at[-1].set(1.0))
         values = values / (pi @ values)
     return values, P
+
+
+def _gmres(matvec: Callable[[Any], Any], rhs: Any) -> Any:
+    """Solve ``A x = rhs`` for each column of ``rhs`` with GMRES given only ``v -> A v``."""
+    cols = []
+    for b in rhs.T:
+        x, _ = jax.scipy.sparse.linalg.gmres(matvec, b, tol=1e-13, restart=80, maxiter=60)
+        if float(jnp.abs(matvec(x) - b).max()) > 1e-9 * max(1.0, float(jnp.abs(b).max())):
+            raise ConvergenceError("GMRES did not solve the implicit-derivative system")
+        cols.append(x)
+    return jnp.stack(cols, axis=1)
 
 
 def _interp_columns(xq: Any, xk: Any, fk: Any) -> Any:
@@ -169,11 +181,18 @@ def stationary_moments(
             "JAX residuals do not vanish at the NumPy solution; model not traceable?"
         )
 
-    dC = -jnp.linalg.solve(jax.jacfwd(r1, 0)(C0, th0), jax.jacfwd(r1, 1)(C0, th0))
-    dmu = -jnp.linalg.solve(
-        jax.jacfwd(r2, 0)(mu0, C0, th0),
-        jax.jacfwd(r2, 1)(mu0, C0, th0) @ dC + jax.jacfwd(r2, 2)(mu0, C0, th0),
-    )
+    if n_a * n_z <= DENSE_STATES:
+        dC = -jnp.linalg.solve(jax.jacfwd(r1, 0)(C0, th0), jax.jacfwd(r1, 1)(C0, th0))
+        dmu = -jnp.linalg.solve(
+            jax.jacfwd(r2, 0)(mu0, C0, th0),
+            jax.jacfwd(r2, 1)(mu0, C0, th0) @ dC + jax.jacfwd(r2, 2)(mu0, C0, th0),
+        )
+    else:  # matrix-free: only Jacobian-vector products, memory ~ states
+        _, mv1 = jax.linearize(lambda C: r1(C, th0), C0)
+        dC = -_gmres(mv1, jax.jacfwd(r1, 1)(C0, th0))
+        _, mv2 = jax.linearize(lambda mu: r2(mu, C0, th0), mu0)
+        by_C = jnp.stack([jax.jvp(lambda C: r2(mu0, C, th0), (C0,), (v,))[1] for v in dC.T], 1)
+        dmu = -_gmres(mv2, by_C + jax.jacfwd(r2, 2)(mu0, C0, th0))
     d_mu, d_C, d_th = jax.jacfwd(moments, (0, 1, 2))(mu0, C0, th0)
     G = d_mu @ dmu + d_C @ dC + d_th
     return np.asarray(moments(mu0, C0, th0)), np.asarray(G)

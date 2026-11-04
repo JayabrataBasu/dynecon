@@ -41,15 +41,15 @@ def test_exact_jacobian_matches_finite_differences() -> None:
         np.testing.assert_allclose(G[:, j], fd, rtol=2e-4, atol=1e-6, err_msg=name)
 
 
-def test_bad_inputs_raise() -> None:
+def test_bad_inputs_raise(monkeypatch: pytest.MonkeyPatch) -> None:
     model = models.load("consumption_savings", n_a=40, n_z=3).compile()
     with pytest.raises(ValidationError):
         stationary_moments(model, ["not_a_parameter"], moment_fn)
     with pytest.raises(ValidationError):
         stationary_moments(model, [], moment_fn)
-    big = models.load("consumption_savings", n_a=1000, n_z=7).compile()
+    monkeypatch.setattr("dynecon.estimation.sensitivity.MAX_STATES", 100)  # 40 x 3 states > 100
     with pytest.raises(ValidationError):
-        stationary_moments(big, ["beta"], moment_fn)
+        stationary_moments(model, ["beta"], moment_fn)
 
 
 def build_ge(**kw):
@@ -205,3 +205,18 @@ def test_builtin_huggett_equilibrium_derivatives() -> None:
         _, rm, mm = solved(**dict(base, **{name: base[name] - h}))
         np.testing.assert_allclose(dr[j], (rp - rm) / (2 * h), rtol=1e-3, atol=1e-6, err_msg=name)
         np.testing.assert_allclose(G[:, j], (mp - mm) / (2 * h), rtol=1e-3, atol=1e-5, err_msg=name)
+
+
+def test_matrix_free_path_matches_dense(monkeypatch: pytest.MonkeyPatch) -> None:
+    import jax.numpy as jnp
+
+    from dynecon.estimation import sensitivity
+    from dynecon.models import aiyagari
+
+    model = aiyagari.build(n_a=40, n_z=3, a_max=80.0, r=0.03).compile()
+    names = ["beta", "sigma_e"]
+    fn = lambda mu, c, a_next, *_: jnp.stack([(mu * a_next).sum(), (mu * c**2).sum()])  # noqa: E731
+    _, dense = sensitivity.stationary_moments(model, names, fn)
+    monkeypatch.setattr(sensitivity, "DENSE_STATES", 0)
+    _, free = sensitivity.stationary_moments(model, names, fn)
+    np.testing.assert_allclose(free, dense, rtol=1e-6, atol=1e-8)

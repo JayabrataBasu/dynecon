@@ -170,3 +170,34 @@ def test_diagnostics_helpers() -> None:
         ar[:, t] = 0.95 * ar[:, t - 1] + rng.standard_normal(4)
     assert ess(ar) < 0.1 * ar.size
     assert split_rhat(np.zeros((2, 10))) == 1.0
+
+
+def test_kalman_steady_state_shortcut_matches_plain_recursion_with_gaps() -> None:
+    from scipy.linalg import solve_discrete_lyapunov
+
+    from dynecon.estimation.kalman import kalman_filter
+
+    rng = np.random.default_rng(3)
+    A = rng.normal(size=(4, 4))
+    A *= 0.9 / np.abs(np.linalg.eigvals(A)).max()
+    Z, H, Q = rng.normal(size=(3, 4)), 0.1 * np.eye(3), 0.05 * np.eye(4)
+    y = rng.normal(size=(300, 3))
+    y[100:103, 1] = np.nan  # gaps force P to move again after it had settled
+    y[200] = np.nan
+    P0 = solve_discrete_lyapunov(A, Q)
+    got = kalman_filter(y, Z, H, A, Q, np.zeros(4), P0)
+    a, P, ll = np.zeros(4), P0, 0.0
+    for t in range(len(y)):
+        idx = np.flatnonzero(~np.isnan(y[t]))
+        af, Pf = a, P
+        if idx.size:
+            Zt, F = Z[idx], Z[idx] @ P @ Z[idx].T + H[np.ix_(idx, idx)]
+            v = y[t, idx] - Zt @ a
+            ll += -0.5 * (
+                idx.size * np.log(2 * np.pi) + np.linalg.slogdet(F)[1] + v @ np.linalg.solve(F, v)
+            )
+            K = P @ Zt.T @ np.linalg.inv(F)
+            af, Pf = a + K @ v, P - K @ Zt @ P
+        a, P = A @ af, A @ Pf @ A.T + Q
+        P = 0.5 * (P + P.T)
+    assert abs(got.loglik - ll) < 1e-8 * abs(ll)

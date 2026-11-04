@@ -51,3 +51,18 @@ def test_recovers_builtin_aiyagari_in_general_equilibrium() -> None:
     )
     assert res.converged
     np.testing.assert_allclose(res.estimates, [truth[n] for n in names], rtol=1e-4)
+
+
+def test_extra_starts_keep_the_best_fit() -> None:
+    truth = {"beta": 0.95, "sigma_e": 0.12}
+    names = list(truth)
+    start = models.load("consumption_savings", n_a=40, n_z=3, beta=0.93, sigma_e=0.08).compile()
+    m_hat, _ = stationary_moments(start.with_params(**truth), names, moment_fn)
+    omega = np.diag((0.05 * np.abs(m_hat)) ** 2)
+    one = smm_exact(start, names, m_hat, moment_fn, omega, n_obs=5000, weights="identity")
+    many = smm_exact(
+        start, names, m_hat, moment_fn, omega, n_obs=5000, weights="identity",
+        starts=[[0.9, 0.2], [0.5, 0.01]],  # the second start is far outside the useful region
+    )  # fmt: skip
+    assert many.loss <= one.loss + 1e-15
+    np.testing.assert_allclose(many.estimates, [truth[n] for n in names], rtol=1e-5)
