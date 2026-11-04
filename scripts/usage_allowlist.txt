@@ -96,3 +96,4 @@ uniform_grid  # user-facing entry point or result type; exercised by tests/tutor
 unit_mean_income_chain  # covered indirectly through the public function that produces/consumes it
 validate_model  # covered indirectly through the public function that produces/consumes it
 wage  # covered indirectly through the public function that produces/consumes it
+stationary_moments  # user-facing entry point; caller arrives with gradient-based SMM (#17)
