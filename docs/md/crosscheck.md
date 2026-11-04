@@ -23,3 +23,20 @@ Compared: dynecon.numerics.tauchen/rouwenhorst vs quantecon.markov.tauchen/rouwe
 - Argument order differs: Dynecon (rho, sigma_e, n_states), QuantEcon (n, rho, sigma).
 - Both take sigma as the innovation standard deviation and use the same grid (+-3 unconditional sd for Tauchen, +-sd*sqrt(n-1) for Rouwenhorst).
 - Stationary distributions differ most for near-unit-root chains (rho=0.99), where the problem is ill-conditioned; this is numerical conditioning, not a convention gap.
+
+## Kalman filter: agrees within tolerance
+
+Compared: dynecon.estimation.kalman_filter vs quantecon.Kalman (+ scipy likelihood).
+
+20 parameter combinations.
+
+| quantity | largest abs. difference | tolerance | worst case |
+|---|---|---|---|
+| predicted_state | 3.89e-15 | 1e-10 | - |
+| predicted_cov | 3.33e-15 | 1e-10 | - |
+| filtered_state | 4.44e-15 | 1e-10 | - |
+| loglik | 1.14e-13 | 1e-10 | - |
+
+- Random stable systems (1-4 states, 1-3 observables, 80 periods, fixed seed).
+- Dynecon takes covariances (H, Q); QuantEcon takes factors (C, H) with covariances CC' and HH'. Both treat the initial (a0, P0) as the prior for the first period.
+- The log-likelihood includes the full Gaussian constant.

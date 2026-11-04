@@ -28,6 +28,30 @@
         "Both take sigma as the innovation standard deviation and use the same grid (+-3 unconditional sd for Tauchen, +-sd*sqrt(n-1) for Rouwenhorst).",
         "Stationary distributions differ most for near-unit-root chains (rho=0.99), where the problem is ill-conditioned; this is numerical conditioning, not a convention gap."
       ]
+    },
+    {
+      "name": "Kalman filter",
+      "compared": "dynecon.estimation.kalman_filter vs quantecon.Kalman (+ scipy likelihood)",
+      "n_cases": 20,
+      "max_abs_diff": {
+        "predicted_state": 3.885780586188048e-15,
+        "predicted_cov": 3.3306690738754696e-15,
+        "filtered_state": 4.440892098500626e-15,
+        "loglik": 1.1368683772161603e-13
+      },
+      "worst_case": {},
+      "tolerance": {
+        "predicted_state": 1e-10,
+        "predicted_cov": 1e-10,
+        "filtered_state": 1e-10,
+        "loglik": 1e-10
+      },
+      "passed": true,
+      "notes": [
+        "Random stable systems (1-4 states, 1-3 observables, 80 periods, fixed seed).",
+        "Dynecon takes covariances (H, Q); QuantEcon takes factors (C, H) with covariances CC' and HH'. Both treat the initial (a0, P0) as the prior for the first period.",
+        "The log-likelihood includes the full Gaussian constant."
+      ]
     }
   ]
 }
