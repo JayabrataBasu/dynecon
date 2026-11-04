@@ -4,8 +4,8 @@ Economics note:
 Macro data from the St. Louis Fed's FRED database is the usual input for filtering and
 for matching model moments to the data.
 
-The download endpoint (``fredgraph.csv``) follows FRED's public CSV export; it has not been
-verified against the live service from this code base. Tests never touch the network.
+The download endpoint (``fredgraph.csv``) is FRED's public CSV export; a live download of
+``GDPC1`` was checked manually on 2026-11-04. Tests never touch the network.
 """
 
 from __future__ import annotations
