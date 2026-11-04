@@ -15,6 +15,9 @@ optional JAX backend for exact derivatives.
 
 ## Install
 
+Requires Python 3.10 or newer (tested on 3.10 to 3.14). On macOS the system `python3` is 3.9, so use a
+virtual environment with a newer Python: `python3.12 -m venv .venv && source .venv/bin/activate`.
+
 ```bash
 pip install dynecon               # from PyPI
 pip install -e ".[dev]"           # or from a clone, for development

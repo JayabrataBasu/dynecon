@@ -11,6 +11,8 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 - CI fixes from the first public run: sweep workers use `spawn` (no fork after OpenMP),
   the `jax` availability check ignores a bare directory named `jax`, NumPy-stub typing fixes.
 - GitHub Actions pinned by commit SHA.
+- CI now tests Python 3.10 to 3.14 on Linux, macOS and Windows (3.15 as non-blocking); added a
+  minimum-dependency-versions job; classifiers and README state the supported range.
 
 ### Fixed
 - `solve()` imported JAX (and Numba) just to record versions in provenance when they were installed;
