@@ -42,6 +42,7 @@ exclude_patterns = [
     "md/V1_PROGRESS.md",
     "md/Dynecon_Architecture.md",
     "md/HANDOFF.md",
+    "md/landscape.md",
     "md/economics_explainability.md",
     "**/.ipynb_checkpoints",
 ]
