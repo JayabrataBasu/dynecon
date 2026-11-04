@@ -11,6 +11,14 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   implicit function theorem.
 - `dynecon.estimation.smm_exact.smm_exact`: gradient-based SMM with those Jacobians (partial or
   general equilibrium). Tutorial 10 compares it with derivative-free `smm`.
+- `AR1Shock(normalize=True)`: values divided by their stationary mean (unit-mean income).
+
+### Changed
+- Built-in `aiyagari`: `rho` and `sigma_e` are now model parameters (so they can be estimated), the
+  wage is computed from the parameter view instead of being fixed when the model is built, income is
+  an `AR1Shock(normalize=True)`, and `a_max` can be fixed (`aiyagari.equilibrium(a_max=80.0)`).
+  `aiyagari.excess_demand` is a JAX-traceable market-clearing function for `equilibrium_moments`.
+  Numerical results are unchanged. `capital_demand` and `wage` no longer force `float`.
 
 ## [0.1.1] - 2026-11-04
 

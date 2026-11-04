@@ -16,6 +16,7 @@ from dynecon.core.errors import ValidationError
 from dynecon.model.specs import AR1Shock, IIDShock, MarkovShock, ShockProcess
 from dynecon.numerics.discretization import rouwenhorst, tauchen
 from dynecon.numerics.integration import gauss_hermite_normal, gauss_legendre
+from dynecon.numerics.markov import stationary_distribution
 from dynecon.utils.validation import check_array, check_stochastic_matrix
 
 __all__ = ["discretize_shock"]
@@ -29,21 +30,28 @@ def _resolve(x: float | str, params: Mapping[str, float], what: str) -> float:
     return float(x)
 
 
+def _discretize_ar1(shock: AR1Shock, params: Mapping[str, float]) -> ShockProcess:
+    rho = _resolve(shock.rho, params, "AR1Shock.rho")
+    sig = _resolve(shock.sigma_e, params, "AR1Shock.sigma_e")
+    if shock.method == "rouwenhorst":
+        grid, P = rouwenhorst(rho, sig, shock.n_states)
+    elif shock.method == "tauchen":
+        grid, P = tauchen(rho, sig, shock.n_states)
+    else:
+        raise ValidationError(f"unknown AR1 method {shock.method!r}")
+    values = grid + shock.mean
+    values = np.exp(values) if shock.log else values
+    if shock.normalize:
+        values = values / float(stationary_distribution(P) @ values)
+    return ShockProcess(values, P)
+
+
 def discretize_shock(
     shock: AR1Shock | MarkovShock | IIDShock, params: Mapping[str, float]
 ) -> ShockProcess:
     """Discretise a shock descriptor using the current parameter values."""
     if isinstance(shock, AR1Shock):
-        rho = _resolve(shock.rho, params, "AR1Shock.rho")
-        sig = _resolve(shock.sigma_e, params, "AR1Shock.sigma_e")
-        if shock.method == "rouwenhorst":
-            grid, P = rouwenhorst(rho, sig, shock.n_states)
-        elif shock.method == "tauchen":
-            grid, P = tauchen(rho, sig, shock.n_states)
-        else:
-            raise ValidationError(f"unknown AR1 method {shock.method!r}")
-        values = grid + shock.mean
-        return ShockProcess(np.exp(values) if shock.log else values, P)
+        return _discretize_ar1(shock, params)
     if isinstance(shock, MarkovShock):
         values = check_array(shock.values, "MarkovShock.values", ndim=1)
         P = check_stochastic_matrix(shock.P, "MarkovShock.P")

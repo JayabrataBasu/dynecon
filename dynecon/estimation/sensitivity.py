@@ -61,7 +61,12 @@ def _shock(model: CompiledModel, name: str, vals: dict[str, Any]) -> tuple[Any, 
 
     grid, P = _rouwenhorst(get(shock.rho), get(shock.sigma_e), shock.n_states)
     values = grid + shock.mean
-    return (jnp.exp(values) if shock.log else values), P
+    values = jnp.exp(values) if shock.log else values
+    if shock.normalize:  # stationary distribution: solve (I - P') pi = 0 with sum(pi) = 1
+        n = shock.n_states
+        pi = jnp.linalg.solve((jnp.eye(n) - P.T).at[-1].set(1.0), jnp.zeros(n).at[-1].set(1.0))
+        values = values / (pi @ values)
+    return values, P
 
 
 def _interp_columns(xq: Any, xk: Any, fk: Any) -> Any:

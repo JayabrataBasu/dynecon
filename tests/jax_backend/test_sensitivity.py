@@ -147,3 +147,33 @@ def test_equilibrium_moments_rejects_non_equilibrium() -> None:
 
     with pytest.raises(ConvergenceError):
         equilibrium_moments(build_ge(), ["beta"], "r", excess_fn, moment_fn)
+
+
+def test_builtin_aiyagari_equilibrium_derivatives() -> None:
+    from dynecon.estimation.sensitivity import equilibrium_moments
+    from dynecon.models import aiyagari
+
+    names = ["beta", "sigma", "alpha", "delta", "rho", "sigma_e"]
+    base = {"beta": 0.96, "sigma": 3.0, "alpha": 0.36, "delta": 0.08, "rho": 0.6, "sigma_e": 0.2}
+    grid = {
+        "n_a": 40,
+        "n_z": 3,
+        "a_max": 80.0,
+    }  # fixed grid: both sides see the same discretisation
+
+    def solved(**o):
+        e = aiyagari.equilibrium(**grid, **o)
+        mu, s = e.distribution, e.household_solution
+        a_next, c = s.policy["assets_next"], s.policy["consumption"]
+        ma = (mu * a_next).sum()
+        return e, e.price, np.array([ma, (mu * c).sum(), (mu * a_next**2).sum() - ma**2])
+
+    eq, r0, m0 = solved(**base)
+    m, G, dr = equilibrium_moments(eq.model, names, "r", aiyagari.excess_demand, moment_fn)
+    np.testing.assert_allclose(m, m0, rtol=1e-7)
+    for j, name in enumerate(names):
+        h = 1e-4 * max(abs(base[name]), 0.1)
+        _, rp, mp = solved(**dict(base, **{name: base[name] + h}))
+        _, rm, mm = solved(**dict(base, **{name: base[name] - h}))
+        np.testing.assert_allclose(dr[j], (rp - rm) / (2 * h), rtol=1e-3, atol=1e-6, err_msg=name)
+        np.testing.assert_allclose(G[:, j], (mp - mm) / (2 * h), rtol=1e-3, atol=1e-5, err_msg=name)

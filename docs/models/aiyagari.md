@@ -18,8 +18,10 @@ Source: Aiyagari (1994) Table II style (sigma=3, rho=0.6, sigma_e=0.2); textbook
 | `sigma` | 3 | (0.2, 10.0) | CRRA coefficient |
 | `alpha` | 0.36 | (0.05, 0.95) | Capital share |
 | `delta` | 0.08 | (0.0, 1.0) | Depreciation |
+| `rho` | 0.6 | (0.0, 0.99) | Income persistence |
+| `sigma_e` | 0.2 | (0.01, 1.0) | Income innovation sd |
 
-Structural options (not parameters): `r=0.03`, `rho=0.6`, `sigma_e=0.2`, `n_a=200`, `n_z=7`.
+Structural options (not parameters): `r=0.03`, `n_a=200`, `n_z=7`, `a_max=None`.
 
 ## Solution method
 

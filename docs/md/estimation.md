@@ -51,6 +51,55 @@ minimum loss is zero and the model hits the targets.
 condition number of `G'WG`, lists weakly identified parameters, and raises `IdentificationError`
 when it is rank-deficient. `loss_profile` traces the loss along one parameter.
 
+## Exact-gradient SMM (stationary-distribution moments)
+
+When the moments are computed from the model's **stationary distribution** (not from a simulated
+sample) they are smooth, noise-free functions of the parameters, and Dynecon differentiates them
+exactly: the household fixed point and the Young-lottery distribution are differentiated by the
+implicit function theorem, and so is the market-clearing price. The forward solve is the usual
+NumPy/Numba EGM solver; JAX is used only for the derivatives, so this needs the `jax` extra.
+
+```python
+import numpy as np
+from dynecon import models
+from dynecon.estimation.sensitivity import equilibrium_moments, stationary_moments
+from dynecon.estimation.smm_exact import smm_exact
+from dynecon.models import aiyagari
+
+def moments(mu, c, a_next, a_grid, z, p):        # jax.numpy-compatible; mu, c, a_next: (assets, shocks)
+    mean_a, mean_c = (mu * a_next).sum(), (mu * c).sum()
+    return [mean_a, (mu * a_next**2).sum() - mean_a**2, (mu * c**2).sum() - mean_c**2]
+
+grid = dict(n_a=40, n_z=3, a_max=80.0)           # fix the grid so the objective is smooth
+names = ["beta", "sigma_e"]
+eq = aiyagari.equilibrium(**grid, beta=0.96, sigma_e=0.2)
+
+# Moments and their exact Jacobian at an equilibrium (also dr*/dtheta):
+m, G, dr = equilibrium_moments(eq.model, names, "r", aiyagari.excess_demand, moments)
+
+# Estimate: omega is the asymptotic covariance of sqrt(N) * (data moments), from the data.
+omega = np.diag((0.05 * np.abs(m)) ** 2)
+market = ("r", lambda mod: (-mod.p.delta + 1e-4, 1 / mod.p.beta - 1 - 1e-4), aiyagari.excess_demand)
+start = models.load("aiyagari", **grid, beta=0.95, sigma_e=0.15).compile()
+res = smm_exact(start, names, m, moments, omega, n_obs=10_000, equilibrium=market)
+print(res.summary())
+```
+
+* `stationary_moments(model, names, moment_fn)` is the partial-equilibrium building block (a fixed
+  interest rate); `equilibrium_moments(...)` adds `dprice/dtheta = -F_theta / F_price` for a model
+  already solved at the clearing price and returns the *total* Jacobian.
+* `smm_exact` uses L-BFGS-B with the exact gradient `2 G'Wg`, the bounds of the parameter set, and
+  the same `SMMResult` as `smm` (J-test, standard errors with `n_sim = inf`, identification tools).
+  Parameter values where the model cannot be solved get a large penalty (counted in
+  `diagnostics["failed_evals"]`); a failure at the starting point raises.
+* Equations must be JAX-traceable: the built-in utilities and the built-in `aiyagari` are; model
+  functions should compute prices such as the wage from the parameter view `p` (as `aiyagari` does)
+  and not capture them at build time. `AR1Shock` parameters (`rho`, `sigma_e`) are differentiable.
+  The asset grid and any `MarkovShock` are held fixed.
+* Limits: dense implicit solves, so at most 4000 states (for example 200 assets x 20 shocks);
+  derivatives are piecewise smooth where the borrowing constraint starts to bind. Tutorial 10
+  compares this estimator with the derivative-free `smm` (fewer model evaluations, same estimates).
+
 ## Maximum likelihood and Kalman filter
 
 `mle(loglik, theta0, bounds)` maximises with `L-BFGS-B`; standard errors come from the inverse

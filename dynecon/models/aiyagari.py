@@ -11,8 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 from dynecon.core.errors import ValidationError
-from dynecon.model import Control, MarkovShock, Model, Param, State
-from dynecon.models._equilibrium_helpers import asset_upper_bound, unit_mean_income_chain
+from dynecon.model import AR1Shock, Control, Model, Param, State
+from dynecon.models._equilibrium_helpers import asset_upper_bound
 from dynecon.models.registry import register, split_overrides
 from dynecon.models.utility import crra, crra_marginal, crra_marginal_inverse
 from dynecon.simulation.distribution import aggregate
@@ -26,6 +26,7 @@ __all__ = [
     "build",
     "capital_demand",
     "equilibrium",
+    "excess_demand",
     "wage",
 ]
 
@@ -36,18 +37,21 @@ PARAMS: dict[str, Param] = {
     "sigma": Param(3.0, bounds=(0.2, 10.0), description="CRRA coefficient"),
     "alpha": Param(0.36, bounds=(0.05, 0.95), description="Capital share"),
     "delta": Param(0.08, bounds=(0.0, 1.0), description="Depreciation"),
+    "rho": Param(0.6, bounds=(0.0, 0.99), description="Income persistence"),
+    "sigma_e": Param(0.2, bounds=(0.01, 1.0), description="Income innovation sd"),
 }
-DEFAULTS: dict[str, Any] = {"r": 0.03, "rho": 0.6, "sigma_e": 0.2, "n_a": 200, "n_z": 7}
+# a_max=None: upper asset bound from beta and r (asset_upper_bound); a number fixes the grid.
+DEFAULTS: dict[str, Any] = {"r": 0.03, "n_a": 200, "n_z": 7, "a_max": None}
 
 
-def capital_demand(r: float, alpha: float, delta: float, labour: float = 1.0) -> float:
+def capital_demand(r: Any, alpha: Any, delta: Any, labour: float = 1.0) -> Any:
     """Firm demand ``K_d = L ((r + delta) / alpha)^(1/(alpha - 1))``."""
-    return float(labour * ((r + delta) / alpha) ** (1.0 / (alpha - 1.0)))
+    return labour * ((r + delta) / alpha) ** (1.0 / (alpha - 1.0))
 
 
-def wage(r: float, alpha: float, delta: float) -> float:
+def wage(r: Any, alpha: Any, delta: Any) -> Any:
     """Wage ``(1 - alpha) (K/L)^alpha`` implied by the interest rate (``L = 1``)."""
-    return float((1.0 - alpha) * capital_demand(r, alpha, delta) ** alpha)
+    return (1.0 - alpha) * capital_demand(r, alpha, delta) ** alpha
 
 
 ANALYTIC = {
@@ -63,21 +67,21 @@ def build(**overrides: Any) -> Model:
         overrides, {**{k: v.value for k, v in PARAMS.items()}, **DEFAULTS}, "model"
     )
     r = float(opts["r"])
-    z, P = unit_mean_income_chain(opts["rho"], opts["sigma_e"], opts["n_z"])
-    w = wage(r, opts["alpha"], opts["delta"])
     m = Model("aiyagari")
     m.params(**{k: Param(opts[k], p.bounds, p.free, p.description) for k, p in PARAMS.items()})
     m.params(r=Param(r, bounds=(-opts["delta"], 1.0), description="Interest rate (price)"))
     m.add_state(
         State(
             "assets",
-            bounds=(0.0, asset_upper_bound(opts["beta"], r)),
+            bounds=(0.0, opts["a_max"] or asset_upper_bound(opts["beta"], r)),
             grid_type="exp",
             n_points=opts["n_a"],
             grid_curvature=4.0,
         )
     )
-    m.add_state(State("income", shock=MarkovShock(z, P)))
+    m.add_state(
+        State("income", shock=AR1Shock("rho", "sigma_e", opts["n_z"], log=True, normalize=True))
+    )
     m.add_control(Control("consumption"))
     m.set_problem(
         "saving",
@@ -88,10 +92,15 @@ def build(**overrides: Any) -> Model:
         utility=lambda c, p: crra(c, p.sigma),
         marginal_utility=lambda c, p: crra_marginal(c, p.sigma),
         inverse_marginal_utility=lambda x, p: crra_marginal_inverse(x, p.sigma),
-        resources=lambda a, zz, p, _w=w: (1.0 + p.r) * a + _w * zz,
+        resources=lambda a, zz, p: (1.0 + p.r) * a + wage(p.r, p.alpha, p.delta) * zz,
         marginal_return=lambda a, zz, p: 1.0 + p.r,
     )
     return m
+
+
+def excess_demand(mu: Any, _c: Any, a_next: Any, _a_grid: Any, _z: Any, p: Any) -> Any:
+    """Capital excess demand ``E[a'] - K_d(r)``; JAX-traceable (see ``equilibrium_moments``)."""
+    return (mu * a_next).sum() - capital_demand(p.r, p.alpha, p.delta)
 
 
 def equilibrium(**overrides: Any) -> EquilibriumSolution:

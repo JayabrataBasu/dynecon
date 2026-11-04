@@ -17,7 +17,7 @@ import numpy.typing as npt
 from scipy import stats
 from scipy.optimize import minimize
 
-from dynecon.core.errors import ValidationError
+from dynecon.core.errors import ConvergenceError, DyneconError, ValidationError
 from dynecon.estimation.results import SMMResult
 from dynecon.estimation.sensitivity import equilibrium_moments, stationary_moments
 from dynecon.model.compiled import CompiledModel
@@ -26,6 +26,15 @@ from dynecon.solvers.equilibrium import solve_stationary_equilibrium
 __all__ = ["smm_exact"]
 
 Array = npt.NDArray[np.float64]
+PENALTY = 1e10  # loss reported for parameter values where the model cannot be solved
+
+
+def _weights(weights: str | Array, q: int) -> tuple[str, Array]:
+    if isinstance(weights, str):
+        if weights not in ("identity", "optimal"):
+            raise ValidationError("weights must be 'identity', 'optimal' or a matrix")
+        return weights, np.eye(q)
+    return "custom", np.asarray(weights, dtype=np.float64)
 
 
 def smm_exact(
@@ -48,8 +57,9 @@ def smm_exact(
     ``equilibrium=(price, bracket, excess_fn)`` to clear a market at every parameter value
     (see :func:`equilibrium_moments`); ``bracket`` is a ``(lo, hi)`` pair or a function of the
     model (the upper end usually depends on the discount factor). Bounds come from the parameter
-    set; the optimiser is L-BFGS-B with the exact gradient ``2 G' W g``. Keep the bounds tight
-    enough that the household problem and the market bracket stay valid (a failed solve raises).
+    set; the optimiser is L-BFGS-B with the exact gradient ``2 G' W g``. Parameter values where
+    the model cannot be solved get a large penalty (counted in ``diagnostics["failed_evals"]``);
+    tight bounds help. A failure at the starting point raises.
     """
     names = list(free_params)
     m_hat = np.asarray(data_moments, dtype=np.float64).ravel()
@@ -59,7 +69,7 @@ def smm_exact(
         raise ValidationError(f"need q >= p moments and a ({q}, {q}) omega; got q={q}, p={p}")
     ps = model.parameters
     bounds = ps.bounds(names)
-    counters = {"evals": 0}
+    counters = {"evals": 0, "failed": 0, "ok": 0}
 
     def evaluate(theta: Array) -> tuple[Array, Array]:
         counters["evals"] += 1
@@ -94,7 +104,16 @@ def smm_exact(
 
     def fit(W: Array, start: Array) -> Any:
         def fun(theta: Array) -> tuple[float, Array]:
-            m, G = evaluate(theta)
+            try:
+                m, G = evaluate(theta)
+                if not (np.isfinite(m).all() and np.isfinite(G).all()):
+                    raise ConvergenceError("non-finite moments")
+            except DyneconError:
+                if not counters["ok"]:  # the starting point itself must be valid
+                    raise
+                counters["failed"] += 1
+                return PENALTY, np.zeros_like(theta)  # the line search backs away from it
+            counters["ok"] = 1
             g = m - m_hat
             return float(g @ W @ g), 2.0 * G.T @ W @ g
 
@@ -102,12 +121,7 @@ def smm_exact(
             fun, start, jac=True, method="L-BFGS-B", bounds=bounds, options={"maxiter": max_iter}
         )
 
-    if isinstance(weights, str):
-        if weights not in ("identity", "optimal"):
-            raise ValidationError("weights must be 'identity', 'optimal' or a matrix")
-        wkind, W = weights, np.eye(q)
-    else:
-        wkind, W = "custom", np.asarray(weights, dtype=np.float64)
+    wkind, W = _weights(weights, q)
     res = fit(W, ps.vector(names))
     if weights == "optimal":
         W = np.asarray(np.linalg.pinv(omega), dtype=np.float64)
@@ -135,7 +149,11 @@ def smm_exact(
         j_pvalue=None if j_stat is None else float(stats.chi2.sf(j_stat, df)),
         df=df,
         converged=bool(res.success),
-        diagnostics={"n_evals": counters["evals"], "optimizer_message": str(res.message)},
+        diagnostics={
+            "n_evals": counters["evals"],
+            "failed_evals": counters["failed"],
+            "optimizer_message": str(res.message),
+        },
         config={"method": "L-BFGS-B (exact gradient)", "weights": wkind, "n_obs": n_obs},
         loss_fn=lambda params: float(
             (lambda d: d @ W @ d)(evaluate(np.array([params[n] for n in names]))[0] - m_hat)

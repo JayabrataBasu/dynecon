@@ -55,7 +55,8 @@ class AR1Shock:
     """AR(1) shock ``z' = (1 - rho) mean + rho z + eps``, ``eps ~ N(0, sigma_e^2)``.
 
     ``rho`` and ``sigma_e`` may be numbers or the *name of a parameter* (so they can be
-    estimated). With ``log=True`` the state takes values ``exp(z)`` (productivity).
+    estimated). With ``log=True`` the state takes values ``exp(z)`` (productivity); with
+    ``normalize=True`` the values are divided by their stationary mean so that it equals one.
     """
 
     rho: float | str
@@ -64,6 +65,7 @@ class AR1Shock:
     mean: float = 0.0
     log: bool = False
     method: Literal["rouwenhorst", "tauchen"] = "rouwenhorst"
+    normalize: bool = False  # divide the values by their stationary mean (unit-mean income)
 
 
 @dataclass(frozen=True)
