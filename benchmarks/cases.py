@@ -79,6 +79,17 @@ def egm_cs() -> Case:
     )
 
 
+def egm_cs_500() -> Case:
+    return Case(
+        "egm_cs_500",
+        "full EGM solve, n_a=500, n_z=7 (same grid as vfi_cs)",
+        lambda: _cs(500),
+        lambda m, b: ek.solve(m, method="egm", backend=b).policy["consumption"],
+        ("numba",),
+        tolerance=1e-6,
+    )
+
+
 def egm_rbc() -> Case:
     return Case(
         "egm_rbc",
@@ -208,6 +219,7 @@ ALL = [
     bellman_cs,
     vfi_cs,
     egm_cs,
+    egm_cs_500,
     egm_rbc,
     young_stationary,
     simulate_panel,

@@ -109,17 +109,22 @@ def main() -> int:
             f"- `egm_cs` (EGM at n_a=1000 vs Numba VFI at n_a=500): {ratio:.2f}x faster, goal 20x: "
             f"{'met' if ratio >= 20 else '**missed**'}"
         )
+        egm_same = by.get(("egm_cs_500", "numba"))
+        if egm_same and vfi_nb:
+            same = vfi_nb["min"] / egm_same["min"]
+            lines.append(
+                f"- `egm_cs_500` (EGM vs Numba VFI on the same grid, n_a=500): EGM is {same:.2f}x as fast "
+                f"as VFI (above 1 means EGM is faster)"
+            )
         if ratio < 20:
             lines += [
                 "",
-                "**Why EGM misses its goal.** EGM contracts at rate beta, so it needs about 360 iterations "
-                "to reach its default 1e-10 tolerance, each costing roughly 2 ms of array arithmetic "
-                "(`cProfile`: the CRRA power functions on the 7000-element arrays and the interpolation "
-                "call dominate after the batched `linear_interp_columns` fix removed per-call validation, "
-                "which cut the solve from about 1.2 s to about 0.8 s). The Numba VFI with Howard "
-                "acceleration needs far fewer outer iterations. EGM's advantage in this library is "
-                "accuracy (Euler errors orders of magnitude smaller than VFI at any grid size), not "
-                "speed. A follow-up is parked in `V1_PROGRESS.md`.",
+                "**Why EGM misses its goal.** The goal compares EGM on a grid twice as large with VFI at "
+                "n_a=500 and asks for 20x. EGM's work grows roughly linearly with the grid, and "
+                "it is Anderson-accelerated since 0.2.0 (about half the iterations); the Numba VFI "
+                "with Howard acceleration and monotone search needs few outer iterations on small "
+                "grids. EGM's advantage in this library is accuracy and scaling to large grids, not a "
+                "20x speed-up. The numbers above are the recorded ones; the goal stays as written.",
             ]
     legacy = _legacy()
     if legacy:
