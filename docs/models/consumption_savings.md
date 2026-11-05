@@ -19,6 +19,7 @@ Source: Textbook calibration (annual); not tied to a specific paper.
 | `r` | 0.03 | (-0.1, 0.2) | Net interest rate |
 | `rho` | 0.9 | (0.0, 0.99) | Income persistence (log AR(1)) |
 | `sigma_e` | 0.1 | (0.001, 1.0) | Income innovation std |
+| `beta_spread` | 0 | (0.0, 0.1) | Discount-factor spread across types |
 
 Structural options (not parameters): `a_min=0.0`, `a_max=50.0`, `n_a=200`, `n_z=7`, `curvature=3.0`.
 
