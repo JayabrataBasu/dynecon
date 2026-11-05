@@ -1,6 +1,7 @@
-"""Estimation: moments, SMM, MLE, Kalman filter, Bayesian MCMC and identification."""
+"""Estimation: moments, SMM, MLE, Kalman filter, MCMC (random-walk and HMC), identification."""
 
 from dynecon.estimation.bayes import bayes_estimate, metropolis
+from dynecon.estimation.hmc import hmc
 from dynecon.estimation.identification import identification_report, loss_profile
 from dynecon.estimation.kalman import kalman_filter, loglik_state_space
 from dynecon.estimation.mle import mle
@@ -16,6 +17,7 @@ __all__ = [
     "MomentSet",
     "MomentTarget",
     "bayes_estimate",
+    "hmc",
     "identification_report",
     "kalman_filter",
     "loglik_state_space",

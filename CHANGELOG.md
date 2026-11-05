@@ -4,6 +4,16 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 
 ## [Unreleased]
 
+### Added
+- `dynecon.estimation.hmc`: own Hamiltonian Monte Carlo sampler with dual-averaging step size, diagonal
+  mass adaptation and divergence counting; `MCMCResult.divergences`.
+- `smm_exact.quasi_posterior`: HMC over the Chernozhukov-Hong quasi-posterior of the moment
+  conditions using the exact moment Jacobians (not a likelihood; tested on analytic moments only).
+
+### Changed
+- Benchmark record re-measured on 0.2.0 (`benchmarks/results/20261105_JayabrataBasu.json`); the
+  EGM-vs-VFI 20x goal is documented as missed and retired. New `egm_cs_500` case (same grid as VFI).
+
 ## [0.2.0] - 2026-11-04
 
 Headline: differentiable (exact-gradient) estimation of heterogeneous-agent models. Verified against

@@ -103,6 +103,27 @@ print(res.summary())
 * Limits: derivatives are piecewise smooth where the borrowing constraint starts to bind. Tutorial 10
   compares this estimator with the derivative-free `smm` (fewer model evaluations, same estimates).
 
+## Hamiltonian Monte Carlo and the quasi-posterior
+
+`dynecon.estimation.hmc(logp_grad, u0, n_draws)` is an own Hamiltonian Monte Carlo sampler (NumPy
+only, no new dependency). `logp_grad(u)` returns the log density and its gradient. Warm-up adapts the
+step size by dual averaging and sets a diagonal mass matrix from the first half of the warm-up
+draws; trajectories have a jittered length and divergent ones are rejected and counted
+(`result.divergences`). On a correlated Gaussian it needed about 6x fewer target evaluations per
+effective draw than the random-walk `metropolis` (test `test_beats_random_walk_per_target_evaluation`).
+
+With exact moment gradients, `dynecon.estimation.smm_exact.quasi_posterior(model, free_params,
+data_moments, moment_fn, omega, n_obs=...)` samples the Chernozhukov-Hong quasi-posterior
+`prior x exp(-n/2 g' W g)` with `W = omega^-1` (also in general equilibrium via `equilibrium=`).
+This is **not a likelihood**: it is a distribution built from the moment conditions, valid when the
+moments are the information you want to use. With a flat prior its spread approximates the
+`smm_exact` standard errors (checked against the sandwich formula in a test with an analytic
+Jacobian).
+
+Cost warning: each leapfrog step is one model solve plus one derivative, typically 0.1 to a few
+seconds for a heterogeneous-agent model, and a run needs thousands of steps. It has been tested on
+analytic moment functions only, not yet on a full heterogeneous-agent model or on real data.
+
 ## Maximum likelihood and Kalman filter
 
 `mle(loglik, theta0, bounds)` maximises with `L-BFGS-B`; standard errors come from the inverse

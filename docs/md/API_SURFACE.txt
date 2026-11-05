@@ -59,6 +59,7 @@ dynecon.simulation.stationary_distribution_young
 dynecon.estimation.MomentSet
 dynecon.estimation.MomentTarget
 dynecon.estimation.bayes_estimate
+dynecon.estimation.hmc
 dynecon.estimation.identification_report
 dynecon.estimation.kalman_filter
 dynecon.estimation.loglik_state_space

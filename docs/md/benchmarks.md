@@ -44,11 +44,11 @@ Goals are never edited to fit results.
 - `egm_cs` (EGM at n_a=1000 vs Numba VFI at n_a=500): 0.53x faster, goal 20x: **missed**
 - `egm_cs_500` (EGM vs Numba VFI on the same grid, n_a=500): EGM is 0.94x as fast as VFI (above 1 means EGM is faster)
 
-**Why EGM misses its goal.** The goal compares EGM on a grid twice as large with VFI at n_a=500 and asks for 20x. EGM's work grows roughly linearly with the grid, and it is Anderson-accelerated since 0.2.0 (about half the iterations); the Numba VFI with Howard acceleration and monotone search needs few outer iterations on small grids. EGM's advantage in this library is accuracy and scaling to large grids, not a 20x speed-up. The numbers above are the recorded ones; the goal stays as written.
+**Status of the EGM goal: missed, and retired (maintainer decision, 2026-11-05).** The 20x goal was set before anything was measured and compares EGM on a grid twice as large with VFI at n_a=500. It was missed in every recorded run and is not reachable by tuning: after Anderson acceleration (about half the iterations) EGM still spends its time in Python-level array passes, while the Numba VFI with Howard acceleration and monotone search needs few outer iterations. The line is kept here so the miss stays visible; no replacement goal has been set. A fused all-Numba EGM loop is untried and may help, but is not expected to reach 20x. EGM's advantages in this library are a continuous choice (accuracy) and no root-finding, not speed on small grids.
 
 ### Legacy pure-Python VFI (git tag `v0.1.0-baseline`)
 
-One Bellman iteration at (n_a, n_z) = (200, 7): legacy 0.248 s (measured over 2 iterations in a temporary worktree), Numba kernel 0.076 ms: **3276x** per iteration (goal 50x for the full solve; Howard acceleration and monotone search reduce the iteration count further).
+One Bellman iteration at (n_a, n_z) = (200, 7): legacy 0.183 s (measured over 2 iterations in a temporary worktree), Numba kernel 0.067 ms: **2733x** per iteration (goal 50x for the full solve; Howard acceleration and monotone search reduce the iteration count further).
 
 ## Notes
 

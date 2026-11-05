@@ -114,6 +114,7 @@ class MCMCResult:
     rhat: Array
     ess: Array
     log_posterior: Array = field(repr=False, default_factory=lambda: np.zeros(0))
+    divergences: int = 0  # HMC only: trajectories rejected for energy blow-up or a failed target
 
     @property
     def pooled(self) -> Array:

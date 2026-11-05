@@ -99,3 +99,4 @@ stationary_moments  # user-facing entry point; caller arrives with gradient-base
 equilibrium_moments  # user-facing entry point; caller arrives with gradient-based SMM (#17)
 smm_exact  # user-facing estimator; exercised by tests and the tutorial
 excess_demand  # user-facing: pass to equilibrium_moments / smm_exact; exercised by tests and the guide
+quasi_posterior  # user-facing sampler; exercised by tests and the guide
