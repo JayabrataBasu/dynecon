@@ -27,7 +27,7 @@ from dynecon.model.specs import AR1Shock, MarkovShock, ParamView
 from dynecon.simulation.distribution import lottery_weights, stationary_distribution_young
 from dynecon.solvers.api import solve
 
-__all__ = ["equilibrium_moments", "stationary_moments"]
+__all__ = ["equilibrium_moments", "mixture_moments", "stationary_moments"]
 
 Array = npt.NDArray[np.float64]
 DENSE_STATES = 4000  # up to here the implicit systems are solved densely (exact, memory ~ n^2)
@@ -196,6 +196,68 @@ def stationary_moments(
     d_mu, d_C, d_th = jax.jacfwd(moments, (0, 1, 2))(mu0, C0, th0)
     G = d_mu @ dmu + d_C @ dC + d_th
     return np.asarray(moments(mu0, C0, th0)), np.asarray(G)
+
+
+def mixture_moments(
+    model: CompiledModel,
+    free_params: Sequence[str],
+    moment_fn: Callable[..., Any],
+    n_types: int,
+    **options: Any,
+) -> tuple[Array, Array]:
+    """Moments of a population of ``n_types`` equally sized discount-factor types, with ``G``.
+
+    Type ``k`` has ``beta + (k - (n_types - 1) / 2) * beta_spread`` (parameters ``beta`` and
+    ``beta_spread`` of the model; the spread is typically small and non-negative). ``moment_fn``
+    sees the pooled ``mu`` and the mass-weighted ``c`` and ``a_next`` of the whole population, so
+    wealth
+    shares and Gini coefficients are those of the mixture. Each type's exact Jacobian is combined by
+    the chain rule, so the cost is ``n_types`` calls of :func:`stationary_moments`.
+    """
+    names = list(free_params)
+    if n_types < 2 or "beta_spread" not in model.parameters.values:
+        raise ValidationError("need n_types >= 2 and a model with a 'beta_spread' parameter")
+    inner = [n for n in names if n != "beta_spread"]
+    if "beta" not in inner:
+        inner.append("beta")
+    prob = model.problem
+    assert isinstance(prob, SavingProblem) and prob.shock is not None
+    shape = (model.grids[prob.asset].shape[0], model.shock_process(prob.shock).values.shape[0])
+    size = shape[0] * shape[1]
+    beta, spread = model.p.beta, model.p.beta_spread
+    offsets = np.arange(n_types) - (n_types - 1) / 2.0
+    shares = 1.0 / n_types
+    stats, jacs = [], []
+
+    def parts(mu: Any, c: Any, a_next: Any, _a: Any, _z: Any, _p: Any) -> Any:
+        return jnp.concatenate([jnp.ravel(mu), jnp.ravel(mu * c), jnp.ravel(mu * a_next)])
+
+    for off in offsets:
+        sub = model.with_params(beta=float(beta + off * spread))
+        m_k, J_k = stationary_moments(sub, inner, parts, **options)
+        col = {n: J_k[:, i] for i, n in enumerate(inner)}
+        cols = [off * col["beta"] if n == "beta_spread" else col[n] for n in names]
+        stats.append(m_k)
+        jacs.append(np.stack(cols, axis=1))
+
+    a = jnp.asarray(model.grids[prob.asset])
+    z = jnp.asarray(model.shock_process(prob.shock).values)
+
+    def pooled(all_stats: Any) -> Any:
+        tot = shares * jnp.sum(all_stats, axis=0)
+        mu, mc, ma = tot[:size], tot[size : 2 * size], tot[2 * size :]
+        safe = jnp.where(mu > 1e-300, mu, 1.0)
+        c, a_next = jnp.where(mu > 1e-300, mc / safe, 0.0), jnp.where(mu > 1e-300, ma / safe, 0.0)
+        return jnp.ravel(
+            jnp.asarray(
+                moment_fn(mu.reshape(shape), c.reshape(shape), a_next.reshape(shape), a, z, model.p)
+            )
+        )
+
+    S = jnp.asarray(np.stack(stats))
+    dM = jax.jacfwd(pooled)(S)  # (q, n_types, 3 * size)
+    G = sum(np.asarray(dM[:, k, :]) @ jacs[k] for k in range(n_types))
+    return np.asarray(pooled(S)), np.asarray(G)
 
 
 def equilibrium_moments(

@@ -220,3 +220,26 @@ def test_matrix_free_path_matches_dense(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr(sensitivity, "DENSE_STATES", 0)
     _, free = sensitivity.stationary_moments(model, names, fn)
     np.testing.assert_allclose(free, dense, rtol=1e-6, atol=1e-8)
+
+
+def test_mixture_of_discount_types() -> None:
+    from dynecon.estimation.sensitivity import mixture_moments
+
+    names = ["beta", "beta_spread", "sigma_e"]
+    base = dict(beta=0.94, beta_spread=0.02, sigma_e=0.12)
+    model = models.load("consumption_savings", n_a=40, n_z=3, r=0.02, **base).compile()
+    m, G = mixture_moments(model, names, moment_fn, 3)
+    for j, name in enumerate(names):  # exact Jacobian vs central differences of the mixture
+        h = 1e-5
+        up, dn = (model.with_params(**{name: base[name] + s * h}) for s in (1, -1))
+        fd = (
+            mixture_moments(up, names, moment_fn, 3)[0]
+            - mixture_moments(dn, names, moment_fn, 3)[0]
+        ) / (2 * h)
+        np.testing.assert_allclose(G[:, j], fd, rtol=2e-4, atol=1e-6, err_msg=name)
+    flat, _ = mixture_moments(model.with_params(beta_spread=0.0), names, moment_fn, 3)
+    single, _ = stationary_moments(model.with_params(beta_spread=0.0), ["beta"], moment_fn)
+    np.testing.assert_allclose(flat, single, rtol=1e-8)
+    assert m[0] > single[0]  # patient types hold much more than impatient ones
+    with pytest.raises(ValidationError):
+        mixture_moments(model, names, moment_fn, 1)

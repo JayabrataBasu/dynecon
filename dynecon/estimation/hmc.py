@@ -31,7 +31,7 @@ def _leapfrog(
     """``n`` leapfrog steps; returns ``(u, lp, grad, p)`` or ``None`` if the target failed."""
     p = p + 0.5 * eps * g
     for i in range(n):
-        u = u + eps * inv_mass * p
+        u = u + eps * (inv_mass @ p)
         lp, g = f(u)
         if not np.isfinite(lp) or not np.all(np.isfinite(g)):
             return None
@@ -50,14 +50,14 @@ def _transition(
     gen: np.random.Generator,
 ) -> tuple[Array, float, Array, float, bool]:
     """One HMC transition. Returns ``(u, lp, grad, accept_prob, divergent)``."""
-    p0 = gen.standard_normal(u.size) / np.sqrt(inv_mass)
-    h0 = -lp + 0.5 * np.sum(inv_mass * p0**2)
+    p0 = np.linalg.cholesky(np.linalg.inv(inv_mass)) @ gen.standard_normal(u.size)
+    h0 = -lp + 0.5 * p0 @ inv_mass @ p0
     out = _leapfrog(f, u, g, p0, inv_mass, eps, n_steps)
     if out is None:
         return u, lp, g, 0.0, True
     u1, lp1, g1, p1 = out
-    err = (-lp1 + 0.5 * np.sum(inv_mass * p1**2)) - h0
-    accept = float(min(1.0, np.exp(-err))) if np.isfinite(err) else 0.0
+    err = float(-lp1 + 0.5 * p1 @ inv_mass @ p1 - h0)
+    accept = min(1.0, float(np.exp(-err))) if np.isfinite(err) else 0.0
     divergent = bool(not np.isfinite(err) or err > MAX_ENERGY_ERROR)
     if not divergent and gen.random() < accept:
         return u1, lp1, g1, accept, False
@@ -101,10 +101,11 @@ def _warmup(  # noqa: C901
     traj: float,
     max_leapfrog: int,
     gen: np.random.Generator,
+    inv_mass0: Array | None = None,
 ) -> tuple[Array, float, Array, float, Array]:
     """Dual-averaging step size (Hoffman & Gelman 2014) with a diagonal mass from the first half."""
     d = u.size
-    inv_mass = np.ones(d)
+    inv_mass = np.eye(d) if inv_mass0 is None else inv_mass0
     half = n_warmup // 2
     seen: list[Array] = []
     for stage, length in enumerate((half, n_warmup - half)):
@@ -120,10 +121,10 @@ def _warmup(  # noqa: C901
             eps = float(np.exp(log_eps))
             if stage == 0:
                 seen.append(u.copy())
-        if stage == 0 and len(seen) > 10:
+        if stage == 0 and len(seen) > 10 and inv_mass0 is None:
             var = np.var(np.array(seen), axis=0, ddof=1)
             k = len(seen)  # shrink towards 1 as in Stan
-            inv_mass = np.maximum((k / (k + 5)) * var + 1e-3 * 5 / (k + 5), 1e-12)
+            inv_mass = np.diag(np.maximum((k / (k + 5)) * var + 1e-3 * 5 / (k + 5), 1e-12))
     return u, lp, g, float(np.exp(log_bar)), inv_mass
 
 
@@ -140,6 +141,7 @@ def hmc(
     init_scale: float = 0.1,
     rng: np.random.Generator | int | None = None,
     names: Sequence[str] | None = None,
+    inv_mass: npt.ArrayLike | None = None,
 ) -> MCMCResult:
     """Sample ``exp(logp)`` with Hamiltonian Monte Carlo; ``logp_grad(u)`` returns ``(logp, grad)``.
 
@@ -149,12 +151,21 @@ def hmc(
     Trajectories have length about ``trajectory`` (in mass-scaled units, jittered 20%) and at
     most ``max_leapfrog`` steps. Divergent trajectories are rejected and counted. Returns
     :class:`MCMCResult` (``accept_rate`` is the mean acceptance probability).
+
+    ``inv_mass`` (a vector or a symmetric positive-definite matrix, e.g. the inverse Hessian at a
+    posterior mode) replaces the adapted diagonal mass: with a dense mass the step size can be
+    large even when parameters are strongly correlated.
     """
     x0 = np.asarray(u0, dtype=np.float64)
     d = x0.size
     if n_draws < 10 or n_chains < 1 or n_warmup < 20 or not 0.0 < target_accept < 1.0:
         raise ValidationError("need n_draws >= 10, n_chains >= 1, n_warmup >= 20, 0<target<1")
     gen = as_generator(rng)
+    fixed = None if inv_mass is None else np.asarray(inv_mass, dtype=np.float64)
+    if fixed is not None and fixed.ndim == 1:
+        fixed = np.diag(fixed)
+    if fixed is not None and fixed.shape != (d, d):
+        raise ValidationError(f"inv_mass must be a vector or matrix of size {d}")
     out = np.empty((n_chains, n_draws, d))
     lps = np.empty((n_chains, n_draws))
     acc_sum, divergences = 0.0, 0
@@ -166,12 +177,12 @@ def hmc(
                 break
         else:
             raise ValidationError("could not find a starting point with a finite log density")
-        u, lp, g, eps, inv_mass = _warmup(
-            logp_grad, u, lp, g, n_warmup, target_accept, trajectory, max_leapfrog, gen
+        u, lp, g, eps, inv_m = _warmup(
+            logp_grad, u, lp, g, n_warmup, target_accept, trajectory, max_leapfrog, gen, fixed
         )
         for t in range(n_draws):
             n = _steps(eps, trajectory, max_leapfrog, gen)
-            u, lp, g, acc, bad = _transition(logp_grad, u, lp, g, eps, inv_mass, n, gen)
+            u, lp, g, acc, bad = _transition(logp_grad, u, lp, g, eps, inv_m, n, gen)
             acc_sum += acc
             divergences += int(bad)
             out[c, t], lps[c, t] = u, lp

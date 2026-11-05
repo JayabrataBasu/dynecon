@@ -22,7 +22,7 @@ def test_spread_matches_the_sandwich_standard_errors(monkeypatch: pytest.MonkeyP
         G = np.array([[2.0, 0.0], [1.0, 1.0], [0.0, 6 * s]])
         return m, G
 
-    monkeypatch.setattr(mod, "_evaluate", lambda _m, _n, _f, _e, theta: moments(theta))
+    monkeypatch.setattr(mod, "_evaluate", lambda _m, _n, _f, _e, theta, _k=1: moments(theta))
     n_obs = 2000
     omega = np.diag([0.02, 0.03, 0.01])
     m_hat, G = moments(truth)

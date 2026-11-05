@@ -24,6 +24,9 @@ PARAMS: dict[str, Param] = {
     "r": Param(0.03, bounds=(-0.1, 0.2), description="Net interest rate"),
     "rho": Param(0.9, bounds=(0.0, 0.99), description="Income persistence (log AR(1))"),
     "sigma_e": Param(0.1, bounds=(0.001, 1.0), description="Income innovation std"),
+    "beta_spread": Param(
+        0.0, bounds=(0.0, 0.1), free=False, description="Discount-factor spread across types"
+    ),
 }
 DEFAULTS: dict[str, Any] = {
     "a_min": 0.0,

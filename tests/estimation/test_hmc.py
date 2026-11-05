@@ -56,3 +56,19 @@ def test_bad_arguments_raise() -> None:
         hmc(f, np.zeros(2), 100, n_warmup=5)
     with pytest.raises(ValidationError):
         hmc(lambda x: (float("-inf"), np.zeros(2)), np.zeros(2), 100)
+
+
+def test_dense_mass_handles_strong_correlation_with_few_steps() -> None:
+    cov = np.array([[1.0, 0.98, 0.9], [0.98, 1.0, 0.95], [0.9, 0.95, 1.0]]) * 3.0
+    calls = {"n": 0}
+    f = _gauss(cov)
+
+    def counted(x: np.ndarray):
+        calls["n"] += 1
+        return f(x)
+
+    res = hmc(counted, np.zeros(3), 1000, n_chains=2, n_warmup=100, rng=2, inv_mass=cov)
+    np.testing.assert_allclose(np.cov(res.pooled.T), cov, rtol=0.15)
+    assert res.ess.min() > 400 and calls["n"] < 25_000
+    with pytest.raises(ValidationError):
+        hmc(f, np.zeros(3), 100, inv_mass=np.eye(2))
