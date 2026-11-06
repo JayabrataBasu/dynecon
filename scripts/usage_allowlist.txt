@@ -100,3 +100,15 @@ equilibrium_moments  # user-facing entry point; caller arrives with gradient-bas
 smm_exact  # user-facing estimator; exercised by tests and the tutorial
 excess_demand  # user-facing: pass to equilibrium_moments / smm_exact; exercised by tests and the guide
 quasi_posterior  # user-facing sampler; exercised by tests and the guide
+cartesian  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+gauss_chebyshev  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+lognormal_nodes  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+mvnormal_nodes  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+tensor_rule  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+trapezoid_rule  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+MarkovChain  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+LQ  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+solve_discrete_riccati  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+LinearDynareModel  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+evaluate_assignments  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+parse_linear_model  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules

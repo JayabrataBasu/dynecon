@@ -2,14 +2,34 @@
 
 from dynecon.numerics.discretization import rouwenhorst, tauchen
 from dynecon.numerics.fixedpoint import FixedPointResult, fixed_point
-from dynecon.numerics.grids import exp_grid, make_grid, uniform_grid
-from dynecon.numerics.integration import gauss_hermite_normal, gauss_legendre
+from dynecon.numerics.grids import cartesian, exp_grid, make_grid, uniform_grid
+from dynecon.numerics.integration import (
+    gauss_chebyshev,
+    gauss_hermite_normal,
+    gauss_legendre,
+    lognormal_nodes,
+    mvnormal_nodes,
+    tensor_rule,
+    trapezoid_rule,
+)
 from dynecon.numerics.interpolation import linear_interp_1d
 from dynecon.numerics.jacobian import numerical_jacobian
-from dynecon.numerics.markov import markov_paths, simulate_markov, stationary_distribution
+from dynecon.numerics.markov import (
+    MarkovChain,
+    markov_paths,
+    simulate_markov,
+    stationary_distribution,
+)
 
 __all__ = [
     "FixedPointResult",
+    "cartesian",
+    "gauss_chebyshev",
+    "lognormal_nodes",
+    "mvnormal_nodes",
+    "tensor_rule",
+    "trapezoid_rule",
+    "MarkovChain",
     "exp_grid",
     "fixed_point",
     "gauss_hermite_normal",

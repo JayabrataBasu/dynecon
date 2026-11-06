@@ -12,7 +12,7 @@ import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
 
-__all__ = ["exp_grid", "make_grid", "uniform_grid"]
+__all__ = ["cartesian", "exp_grid", "make_grid", "uniform_grid"]
 
 Array = npt.NDArray[np.float64]
 
@@ -48,6 +48,17 @@ def exp_grid(lo: float, hi: float, n: int, curvature: float = 3.0) -> Array:
         g = lo + (hi - lo) * np.expm1(curvature * u) / np.expm1(curvature)
     g[0], g[-1] = lo, hi
     return g
+
+
+def cartesian(*grids: npt.ArrayLike) -> Array:
+    """Cartesian product of 1-D grids: rows ``(prod n_i, d)``, last grid varying fastest."""
+    if not grids:
+        raise ValidationError("need at least one grid")
+    arrs = [np.asarray(g, dtype=np.float64).ravel() for g in grids]
+    if any(a.size == 0 for a in arrs):
+        raise ValidationError("grids must be non-empty")
+    mesh = np.meshgrid(*arrs, indexing="ij")
+    return np.stack([m.ravel() for m in mesh], axis=1)
 
 
 def make_grid(kind: str, lo: float, hi: float, n: int, **kw: float) -> Array:
