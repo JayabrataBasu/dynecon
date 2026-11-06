@@ -65,9 +65,9 @@ def trapezoid_rule(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, A
         raise ValidationError(f"order must be an integer >= 2, got {order}")
     if not b > a:
         raise ValidationError(f"need b > a, got ({a}, {b})")
-    w = np.full(order, 1.0 / (order - 1))
+    w: Array = np.full(order, 1.0 / (order - 1), dtype=np.float64)
     w[[0, -1]] *= 0.5
-    return np.linspace(a, b, order), w
+    return np.asarray(np.linspace(a, b, order), dtype=np.float64), w
 
 
 def tensor_rule(nodes: list[Array], weights: list[Array]) -> tuple[Array, Array]:
@@ -76,7 +76,7 @@ def tensor_rule(nodes: list[Array], weights: list[Array]) -> tuple[Array, Array]
     if len(nodes) != len(weights) or not nodes:
         raise ValidationError("need one weight vector per node vector")
     grids = np.meshgrid(*nodes, indexing="ij")
-    w = np.ones(())
+    w: Array = np.ones((1,) * len(nodes), dtype=np.float64)
     for i, wi in enumerate(weights):
         shape = [1] * len(nodes)
         shape[i] = len(wi)

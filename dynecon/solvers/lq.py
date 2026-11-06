@@ -99,24 +99,34 @@ class LQ:
             raise ValidationError("beta < 1 is needed when there is noise and an infinite horizon")
         self.beta, self.T = float(beta), T
         self.Rf = self.R if Rf is None else _mat(Rf, "Rf", (self.n, self.n))
-        self.P, self.d, self.F = self.Rf.copy(), 0.0, np.zeros((self.k, self.n))
+        self.P: Array = self.Rf.copy()
+        self.d: float = 0.0
+        self.F: Array = np.zeros((self.k, self.n))
         self.policies: list[Array] = []
 
     def _step(self, P: Array, d: float) -> tuple[Array, Array, float]:
         """One Riccati step: next ``P``, the policy ``F`` for the current ``P``, and ``d``."""
         b = self.beta
         S = self.Q + b * self.B.T @ P @ self.B
-        F = np.linalg.solve(S, b * self.B.T @ P @ self.A + self.N)
-        P_new = self.R + b * self.A.T @ P @ self.A - (b * self.A.T @ P @ self.B + self.N.T) @ F
+        F: Array = np.asarray(
+            np.linalg.solve(S, b * self.B.T @ P @ self.A + self.N), dtype=np.float64
+        )
+        P_new: Array = np.asarray(
+            self.R + b * self.A.T @ P @ self.A - (b * self.A.T @ P @ self.B + self.N.T) @ F,
+            dtype=np.float64,
+        )
         d_new = b * (d + float(np.trace(P @ self.C @ self.C.T)))
         return 0.5 * (P_new + P_new.T), F, d_new
 
     def stationary_values(self) -> tuple[Array, Array, float]:
         """Infinite-horizon ``(P, F, d)``; also stored on the object."""
         P = solve_discrete_riccati(self.A, self.B, self.R, self.Q, self.N, self.beta)
-        F = np.linalg.solve(
-            self.Q + self.beta * self.B.T @ P @ self.B,
-            self.beta * self.B.T @ P @ self.A + self.N,
+        F: Array = np.asarray(
+            np.linalg.solve(
+                self.Q + self.beta * self.B.T @ P @ self.B,
+                self.beta * self.B.T @ P @ self.A + self.N,
+            ),
+            dtype=np.float64,
         )
         d = (
             self.beta * float(np.trace(P @ self.C @ self.C.T)) / (1.0 - self.beta)
