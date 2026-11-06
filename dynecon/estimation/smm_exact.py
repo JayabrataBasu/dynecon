@@ -49,14 +49,14 @@ def _evaluate(
     moment_fn: Callable[..., Any],
     equilibrium: tuple[str, Any, Callable[..., Any]] | None,
     theta: Array,
-    n_types: int = 1,
+    patient: bool = False,
 ) -> tuple[Array, Array]:
     """Model moments and exact Jacobian at ``theta`` (clearing the market first if asked)."""
     at = model.with_params(**dict(zip(names, theta, strict=True)))
-    if n_types > 1:
+    if patient:
         if equilibrium is not None:
-            raise ValidationError("discount-factor types need partial equilibrium (no market)")
-        return mixture_moments(at, names, moment_fn, n_types)
+            raise ValidationError("a patient group needs partial equilibrium (no market)")
+        return mixture_moments(at, names, moment_fn)
     if equilibrium is None:
         return stationary_moments(at, names, moment_fn)
     price, bracket, excess_fn = equilibrium
@@ -92,7 +92,7 @@ def smm_exact(  # noqa: C901 - two-step estimation with inference; steps are inl
     equilibrium: tuple[str, Any, Callable[..., Any]] | None = None,
     max_iter: int = 200,
     starts: Sequence[npt.ArrayLike] = (),
-    n_types: int = 1,
+    patient: bool = False,
 ) -> SMMResult:
     """Estimate ``free_params`` so that stationary-distribution moments match ``data_moments``.
 
@@ -107,8 +107,8 @@ def smm_exact(  # noqa: C901 - two-step estimation with inference; steps are inl
     tight bounds help. A failure at the starting point raises. ``starts`` are extra start vectors
     (ordered as ``free_params``); the first-step fit is run from each and the lowest loss is kept,
     which guards against a poor local minimum (unusable extra starts are skipped).
-    ``n_types > 1`` estimates a population of discount-factor types (``beta`` +/-
-    ``beta_spread``; see :func:`mixture_moments`).
+    ``patient=True`` adds a patient minority (parameters ``beta_patient``, ``patient_share``;
+    see :func:`mixture_moments`).
     """
     names = list(free_params)
     m_hat = np.asarray(data_moments, dtype=np.float64).ravel()
@@ -122,7 +122,7 @@ def smm_exact(  # noqa: C901 - two-step estimation with inference; steps are inl
 
     def evaluate(theta: Array) -> tuple[Array, Array]:
         counters["evals"] += 1
-        return _evaluate(model, names, moment_fn, equilibrium, theta, n_types)
+        return _evaluate(model, names, moment_fn, equilibrium, theta, patient)
 
     def fit(W: Array, start: Array) -> Any:
         def fun(theta: Array) -> tuple[float, Array]:
@@ -202,7 +202,7 @@ def quasi_posterior(  # noqa: C901 - one log-density with its chain rule; steps 
     n_chains: int = 4,
     n_warmup: int = 300,
     rng: np.random.Generator | int | None = None,
-    n_types: int = 1,
+    patient: bool = False,
 ) -> MCMCResult:
     """Draw from the quasi-posterior ``prior * exp(-n/2 g' W g)`` with HMC (``W = omega^-1``).
 
@@ -236,7 +236,7 @@ def quasi_posterior(  # noqa: C901 - one log-density with its chain rule; steps 
         if not np.isfinite(lp) or not np.all(np.isfinite(dprior)):
             return float("-inf"), np.zeros(p)
         try:
-            m, G = _evaluate(model, names, moment_fn, equilibrium, theta, n_types)
+            m, G = _evaluate(model, names, moment_fn, equilibrium, theta, patient)
         except DyneconError:
             return float("-inf"), np.zeros(p)
         g = m - m_hat

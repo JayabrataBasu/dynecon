@@ -87,6 +87,8 @@ def main(folder: str, out: str, n_draws: int = 400, n_chains: int = 4) -> None:
 
         def counted(u):
             calls["n"] += 1
+            if calls["n"] % 200 == 0:  # progress: gradients so far and elapsed time
+                print(f"  {calls['n']} gradients, {time.time() - t:.0f}s", flush=True)
             return logp_grad(u)
 
         r = hmc(

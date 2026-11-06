@@ -35,23 +35,24 @@ def moment_fn(mu, c, a_next, a_grid, z, p):
     )
 
 
-def main(path: str, n_types: int = 1) -> None:
+def main(path: str, patient: bool = False) -> None:
     s = json.load(open(path))
     m_hat, omega, n = np.array(s["moments"]), np.array(s["omega"]), s["n_households"]
     model = models.load(
         "consumption_savings",
-        n_a=120,
+        n_a=200,
         n_z=7,
-        a_max=400.0,
+        a_max=3000.0,
         curvature=4.0,
         r=0.02,
         sigma=2.0,
         beta=0.95,
         rho=0.95,
         sigma_e=0.2,
-        beta_spread=0.02 if n_types > 1 else 0.0,
+        beta_patient=0.975,
+        patient_share=0.04 if patient else 0.0,
     ).compile()
-    free = ["beta", "sigma_e", "rho"] + (["beta_spread"] if n_types > 1 else [])
+    free = ["beta", "sigma_e", "rho"] + (["beta_patient", "patient_share"] if patient else [])
     t = time.time()
     res = smm_exact(
         model,
@@ -60,8 +61,8 @@ def main(path: str, n_types: int = 1) -> None:
         moment_fn,
         omega,
         n_obs=n,
-        starts=[[0.92, 0.22, 0.99, 0.05], [0.93, 0.22, 0.98, 0.03]] if n_types > 1 else [[0.97, 0.3, 0.9]],
-        n_types=n_types,
+        starts=[[0.92, 0.22, 0.99, 0.975, 0.03]] if patient else [[0.97, 0.3, 0.9]],
+        patient=patient,
     )
     print(f"smm_exact {time.time() - t:.1f}s converged={res.converged} evals={res.diagnostics}")
     for k, e, se in zip(free, res.estimates, res.std_errors):
@@ -72,4 +73,4 @@ def main(path: str, n_types: int = 1) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 1)
+    main(sys.argv[1], len(sys.argv) > 2 and sys.argv[2] == "patient")

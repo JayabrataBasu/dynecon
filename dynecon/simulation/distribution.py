@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import numpy.typing as npt
 
-from dynecon.core.errors import ConvergenceWarning, ValidationError
+from dynecon.core.errors import ConvergenceWarning, GridWarning, ValidationError
 from dynecon.core.solution import Solution
 from dynecon.model.problems import SavingProblem
 from dynecon.numerics._dispatch import resolve_backend
@@ -23,6 +23,8 @@ from dynecon.numerics.fixedpoint import fixed_point
 from dynecon.numerics.markov import stationary_distribution
 from dynecon.simulation.kernels import distribution_lottery_numba, distribution_lottery_numpy
 from dynecon.utils.jit import NUMBA_AVAILABLE
+
+TOP_MASS_WARN = 0.01  # mass on the last asset node above which the grid is called too small
 
 __all__ = [
     "aggregate",
@@ -146,7 +148,15 @@ def stationary_distribution_young(
     mu = res.x
     if not res.converged:
         mu = _direct_stationary(build_transition_matrix(solution)).reshape(mu0.shape)
-    return np.asarray(mu / np.sum(mu), dtype=np.float64)
+    mu = np.asarray(mu / np.sum(mu), dtype=np.float64)
+    if (top := float(mu[-1].sum())) > TOP_MASS_WARN:
+        warnings.warn(
+            f"{top:.1%} of the stationary mass sits on the top asset-grid node: the grid ceiling "
+            "binds and aggregates are biased. Raise a_max (or the grid size).",
+            GridWarning,
+            stacklevel=2,
+        )
+    return mu
 
 
 def _direct_stationary(T: sparse.csr_matrix) -> Array:

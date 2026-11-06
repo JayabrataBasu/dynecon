@@ -145,3 +145,24 @@ def test_lottery_conserves_mass_and_policy_mean(n_a: int, n_z: int, seed: int) -
     out = distribution_lottery_numpy(mu, k, w)
     assert abs(out.sum() - 1.0) < 1e-12 and out.min() >= 0
     assert abs(np.sum(out * grid[:, None]) - np.sum(mu * target)) < 1e-10
+
+
+def test_warns_when_the_asset_grid_ceiling_binds() -> None:
+    import warnings
+
+    import dynecon as ek
+    from dynecon import models
+    from dynecon.core.errors import GridWarning
+    from dynecon.simulation import stationary_distribution_young
+
+    def solve(a_max: float):
+        m = models.load(
+            "consumption_savings", n_a=60, n_z=3, a_max=a_max, r=0.02, beta=0.975, rho=0.95
+        ).compile()
+        return ek.solve(m, method="egm", tol=1e-10, max_iter=100_000)
+
+    with pytest.warns(GridWarning, match="top asset-grid node"):
+        stationary_distribution_young(solve(20.0))  # patient households outgrow the grid
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", GridWarning)
+        stationary_distribution_young(solve(3000.0))

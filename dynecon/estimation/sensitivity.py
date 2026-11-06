@@ -202,62 +202,62 @@ def mixture_moments(
     model: CompiledModel,
     free_params: Sequence[str],
     moment_fn: Callable[..., Any],
-    n_types: int,
     **options: Any,
 ) -> tuple[Array, Array]:
-    """Moments of a population of ``n_types`` equally sized discount-factor types, with ``G``.
+    """Moments of a population with a patient minority, and their exact Jacobian.
 
-    Type ``k`` has ``beta + (k - (n_types - 1) / 2) * beta_spread`` (parameters ``beta`` and
-    ``beta_spread`` of the model; the spread is typically small and non-negative). ``moment_fn``
-    sees the pooled ``mu`` and the mass-weighted ``c`` and ``a_next`` of the whole population, so
-    wealth
-    shares and Gini coefficients are those of the mixture. Each type's exact Jacobian is combined by
-    the chain rule, so the cost is ``n_types`` calls of :func:`stationary_moments`.
+    A share ``patient_share`` of households has discount factor ``beta_patient``; the rest has
+    ``beta`` (model parameters). ``moment_fn`` sees the pooled ``mu`` and the mass-weighted ``c``
+    and ``a_next`` of the whole population, so wealth shares and Gini coefficients are those of the
+    mixture. The two groups' exact Jacobians are combined by the chain rule (two calls of
+    :func:`stationary_moments`). ``beta_patient * (1 + r)`` must stay below one, and ``a_max`` must
+    be large enough for the patient group (a ``GridWarning`` says when it is not).
     """
     names = list(free_params)
-    if n_types < 2 or "beta_spread" not in model.parameters.values:
-        raise ValidationError("need n_types >= 2 and a model with a 'beta_spread' parameter")
-    inner = [n for n in names if n != "beta_spread"]
+    values = model.parameters.values
+    if "beta_patient" not in values or "patient_share" not in values:
+        raise ValidationError("the model needs 'beta_patient' and 'patient_share' parameters")
+    inner = [n for n in names if n not in ("beta_patient", "patient_share")]
     if "beta" not in inner:
         inner.append("beta")
     prob = model.problem
     assert isinstance(prob, SavingProblem) and prob.shock is not None
-    shape = (model.grids[prob.asset].shape[0], model.shock_process(prob.shock).values.shape[0])
+    a = jnp.asarray(model.grids[prob.asset])
+    z = jnp.asarray(model.shock_process(prob.shock).values)
+    shape = (a.shape[0], z.shape[0])
     size = shape[0] * shape[1]
-    beta, spread = model.p.beta, model.p.beta_spread
-    offsets = np.arange(n_types) - (n_types - 1) / 2.0
-    shares = 1.0 / n_types
-    stats, jacs = [], []
+    share = float(values["patient_share"])
 
     def parts(mu: Any, c: Any, a_next: Any, _a: Any, _z: Any, _p: Any) -> Any:
         return jnp.concatenate([jnp.ravel(mu), jnp.ravel(mu * c), jnp.ravel(mu * a_next)])
 
-    for off in offsets:
-        sub = model.with_params(beta=float(beta + off * spread))
-        m_k, J_k = stationary_moments(sub, inner, parts, **options)
-        col = {n: J_k[:, i] for i, n in enumerate(inner)}
-        cols = [off * col["beta"] if n == "beta_spread" else col[n] for n in names]
-        stats.append(m_k)
-        jacs.append(np.stack(cols, axis=1))
+    s1, j1 = stationary_moments(model, inner, parts, **options)
+    s2, j2 = stationary_moments(
+        model.with_params(beta=float(values["beta_patient"])), inner, parts, **options
+    )
+    col1 = {n: j1[:, i] for i, n in enumerate(inner)}
+    col2 = {n: j2[:, i] for i, n in enumerate(inner)}
+    cols = []
+    for n in names:
+        if n == "beta":
+            cols.append((1 - share) * col1["beta"])
+        elif n == "beta_patient":
+            cols.append(share * col2["beta"])  # the patient group's own discount factor
+        elif n == "patient_share":
+            cols.append(s2 - s1)
+        else:
+            cols.append((1 - share) * col1[n] + share * col2[n])
+    dtot = np.stack(cols, axis=1)
 
-    a = jnp.asarray(model.grids[prob.asset])
-    z = jnp.asarray(model.shock_process(prob.shock).values)
-
-    def pooled(all_stats: Any) -> Any:
-        tot = shares * jnp.sum(all_stats, axis=0)
+    def pooled(tot: Any) -> Any:
         mu, mc, ma = tot[:size], tot[size : 2 * size], tot[2 * size :]
         safe = jnp.where(mu > 1e-300, mu, 1.0)
         c, a_next = jnp.where(mu > 1e-300, mc / safe, 0.0), jnp.where(mu > 1e-300, ma / safe, 0.0)
-        return jnp.ravel(
-            jnp.asarray(
-                moment_fn(mu.reshape(shape), c.reshape(shape), a_next.reshape(shape), a, z, model.p)
-            )
-        )
+        out = moment_fn(mu.reshape(shape), c.reshape(shape), a_next.reshape(shape), a, z, model.p)
+        return jnp.ravel(jnp.asarray(out))
 
-    S = jnp.asarray(np.stack(stats))
-    dM = jax.jacfwd(pooled)(S)  # (q, n_types, 3 * size)
-    G = sum(np.asarray(dM[:, k, :]) @ jacs[k] for k in range(n_types))
-    return np.asarray(pooled(S)), np.asarray(G)
+    tot = (1 - share) * s1 + share * s2
+    return np.asarray(pooled(jnp.asarray(tot))), np.asarray(jax.jacfwd(pooled)(tot)) @ dtot
 
 
 def equilibrium_moments(

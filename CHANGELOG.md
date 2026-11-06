@@ -9,6 +9,15 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   mass adaptation and divergence counting; `MCMCResult.divergences`.
 - `smm_exact.quasi_posterior`: HMC over the Chernozhukov-Hong quasi-posterior of the moment
   conditions using the exact moment Jacobians (not a likelihood; tested on analytic moments only).
+- `hmc(..., inv_mass=...)`: fixed dense or diagonal mass matrix (e.g. the inverse Hessian at a mode).
+- `mixture_moments` and `patient=True` in `smm_exact` / `quasi_posterior`: a patient minority
+  (`beta_patient`, `patient_share` on `consumption_savings`) with exact derivatives. Fitted to the
+  2022 SCF it matches five wealth moments (just-identified); the single-type model is rejected.
+- `GridWarning`: raised by `stationary_distribution_young` when more than 1% of the mass sits on the
+  top asset node (a silent truncation before; patient households had mean assets biased by half).
+- Scripts for real data (`scripts/real_scf_*.py`, `scripts/real_sw_*.py`): SCF wealth moments with a
+  household bootstrap, and a Dynare linear-model reader that reproduces the Smets-Wouters (2007)
+  posterior mode (log posterior -835.7 against Dynare's -836.1).
 
 ### Changed
 - Benchmark record re-measured on 0.2.0 (`benchmarks/results/20261105_JayabrataBasu.json`); the

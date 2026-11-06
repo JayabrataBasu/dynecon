@@ -55,3 +55,7 @@ class IdentificationError(DyneconError):
 
 class ConvergenceWarning(UserWarning):
     """An iteration did not converge; the returned result is flagged unconverged."""
+
+
+class GridWarning(UserWarning):
+    """A grid is too small for the answer: probability mass sits on its upper boundary."""
