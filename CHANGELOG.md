@@ -26,6 +26,14 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   evaluations was 1.1 for HMC (each gradient costs about 73 evaluations) against 3.4 for the adaptive
   random walk (4 x 40000 draws, max R-hat 1.076). Exact gradients are needed for HMC to pay off.
 
+- `numerics.MarkovChain` (communication and recurrent classes, period, one stationary distribution per
+  recurrent class; matches QuantEcon on 40 random chains), `solvers.lq` (`LQ`, `solve_discrete_riccati`;
+  matches QuantEcon on 20 random systems), multivariate quadrature (`mvnormal_nodes`, `lognormal_nodes`,
+  `gauss_chebyshev`, `trapezoid_rule`, `tensor_rule`) and `cartesian`.
+- `solvers.perturbation.dynare`: read a Dynare `model(linear)` block, solve it with the Klein solver and
+  evaluate the Kalman likelihood (`parse_linear_model`, `LinearDynareModel`). Reproduces the
+  Smets-Wouters log posterior at Dynare's mode (-836.126).
+
 ### Fixed
 - Edge-case audit: degenerate inputs now raise `ValidationError` instead of a raw numpy/Python error or a
   silent NaN: non-finite Kalman system matrices, empty chains/series/start points (`stationary_distribution`,

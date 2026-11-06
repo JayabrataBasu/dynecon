@@ -19,9 +19,9 @@ Only the cross-checks in [crosscheck](crosscheck.md) are evidence of numerical a
 | `rouwenhorst` | `numerics.rouwenhorst` | Equivalent | cross-checked as above |
 | `discrete_var` (multivariate AR) | none | Absent | |
 | `std_norm_cdf` | scipy | Out of scope | |
-| `MarkovChain` (class) | functions only | Partial | stationary distribution and simulation exist |
-| `MarkovChain.is_irreducible`, `communication_classes`, `recurrent_classes`, `cyclic_classes`, `is_aperiodic` | none | Absent | `stationary_distribution` only detects reducibility by failing |
-| `mc_compute_stationary` (one per recurrent class) | `stationary_distribution` (irreducible only) | Partial | |
+| `MarkovChain` (class) | `numerics.MarkovChain` | Equivalent | cross-checked on 40 random chains: classes, recurrence, irreducibility, aperiodicity, stationary distributions |
+| `MarkovChain.is_irreducible`, `communication_classes`, `recurrent_classes`, `is_aperiodic`, `period` | same properties on `MarkovChain` | Equivalent | `cyclic_classes` not implemented |
+| `mc_compute_stationary` (one per recurrent class) | `MarkovChain.stationary_distributions` | Equivalent | |
 | `gth_solve` | inside `stationary_distribution` | Equivalent | same GTH algorithm; cross-checked |
 | `mc_sample_path`, `MarkovChain.simulate` | `numerics.simulate_markov`, `markov_paths` | Equivalent | |
 | `estimate_mc`, `fit_discrete_mc` | none | Absent | |
@@ -44,11 +44,11 @@ Only the cross-checks in [crosscheck](crosscheck.md) are evidence of numerical a
 
 | QuantEcon | Dynecon | Status | Note |
 |---|---|---|---|
-| `LQ` (finite and infinite horizon) | none | Absent | |
+| `LQ` (finite and infinite horizon) | `solvers.lq.LQ` | Equivalent | cross-checked on 20 random systems (discounting, noise, cross terms; both horizons) |
 | `LQMarkov` | none | Absent | |
 | `RBLQ` (robust control) | none | Absent | |
 | `nnash` (LQ Nash game) | none | Absent | |
-| `solve_discrete_riccati`, `solve_discrete_riccati_system` | none | Absent | scipy has the single equation |
+| `solve_discrete_riccati` | `solvers.lq.solve_discrete_riccati` | Equivalent | same values as `LQ`; `solve_discrete_riccati_system` (stacked) absent |
 | `solve_discrete_lyapunov` | scipy, used inside `theoretical_moments` | Partial | not exposed |
 | `LinearStateSpace` | `solvers.perturbation` simulate and moments | Partial | `simulate_linear`, `theoretical_moments`, `irf` cover the DSGE case |
 | `LinearStateSpace.moment_sequence`, `stationary_distributions`, `geometric_sums` | `theoretical_moments` | Partial | covariances and autocovariances only |
@@ -64,10 +64,11 @@ Only the cross-checks in [crosscheck](crosscheck.md) are evidence of numerical a
 
 | QuantEcon | Dynecon | Status | Note |
 |---|---|---|---|
-| `qnwnorm` | `numerics.gauss_hermite_normal` | Partial | univariate only; QuantEcon is multivariate |
-| `qnwlege` | `numerics.gauss_legendre` | Partial | univariate only |
-| `qnwcheb`, `qnwsimp`, `qnwtrap`, `qnwunif`, `qnwlogn`, `qnwbeta`, `qnwgamma`, `qnwequi`, `quadrect` | none | Absent | |
-| `cartesian`, `mlinspace`, `gridmake`, `ckron` | none | Absent | |
+| `qnwnorm`, `qnwlogn` | `numerics.mvnormal_nodes`, `lognormal_nodes` | Equivalent | multivariate product rules; integrals of test functions agree to 1e-9 |
+| `qnwlege` | `numerics.gauss_legendre` | Partial | univariate; combine with `tensor_rule` |
+| `qnwcheb`, `qnwtrap` | `numerics.gauss_chebyshev`, `trapezoid_rule` | Partial | different rule definitions from QuantEcon's; univariate |
+| `qnwsimp`, `qnwunif`, `qnwbeta`, `qnwgamma`, `qnwequi`, `quadrect` | none | Absent | |
+| `cartesian`, `gridmake` | `numerics.cartesian`, `tensor_rule` | Equivalent | `mlinspace`, `ckron` absent |
 | `simplex_grid`, `cartesian_nearest_index` | none | Absent | |
 | (none) | `exp_grid`, `uniform_grid`, `make_grid` | Dynecon-only | curved grids for borrowing constraints |
 | `compute_fixed_point` | `numerics.fixed_point` | Equivalent | Dynecon adds Anderson acceleration |
@@ -122,9 +123,9 @@ Only the cross-checks in [crosscheck](crosscheck.md) are evidence of numerical a
 
 | Status | Approximate count of QuantEcon routines |
 |---|---|
-| Equivalent | about 10 |
-| Partial | about 9 |
-| Absent, in scope for a macro library | about 55 |
+| Equivalent | about 17 |
+| Partial | about 6 |
+| Absent, in scope for a macro library | about 45 |
 | Out of scope (game theory, LP, timing, utilities) | about 100 |
 
 Counts are approximate because QuantEcon's classes bundle many methods and the game-theory package
@@ -138,5 +139,7 @@ alone has about 60 routines.
   (communication classes), multivariate quadrature, ARMA and spectral tools, and the Kalman smoother.
 - **What neither covers:** aggregate shocks in heterogeneous-agent models, higher-order perturbation,
   occasionally binding constraints, continuous time.
-- **Cheapest gaps to close** (each well defined, with closed-form checks): Markov chain class, LQ and
-  Riccati, multivariate quadrature, Kalman smoother, `cartesian` and `gridmake`.
+- **Closed since the first draft:** Markov chain class, LQ and Riccati, multivariate normal and
+  lognormal quadrature, `cartesian`.
+- **Cheapest remaining gaps:** Kalman smoother, stacked Riccati system, `mlinspace`/`ckron`, ARMA and
+  spectral tools.
