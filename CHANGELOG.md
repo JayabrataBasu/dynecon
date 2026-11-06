@@ -19,6 +19,13 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   household bootstrap, and a Dynare linear-model reader that reproduces the Smets-Wouters (2007)
   posterior mode (log posterior -835.7 against Dynare's -836.1).
 
+### Measured
+- HMC on the Smets-Wouters posterior (36 parameters, 2 chains x 300 draws, finite-difference gradients):
+  no divergences, max R-hat 1.014, all posterior means within one sd of Dynare's mode. It is **not**
+  more efficient than random-walk Metropolis there: median effective sample size per 1000 posterior
+  evaluations was 1.1 for HMC (each gradient costs about 73 evaluations) against 3.4 for the adaptive
+  random walk (4 x 40000 draws, max R-hat 1.076). Exact gradients are needed for HMC to pay off.
+
 ### Fixed
 - Edge-case audit: degenerate inputs now raise `ValidationError` instead of a raw numpy/Python error or a
   silent NaN: non-finite Kalman system matrices, empty chains/series/start points (`stationary_distribution`,
