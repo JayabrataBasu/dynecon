@@ -94,7 +94,8 @@ def _value_and_grad(
             total = total - kalman_loglik_jax((y - d)[:presample], Z, Hm, T, R @ R.T, a0, P0)
         return total
 
-    return jax.jit(jax.value_and_grad(ll, argnums=(0, 1, 2, 3)))
+    compiled: Callable[..., Any] = jax.jit(jax.value_and_grad(ll, argnums=(0, 1, 2, 3)))
+    return compiled
 
 
 def loglik_and_grad(
