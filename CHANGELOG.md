@@ -24,7 +24,13 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   no divergences, max R-hat 1.014, all posterior means within one sd of Dynare's mode. It is **not**
   more efficient than random-walk Metropolis there: median effective sample size per 1000 posterior
   evaluations was 1.1 for HMC (each gradient costs about 73 evaluations) against 3.4 for the adaptive
-  random walk (4 x 40000 draws, max R-hat 1.076). Exact gradients are needed for HMC to pay off.
+  random walk (4 x 40000 draws, max R-hat 1.076).
+- With an exact gradient (differentiating the two matrix equations that define the solution, a
+  Sylvester-type solve; `scripts/real_sw_grad.py`, 84 ms against 959 ms for finite differences,
+  agreeing to 7e-6 relative) HMC does pay off: 4 chains x 300 draws, 0 divergences, max R-hat 1.016,
+  median effective sample size 831 (min 203) for 2338 CPU-seconds, i.e. 0.36 effective draws per
+  CPU-second against 0.073 for the random walk (about 5x; about 10x on the worst-mixing parameter).
+  Posterior means agree with the finite-difference HMC run to within 0.15 sd.
 
 - `numerics.MarkovChain` (communication and recurrent classes, period, one stationary distribution per
   recurrent class; matches QuantEcon on 40 random chains), `solvers.lq` (`LQ`, `solve_discrete_riccati`;

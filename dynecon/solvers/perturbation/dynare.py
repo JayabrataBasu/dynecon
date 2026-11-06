@@ -16,6 +16,8 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from functools import cache
+from types import CodeType
 
 import numpy as np
 import numpy.typing as npt
@@ -29,6 +31,11 @@ __all__ = ["LinearDynareModel", "evaluate_assignments", "parse_linear_model"]
 Array = npt.NDArray[np.float64]
 _SAFE: dict[str, object] = {"__builtins__": {}}
 _FUNCS = {"exp": math.exp, "log": math.log, "sqrt": math.sqrt}
+
+
+@cache
+def _code(src: str) -> CodeType:
+    return compile(src.strip(), "<equation>", "eval")
 
 
 class _Lin:
@@ -123,7 +130,9 @@ class LinearDynareModel:
         for r, eq in enumerate(self.equations):
             lhs, rhs = eq.split("=")
             try:
-                e = _Lin._lift(eval(lhs, _SAFE, env)) - _Lin._lift(eval(rhs, _SAFE, env))  # noqa: S307
+                e = _Lin._lift(eval(_code(lhs), _SAFE, env)) - _Lin._lift(
+                    eval(_code(rhs), _SAFE, env)
+                )  # noqa: S307
             except NameError as err:
                 raise ValidationError(f"equation {r + 1} uses an undefined name: {err}") from err
             for (name, lag), v in e.coef.items():
