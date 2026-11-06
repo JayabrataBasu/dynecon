@@ -112,3 +112,4 @@ solve_discrete_riccati  # user-facing entry point or utility; exercised by tests
 LinearDynareModel  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
 evaluate_assignments  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
 parse_linear_model  # user-facing entry point or utility; exercised by tests (and QuantEcon cross-checks where applicable), not by other library modules
+loglik_and_grad  # user-facing entry point; exercised by tests (finite-difference check) and the Smets-Wouters scripts, not by other library modules

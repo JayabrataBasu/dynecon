@@ -36,6 +36,9 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   recurrent class; matches QuantEcon on 40 random chains), `solvers.lq` (`LQ`, `solve_discrete_riccati`;
   matches QuantEcon on 20 random systems), multivariate quadrature (`mvnormal_nodes`, `lognormal_nodes`,
   `gauss_chebyshev`, `trapezoid_rule`, `tensor_rule`) and `cartesian`.
+- `solvers.perturbation.dynare_grad.loglik_and_grad` (needs the `jax` extra): exact gradient of a linear
+  Dynare model's likelihood by implicit differentiation of the solution (about 10x cheaper than finite
+  differences on Smets-Wouters; HMC with it is about 5x more efficient than a random walk).
 - `solvers.perturbation.dynare`: read a Dynare `model(linear)` block, solve it with the Klein solver and
   evaluate the Kalman likelihood (`parse_linear_model`, `LinearDynareModel`). Reproduces the
   Smets-Wouters log posterior at Dynare's mode (-836.126).

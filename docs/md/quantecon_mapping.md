@@ -59,6 +59,8 @@ Only the cross-checks in [crosscheck](crosscheck.md) are evidence of numerical a
 | `var_quadratic_sum`, `m_quadratic_sum` | none | Absent | |
 | Dynecon-only: Klein linear rational-expectations solver | `klein_solve`, `solve_perturbation` | Dynecon-only | verified on Smets-Wouters (mode matches Dynare) |
 | Dynecon-only: JAX Kalman log-likelihood | `kalman_loglik_jax` | Dynecon-only | |
+| Dynecon-only: exact likelihood gradient of linear Dynare models | `dynare_grad.loglik_and_grad` | Dynecon-only | implicit differentiation of the solution; checked against finite differences |
+| Dynecon-only: Dynare `model(linear)` reader | `dynare.parse_linear_model` | Dynecon-only | reproduces the Smets-Wouters posterior mode |
 
 ## Quadrature and grids (`quantecon.quad`, `gridtools`)
 
