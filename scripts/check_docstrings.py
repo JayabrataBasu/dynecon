@@ -49,6 +49,7 @@ def public_modules() -> list[Any]:
         if parts[-1].startswith("jax") or parts[-1] in (
             "jax_kernels",
             "kalman_jax",
+            "dynare_grad",
             "jacobian_jax",
             "sensitivity",
             "smm_exact",
