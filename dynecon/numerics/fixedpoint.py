@@ -124,6 +124,8 @@ def fixed_point(
     _validate(tol, max_iter, norm, damping, anderson)
 
     x = np.array(x0, dtype=np.float64, copy=True)
+    if x.size == 0:
+        raise ValidationError("x0 must not be empty")
     history: list[float] = []
     residual = float("inf")
     converged = False

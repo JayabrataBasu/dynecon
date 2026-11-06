@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from dynecon.core.errors import DeterminacyError
+from dynecon.core.errors import DeterminacyError, ValidationError
 
 __all__ = ["klein_solve"]
 
@@ -35,7 +35,9 @@ def klein_solve(A: Array, B: Array, n_x: int) -> tuple[Array, Array, Array]:
 
     n = A.shape[0]
     if A.shape != (n, n) or B.shape != (n, n) or not 0 <= n_x <= n:
-        raise ValueError("A and B must be square of equal size with 0 <= n_x <= n")
+        raise ValidationError("A and B must be square of equal size with 0 <= n_x <= n")
+    if not (np.isfinite(A).all() and np.isfinite(B).all()):
+        raise ValidationError("A and B must be finite")
     AA, BB, alpha, beta, _, Z = ordqz(A, B, sort=_is_stable, output="complex")
     with np.errstate(divide="ignore", invalid="ignore"):
         eig = np.where(np.abs(alpha) > 0.0, beta / alpha, np.inf)

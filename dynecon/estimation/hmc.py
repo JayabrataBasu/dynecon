@@ -158,6 +158,8 @@ def hmc(
     """
     x0 = np.asarray(u0, dtype=np.float64)
     d = x0.size
+    if d == 0:
+        raise ValidationError("the starting point must not be empty")
     if n_draws < 10 or n_chains < 1 or n_warmup < 20 or not 0.0 < target_accept < 1.0:
         raise ValidationError("need n_draws >= 10, n_chains >= 1, n_warmup >= 20, 0<target<1")
     gen = as_generator(rng)

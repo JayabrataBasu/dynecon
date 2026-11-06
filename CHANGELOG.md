@@ -19,6 +19,12 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   household bootstrap, and a Dynare linear-model reader that reproduces the Smets-Wouters (2007)
   posterior mode (log posterior -835.7 against Dynare's -836.1).
 
+### Fixed
+- Edge-case audit: degenerate inputs now raise `ValidationError` instead of a raw numpy/Python error or a
+  silent NaN: non-finite Kalman system matrices, empty chains/series/start points (`stationary_distribution`,
+  `quantile`, `fixed_point`, `metropolis`, `hmc`), negative or non-finite Lorenz/Gini weights, non-finite
+  `exp_grid` curvature, non-finite bootstrap data, and bad `klein_solve` matrices.
+
 ### Changed
 - Benchmark record re-measured on 0.2.0 (`benchmarks/results/20261105_JayabrataBasu.json`); the
   EGM-vs-VFI 20x goal is documented as missed and retired. New `egm_cs_500` case (same grid as VFI).

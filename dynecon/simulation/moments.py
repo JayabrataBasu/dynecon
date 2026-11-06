@@ -94,6 +94,8 @@ def bootstrap_statistics(
     x = _arr(series)
     if x.ndim != 1:
         raise ValidationError("series must be 1-D")
+    if not np.all(np.isfinite(x)):
+        raise ValidationError("series contains non-finite values")
     n = x.shape[0]
     if not 1 <= block_len <= n:
         raise ValidationError("block_len must lie in [1, len(series)]")

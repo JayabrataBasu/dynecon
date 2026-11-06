@@ -36,9 +36,11 @@ def exp_grid(lo: float, hi: float, n: int, curvature: float = 3.0) -> Array:
     """Exponentially curved grid, dense near ``lo``.
 
     ``x = lo + (hi - lo) * (exp(k u) - 1) / (exp(k) - 1)`` with ``u`` uniform on [0, 1].
-    Curvature ``k -> 0`` recovers the uniform grid.
+    Curvature ``k -> 0`` recovers the uniform grid; negative ``k`` makes it dense near ``hi``.
     """
     _check(lo, hi, n)
+    if not np.isfinite(curvature):
+        raise ValidationError(f"curvature must be finite, got {curvature}")
     u = np.linspace(0.0, 1.0, int(n), dtype=np.float64)
     if abs(curvature) < 1e-12:
         g = lo + (hi - lo) * u

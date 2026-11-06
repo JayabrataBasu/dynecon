@@ -195,6 +195,8 @@ def quantile(mass: Array, grid: Array, q: float) -> float:
     """Generalised inverse CDF: the smallest grid value with cumulative mass >= ``q``."""
     if not 0.0 <= q <= 1.0:
         raise ValidationError("q must lie in [0, 1]")
+    if mass.size == 0 or mass.shape != grid.shape:
+        raise ValidationError("mass and grid must be non-empty arrays of the same shape")
     c = cdf(mass) / float(np.sum(mass))
     return float(grid[min(int(np.searchsorted(c, q - 1e-14, side="left")), grid.shape[0] - 1)])
 
@@ -207,6 +209,8 @@ def lorenz_curve(
     w = np.ones_like(v) if weights is None else np.asarray(weights, dtype=np.float64).ravel()
     if v.shape != w.shape:
         raise ValidationError("values and weights must have the same size")
+    if not (np.all(np.isfinite(v)) and np.all(np.isfinite(w))) or np.any(w < 0):
+        raise ValidationError("values must be finite and weights finite and non-negative")
     if np.any(v < 0):
         raise ValidationError("Lorenz curve needs non-negative values (shift wealth by the limit)")
     keep = w > 0

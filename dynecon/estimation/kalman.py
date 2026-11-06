@@ -55,6 +55,8 @@ def kalman_filter(
         obs = obs[:, None]
     n_t, n_y = obs.shape
     n_a = T.shape[0]
+    if not all(np.isfinite(m).all() for m in (Z, H, T, Q, a0, P0)):
+        raise ValidationError("state-space matrices and the initial state must be finite")
     if Z.shape != (n_y, n_a) or H.shape != (n_y, n_y) or Q.shape != (n_a, n_a):
         raise ValidationError("inconsistent state-space matrix shapes")
     a, P = np.array(a0, dtype=np.float64), np.array(P0, dtype=np.float64)

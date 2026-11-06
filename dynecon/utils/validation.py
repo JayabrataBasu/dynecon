@@ -54,6 +54,8 @@ def check_increasing(x: npt.NDArray[np.float64], name: str, strict: bool = True)
 def check_stochastic_matrix(P: Any, name: str, tol: float = 1e-10) -> npt.NDArray[np.float64]:
     """Require a square, non-negative matrix whose rows sum to one."""
     arr = check_array(P, name, ndim=2)
+    if arr.size == 0:
+        raise ValidationError(f"{name} must not be empty")
     if arr.shape[0] != arr.shape[1]:
         raise ValidationError(f"{name} must be square, got shape {arr.shape}")
     if np.any(arr < -tol):

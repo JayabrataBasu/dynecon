@@ -84,6 +84,8 @@ def metropolis(
     """
     x0 = np.asarray(theta0, dtype=np.float64)
     d = x0.size
+    if d == 0:
+        raise ValidationError("the starting point must not be empty")
     if n_draws < 10 or n_chains < 1 or burn_in < 0:
         raise ValidationError("need n_draws >= 10, n_chains >= 1, burn_in >= 0")
     gen = as_generator(rng)

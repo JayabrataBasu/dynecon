@@ -42,6 +42,7 @@ md/estimation
 md/experiments
 md/benchmarks
 md/crosscheck
+md/quantecon_mapping
 md/known_limits
 md/API_POLICY
 md/BACKEND_ROADMAP
