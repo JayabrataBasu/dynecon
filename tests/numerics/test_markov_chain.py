@@ -50,3 +50,8 @@ def test_irreducible_chain_matches_stationary_distribution_and_simulates() -> No
     assert list(MarkovChain(np.eye(2)).simulate(3, init=1)) == [1.0, 1.0, 1.0]
     with pytest.raises(ValidationError):
         MarkovChain(P, state_values=np.ones(2))
+
+
+def test_state_values_may_be_a_list() -> None:
+    mc = MarkovChain([[0.5, 0.5], [0.5, 0.5]], state_values=[1.0, 2.0])  # type: ignore[arg-type]
+    assert set(mc.simulate(50, rng=0)) <= {1.0, 2.0}

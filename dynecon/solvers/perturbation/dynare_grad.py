@@ -26,7 +26,7 @@ import numpy.typing as npt
 import scipy.linalg as sla
 
 from dynecon import _jax_setup  # noqa: F401  (enables float64)
-from dynecon.core.errors import ValidationError
+from dynecon.core.errors import DeterminacyError, ValidationError
 from dynecon.estimation.kalman_jax import kalman_loglik_jax
 from dynecon.solvers.perturbation.dynare import LinearDynareModel
 from dynecon.solvers.perturbation.klein import klein_solve
@@ -136,8 +136,11 @@ def loglik_and_grad(
         parts.append([(u - d) / (2.0 * h) for u, d in zip(a, b, strict=True)])
     dC0, dC1, dC2, dD, dconst, dsd = (np.stack([p[k] for p in parts]) for k in range(6))
 
-    Minv = np.linalg.inv(C0 @ G + C1)
-    dG = _sylvester_batch(Minv @ C0, G, -(Minv @ (dC0 @ G @ G + dC1 @ G + dC2)))
+    try:
+        Minv = np.linalg.inv(C0 @ G + C1)
+        dG = _sylvester_batch(Minv @ C0, G, -(Minv @ (dC0 @ G @ G + dC1 @ G + dC2)))
+    except np.linalg.LinAlgError as err:
+        raise DeterminacyError(f"the derivative of the solution is singular: {err}") from err
     dH = -(Minv @ ((dC0 @ G + C0 @ dG + dC1) @ H + dD))
 
     rows = tuple(model.variables.index(o) for o in observables)

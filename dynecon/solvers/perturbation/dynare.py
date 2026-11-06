@@ -5,6 +5,8 @@ Most medium-scale DSGE models (Smets-Wouters and its relatives) are published as
 rational-expectations systems in Dynare syntax. Reading that text directly means the same
 equations that were published are the ones estimated, with no retyping.
 
+Equations are evaluated as Python expressions, so only read model files you trust.
+
 Supported syntax: ``var``, ``varexo``, equations ``lhs = rhs;`` with ``x(-1)`` and ``x(+1)``
 (``x(1)``), parameters supplied as numbers, ``^`` for powers. Shock standard deviations and
 parameter values are passed at solve time; derived parameters can be computed with

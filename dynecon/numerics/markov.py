@@ -141,11 +141,8 @@ class MarkovChain:
     def __post_init__(self) -> None:
         P = check_stochastic_matrix(self.P, "P")
         object.__setattr__(self, "P", P)
-        sv = (
-            np.arange(len(P), dtype=np.float64)
-            if self.state_values.size == 0
-            else self.state_values
-        )
+        given = np.asarray(self.state_values)
+        sv = np.arange(len(P), dtype=np.float64) if given.size == 0 else given
         if np.shape(sv)[0] != len(P):
             raise ValidationError("state_values must have one entry per state")
         object.__setattr__(self, "state_values", np.asarray(sv))

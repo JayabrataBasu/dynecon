@@ -70,3 +70,8 @@ def test_bad_inputs() -> None:
     ):
         with pytest.raises(ValidationError):
             bad()
+
+
+def test_numpy_integer_orders_are_accepted() -> None:
+    x, w = mvnormal_nodes(np.int64(3), MEAN, COV)
+    assert x.shape == (9, 2) and abs(w.sum() - 1) < 1e-14

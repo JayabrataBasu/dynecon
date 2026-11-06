@@ -98,7 +98,8 @@ def mvnormal_nodes(
         L = np.linalg.cholesky(S)
     except np.linalg.LinAlgError as err:
         raise ValidationError("cov must be positive definite") from err
-    ns = [int(orders)] * d if isinstance(orders, int) else [int(o) for o in orders]
+    ord_arr = np.atleast_1d(np.asarray(orders))
+    ns = [int(ord_arr[0])] * d if np.ndim(orders) == 0 else [int(o) for o in ord_arr]
     if len(ns) != d:
         raise ValidationError("orders must be an int or have one entry per dimension")
     rules = [gauss_hermite_normal(n) for n in ns]
