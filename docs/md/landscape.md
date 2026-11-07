@@ -9,7 +9,7 @@ is absent. Re-check before quoting publicly.
 
 | Package | Latest (PyPI) | Python | Licence | Compute stack | What it is (per its README/PyPI) |
 |---|---|---|---|---|---|
-| **Dynecon** | 0.2.0 (2026-11-04) | >=3.10 | BSD-3 | NumPy/SciPy, optional Numba, optional JAX | Model DSL; VFI/EGM household solvers; stationary equilibrium; Klein perturbation; simulation; SMM, MLE, Kalman, MCMC |
+| **Dynecon** | 0.2.0 (2026-11-04) | >=3.10 (>=3.11 from 0.3.0) | BSD-3 | NumPy/SciPy, optional Numba, optional JAX | Model DSL; VFI/EGM household solvers; stationary equilibrium; Klein perturbation; simulation; SMM, MLE, Kalman, MCMC |
 | **QuantEcon.py** | 0.13.1 (2026-10-17) | >=3.12 | BSD (not in metadata) | Numba, NumPy, SciPy | Toolbox of algorithms and lecture code (DiscreteDP, Kalman, LQ, Markov tools). No household/Aiyagari class (checked in 0.13.1) |
 | **Econ-ARK / HARK** | 0.17.2 (2026-05-01) | >=3.10 | Apache-2.0 | Numba, NumPy, pandas | Toolkit for heterogeneous-agent structural models, simulation-based aggregates. README calls itself beta and "not extensively tested" |
 | **Sequence-Space Jacobian** | 1.0.0 (2022-01-10, only PyPI release) | >=3.7 | MIT | Numba, NumPy, SciPy (no JAX stated) | HetBlocks/DAG models, linearized and nonlinear IRFs, SSJ method; a Krusell-Smith notebook computes a log-likelihood |
@@ -44,7 +44,7 @@ is absent. Re-check before quoting publicly.
    implementation of the method) and SSJ's last PyPI release is 2022, so interoperability may be a
    better route than reimplementation.
 4. Maintenance is a differentiator in itself: dolo is pinned to Python <3.12 and pandas <2; SSJ's last
-   release is 2022; HARK self-describes as lightly tested. Dynecon is tested on Python 3.10-3.15 on
+   release is 2022; HARK self-describes as lightly tested. Dynecon is tested on Python 3.11-3.15 on
    three OSes, at its dependency floors, and against QuantEcon.
 
 ## Candidate headline features (for issue #10)

@@ -62,5 +62,5 @@ def collect_provenance() -> dict[str, Any]:
     """Return versions of the stack, platform, git commit (if any) and a UTC timestamp."""
     return {
         **_static(),
-        "timestamp_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+        "timestamp_utc": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
     }

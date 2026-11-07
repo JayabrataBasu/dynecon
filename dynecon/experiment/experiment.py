@@ -126,7 +126,7 @@ class Experiment:
         """Execute and write config, provenance, solution, result, log to a new run folder."""
         config = self.config(rng)
         model, sol, sim, moments = self._execute(config)
-        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+        stamp = _dt.datetime.now(_dt.UTC).strftime("%Y%m%dT%H%M%S%f")
         run_dir = Path(self.outdir) / self.name / f"{stamp}-{model.fingerprint()[:8]}"
         run_dir.mkdir(parents=True, exist_ok=False)
         result = _summarise(sol, sim, moments)

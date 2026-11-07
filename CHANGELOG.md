@@ -53,6 +53,13 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 - Benchmark record re-measured on 0.2.0 (`benchmarks/results/20261105_JayabrataBasu.json`); the
   EGM-vs-VFI 20x goal is documented as missed and retired. New `egm_cs_500` case (same grid as VFI).
 
+### Removed
+- Python 3.10 (`requires-python >=3.11`). It passed its scheduled end of life on 2026-10-31, the last NumPy and
+  SciPy releases that support it are old, and on 3.10 the optional `viz` extra can only resolve `pillow 12.3.0`,
+  which has 39 known advisories (fixed in `pillow 13`, which needs Python 3.11+). pip on Python 3.10 keeps installing
+  Dynecon 0.2.x. CI matrix, minimum-versions job (now Python 3.11 with the same dependency floors), ruff and mypy
+  targets and the install notes are updated.
+
 ## [0.2.0] - 2026-11-04
 
 Headline: differentiable (exact-gradient) estimation of heterogeneous-agent models. Verified against

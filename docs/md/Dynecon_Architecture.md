@@ -704,7 +704,7 @@ There are no `cext/` or `rsext/` directories in v1.0. They are created when the 
 
 ## 15.3 CI/CD Pipeline
 
-- GitHub Actions: Python 3.10, 3.11 and 3.12 on Linux, macOS and Windows; 3.13 as a non-blocking job; a job without Numba; a JAX job; a docs build; a nightly benchmark run that is never a gate.
+- GitHub Actions: Python 3.11 and 3.12 on Linux, macOS and Windows; 3.13 as a non-blocking job; a job without Numba; a JAX job; a docs build; a nightly benchmark run that is never a gate.
 - Ruff (lint and format) and mypy (untyped definitions disallowed), run locally through pre-commit and in CI.
 - Coverage measured with Numba installed.
 - Release: build, clean-room install test, TestPyPI, then PyPI, with a human gate before each upload.

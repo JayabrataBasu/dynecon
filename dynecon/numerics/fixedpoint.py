@@ -80,7 +80,7 @@ class _Anderson:
         gamma = np.linalg.lstsq(dg, g.ravel(), rcond=None)[0]
         cand = (tx.ravel() - (dx + dg) @ gamma).reshape(x.shape)
         # reject, not clip: clipped iterates are garbage
-        if np.isfinite(cand).all() and (self.lower is None or cand.min() >= self.lower):
+        if np.isfinite(cand).all() and (self.lower is None or float(np.min(cand)) >= self.lower):
             self.accelerated = True
             return np.asarray(cand, dtype=np.float64)
         return tx
