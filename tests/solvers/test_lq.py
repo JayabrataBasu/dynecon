@@ -72,3 +72,20 @@ def test_bad_inputs() -> None:
     # unstabilisable: unstable mode that B cannot reach
     with pytest.raises(ValidationError):
         solve_discrete_riccati(np.diag([2.0, 0.5]), np.array([[0.0], [1.0]]), eye2, [[1.0]])
+
+
+def test_zero_control_cost_is_a_clear_error() -> None:
+    zero, one = np.zeros((1, 1)), np.ones((1, 1))
+    with pytest.raises(ValidationError, match="positive definite"):
+        LQ(zero, zero, zero, zero, beta=0.9).stationary_values()  # fuzz-found input
+    with pytest.raises(ValidationError, match="positive definite"):
+        LQ(zero, one, 0.5 * one, zero, beta=0.9, T=3).update_values()  # B = 0 and Q = 0
+
+
+def test_overflowing_problem_is_refused_not_returned_as_nan() -> None:
+    one = np.ones((1, 1))
+    big = np.full((1, 1), 2.9e292)
+    with pytest.raises(ValidationError, match="not finite"):
+        LQ(one, np.full((1, 1), 6.2e15), np.zeros((1, 1)), big, beta=1.0).stationary_values()
+    with pytest.raises(ValidationError, match="not finite"):
+        LQ(one, one, one, big, beta=0.9, T=3, Rf=big).update_values()

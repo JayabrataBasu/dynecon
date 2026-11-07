@@ -15,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
+from dynecon.utils.validation import check_finite, check_int
 
 __all__ = ["baxter_king", "hamilton_filter", "hp_filter"]
 
@@ -48,14 +49,17 @@ def hp_filter(y: Any, lamb: float = 1600.0) -> tuple[Any, Any]:
     """
     arr, index = _as_array(y)
     n = arr.shape[0]
-    if n < 4 or not lamb > 0:
-        raise ValidationError("need at least 4 observations and lamb > 0")
+    lamb = check_finite(lamb, "lamb", positive=True)
+    if n < 4:
+        raise ValidationError("need at least 4 observations")
     from scipy import sparse
     from scipy.sparse.linalg import spsolve
 
     K = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(n - 2, n), format="csc")
     A = sparse.identity(n, format="csc") + lamb * (K.T @ K)
     trend = np.asarray(spsolve(A.tocsc(), arr), dtype=np.float64)
+    if not np.all(np.isfinite(trend)):
+        raise ValidationError("lamb or the scale of y is too large for a stable solve")
     return _wrap(trend, index), _wrap(arr - trend, index)
 
 
@@ -67,8 +71,11 @@ def baxter_king(y: Any, low: int = 6, high: int = 32, K: int = 12) -> Any:
     """
     arr, index = _as_array(y)
     n = arr.shape[0]
-    if not 2 <= low < high or K < 1 or n <= 2 * K:
-        raise ValidationError("need 2 <= low < high, K >= 1 and len(y) > 2K")
+    low = check_int(low, "low", 2)
+    high = check_int(high, "high", low + 1)
+    K = check_int(K, "K", 1)
+    if n <= 2 * K:
+        raise ValidationError("need len(y) > 2K")
     w_lo, w_hi = 2 * np.pi / high, 2 * np.pi / low
     j = np.arange(1, K + 1)
     b = np.concatenate(
@@ -88,12 +95,15 @@ def hamilton_filter(y: Any, h: int = 8, p: int = 4) -> tuple[Any, Any]:
     """
     arr, index = _as_array(y)
     n = arr.shape[0]
-    if h < 1 or p < 1 or n <= h + p + 1:
-        raise ValidationError("need h >= 1, p >= 1 and enough observations")
+    h, p = check_int(h, "h", 1), check_int(p, "p", 1)
+    if n <= h + p + 1:
+        raise ValidationError("not enough observations for this h and p")
     rows = n - h - p + 1
     X = np.column_stack([np.ones(rows)] + [arr[p - 1 - k : p - 1 - k + rows] for k in range(p)])
     target = arr[p - 1 + h :]
     beta, *_ = np.linalg.lstsq(X, target, rcond=None)
     fitted = X @ beta
+    if not (np.all(np.isfinite(fitted)) and np.all(np.isfinite(target - fitted))):
+        raise ValidationError("the regression overflowed: rescale the series")
     idx = None if index is None else index[p - 1 + h :]
     return _wrap(fitted, idx), _wrap(target - fitted, idx)

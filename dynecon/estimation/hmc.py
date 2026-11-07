@@ -14,15 +14,33 @@ import numpy as np
 import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
-from dynecon.estimation.bayes import ess, split_rhat
+from dynecon.estimation.bayes import check_start, ess, split_rhat, warn_if_flat
 from dynecon.estimation.results import MCMCResult
 from dynecon.utils.rng import as_generator
+from dynecon.utils.validation import check_finite, check_int
 
 __all__ = ["hmc"]
 
 Array = npt.NDArray[np.float64]
 LogpGrad = Callable[[Array], tuple[float, Array]]
 MAX_ENERGY_ERROR = 1000.0  # a trajectory whose energy drifts this far is called divergent
+
+
+def _checked(f: LogpGrad, d: int) -> LogpGrad:
+    """``f`` with its output validated: a real log density and a gradient of shape ``(d,)``."""
+
+    def wrapped(u: Array) -> tuple[float, Array]:
+        out = f(u)
+        try:
+            lp, g = out
+            lp, g = float(lp), np.asarray(g, dtype=np.float64)
+        except (TypeError, ValueError):
+            raise ValidationError("logp_grad must return (real log density, gradient)") from None
+        if g.shape != (d,):
+            raise ValidationError(f"the gradient must have shape ({d},), got {g.shape}")
+        return lp, g
+
+    return wrapped
 
 
 def _leapfrog(
@@ -156,12 +174,17 @@ def hmc(
     posterior mode) replaces the adapted diagonal mass: with a dense mass the step size can be
     large even when parameters are strongly correlated.
     """
-    x0 = np.asarray(u0, dtype=np.float64)
+    x0 = check_start(u0, "u0")
     d = x0.size
-    if d == 0:
-        raise ValidationError("the starting point must not be empty")
-    if n_draws < 10 or n_chains < 1 or n_warmup < 20 or not 0.0 < target_accept < 1.0:
-        raise ValidationError("need n_draws >= 10, n_chains >= 1, n_warmup >= 20, 0<target<1")
+    n_draws = check_int(n_draws, "n_draws", 10)
+    n_chains = check_int(n_chains, "n_chains", 1)
+    n_warmup = check_int(n_warmup, "n_warmup", 20)
+    max_leapfrog = check_int(max_leapfrog, "max_leapfrog", 1)
+    trajectory = check_finite(trajectory, "trajectory", positive=True)
+    init_scale = check_finite(init_scale, "init_scale", positive=True)
+    if not 0.0 < check_finite(target_accept, "target_accept") < 1.0:
+        raise ValidationError("target_accept must lie in (0, 1)")
+    logp_grad = _checked(logp_grad, d)
     gen = as_generator(rng)
     fixed = None if inv_mass is None else np.asarray(inv_mass, dtype=np.float64)
     if fixed is not None and fixed.ndim == 1:
@@ -191,4 +214,6 @@ def hmc(
     labels = list(names) if names is not None else [f"theta[{i}]" for i in range(d)]
     rhat = np.array([split_rhat(out[:, :, i]) for i in range(d)])
     ess_v = np.array([ess(out[:, :, i]) for i in range(d)])
-    return MCMCResult(out, labels, acc_sum / (n_chains * n_draws), rhat, ess_v, lps, divergences)
+    accept_rate = acc_sum / (n_chains * n_draws)
+    warn_if_flat(out, lps, accept_rate)
+    return MCMCResult(out, labels, accept_rate, rhat, ess_v, lps, divergences)

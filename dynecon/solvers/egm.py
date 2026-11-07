@@ -20,6 +20,7 @@ import numpy.typing as npt
 from dynecon.core.errors import (
     ConvergenceWarning,
     DyneconError,
+    GridWarning,
     ModelSpecificationError,
     ValidationError,
 )
@@ -102,6 +103,14 @@ def solve_egm(
             "resources must be strictly increasing in assets for every shock state"
         )
     gross = np.broadcast_to(np.asarray(prob.marginal_return(a[:, None], z[None, :], p)), (n_a, n_z))
+    if beta * float(np.min(gross[-1])) >= 1.0:
+        warnings.warn(
+            "beta * (marginal return) >= 1 at the top of the asset grid in every shock state: "
+            "the household saves without bound, no stationary distribution exists and the "
+            "solution depends on the grid ceiling",
+            GridWarning,
+            stacklevel=2,
+        )
 
     def operator(C: Array) -> Array:
         mu_next = np.asarray(mu_fn(C, p))  # u'(c(a'_k, z'_j')) on the grid

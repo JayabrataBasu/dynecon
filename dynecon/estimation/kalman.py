@@ -14,6 +14,7 @@ import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
 from dynecon.solvers.perturbation.analysis import PerturbationSolution
+from dynecon.utils.validation import check_array
 
 __all__ = ["KalmanResult", "kalman_filter", "loglik_state_space"]
 
@@ -50,13 +51,16 @@ def kalman_filter(
     ``y`` has shape ``(n_periods, n_obs)``; NaN entries are treated as missing and skipped
     (the corresponding rows of ``Z`` and ``H`` are dropped for that period).
     """
-    obs = np.asarray(y, dtype=np.float64)
+    obs = check_array(y, "y", finite=False)  # NaN marks a missing observation
     if obs.ndim == 1:
         obs = obs[:, None]
+    if obs.ndim != 2 or np.isinf(obs).any():
+        raise ValidationError("y must be a (periods, observables) array without infinities")
     n_t, n_y = obs.shape
-    n_a = T.shape[0]
-    if not all(np.isfinite(m).all() for m in (Z, H, T, Q, a0, P0)):
-        raise ValidationError("state-space matrices and the initial state must be finite")
+    names = ("Z", "H", "T", "Q", "a0", "P0")
+    mats = (Z, H, T, Q, a0, P0)
+    Z, H, T, Q, a0, P0 = (check_array(m, nm) for m, nm in zip(mats, names, strict=True))
+    n_a = T.shape[0] if T.ndim else 0
     if Z.shape != (n_y, n_a) or H.shape != (n_y, n_y) or Q.shape != (n_a, n_a):
         raise ValidationError("inconsistent state-space matrix shapes")
     a, P = np.array(a0, dtype=np.float64), np.array(P0, dtype=np.float64)
@@ -103,6 +107,8 @@ def kalman_filter(
         if idx.size == n_y and np.max(np.abs(P_new - P)) <= 1e-13 * max(1.0, np.max(np.abs(P))):
             steady = (K, Finv, float(logdet))
         P = P_new
+    if not all(np.isfinite(m).all() for m in (loglik, pred_a, pred_P, filt_a, gains)):
+        raise ValidationError("the filter produced non-finite values: the system is badly scaled")
     return KalmanResult(float(loglik), pred_a, pred_P, filt_a, gains, used)
 
 

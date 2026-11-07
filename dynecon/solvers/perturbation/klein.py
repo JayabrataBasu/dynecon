@@ -12,6 +12,7 @@ import numpy as np
 import numpy.typing as npt
 
 from dynecon.core.errors import DeterminacyError, ValidationError
+from dynecon.utils.validation import check_array, check_int
 
 __all__ = ["klein_solve"]
 
@@ -33,12 +34,21 @@ def klein_solve(A: Array, B: Array, n_x: int) -> tuple[Array, Array, Array]:
     """
     from scipy.linalg import ordqz
 
+    A, B = check_array(A, "A", ndim=2), check_array(B, "B", ndim=2)
     n = A.shape[0]
-    if A.shape != (n, n) or B.shape != (n, n) or not 0 <= n_x <= n:
-        raise ValidationError("A and B must be square of equal size with 0 <= n_x <= n")
-    if not (np.isfinite(A).all() and np.isfinite(B).all()):
-        raise ValidationError("A and B must be finite")
-    AA, BB, alpha, beta, _, Z = ordqz(A, B, sort=_is_stable, output="complex")
+    if n == 0 or A.shape != (n, n) or B.shape != (n, n):
+        raise ValidationError("A and B must be non-empty square matrices of equal size")
+    n_x = check_int(n_x, "n_x", 0, n)
+    try:
+        AA, BB, alpha, beta, _, Z = ordqz(A, B, sort=_is_stable, output="complex")
+    except (
+        np.linalg.LinAlgError,
+        ValueError,
+    ) as exc:  # scipy: failed or ill-conditioned reordering
+        raise DeterminacyError(f"the QZ decomposition failed: {exc}") from exc
+    scale = max(float(np.abs(A).max()), float(np.abs(B).max()))
+    if scale == 0.0 or np.any(np.abs(alpha) + np.abs(beta) <= n * np.finfo(float).eps * scale):
+        raise DeterminacyError("singular matrix pencil: det(A z - B) vanishes for every z")
     with np.errstate(divide="ignore", invalid="ignore"):
         eig = np.where(np.abs(alpha) > 0.0, beta / alpha, np.inf)
     n_stable = int(np.sum(np.abs(beta) < (1.0 - _STABLE_MARGIN) * np.abs(alpha)))
@@ -55,9 +65,14 @@ def klein_solve(A: Array, B: Array, n_x: int) -> tuple[Array, Array, Array]:
     if np.linalg.cond(Z11) > 1.0 / np.sqrt(np.finfo(float).eps):
         raise DeterminacyError("Z11 is (numerically) singular: the stable subspace is degenerate")
     S11, T11 = AA[:n_x, :n_x], BB[:n_x, :n_x]
-    F = Z21 @ np.linalg.inv(Z11)
-    P = Z11 @ np.linalg.solve(S11, T11) @ np.linalg.inv(Z11)
+    try:
+        F = Z21 @ np.linalg.inv(Z11)
+        P = Z11 @ np.linalg.solve(S11, T11) @ np.linalg.inv(Z11)
+    except np.linalg.LinAlgError as exc:
+        raise DeterminacyError(f"the stable block is singular: {exc}") from exc
     scale = 1.0 + max(np.abs(F).max(initial=0.0), np.abs(P).max(initial=0.0))
     if max(np.abs(F.imag).max(initial=0.0), np.abs(P.imag).max(initial=0.0)) > 1e-8 * scale:
         raise DeterminacyError("solution matrices are complex; check the model equations")
+    if not (np.isfinite(F).all() and np.isfinite(P).all()):
+        raise DeterminacyError("the solution is not finite: the matrix pencil is ill-conditioned")
     return np.real(F), np.real(P), np.abs(eig)

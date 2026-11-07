@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from time import perf_counter
 from typing import Any
 
 import numpy as np
@@ -61,6 +62,7 @@ def solve_stationary_equilibrium(
     """
     from scipy.optimize import brentq
 
+    t0 = perf_counter()
     lo, hi = bracket
     if not lo < hi:
         raise ValidationError("bracket must satisfy lo < hi")
@@ -106,7 +108,7 @@ def solve_stationary_equilibrium(
         converged=True,
         iterations=len(history["price"]),
         residual=abs(excess),
-        elapsed=hh.elapsed,
+        elapsed=perf_counter() - t0,
         backend=hh.backend,
         model_name=hh.model_name,
         params=hh.params,

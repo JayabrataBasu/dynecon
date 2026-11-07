@@ -11,25 +11,34 @@ import numpy as np
 import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
+from dynecon.utils.validation import check_array, check_finite, check_int
 
 __all__ = ["cartesian", "exp_grid", "make_grid", "uniform_grid"]
 
 Array = npt.NDArray[np.float64]
 
 
-def _check(lo: float, hi: float, n: int) -> None:
-    if not (np.isfinite(lo) and np.isfinite(hi)) or not hi > lo:
-        raise ValidationError(f"grid bounds must be finite with hi > lo, got ({lo}, {hi})")
-    if int(n) != n or n < 2:
-        raise ValidationError(f"grid size n must be an integer >= 2, got {n}")
+def _check(lo: float, hi: float, n: int) -> tuple[float, float, int]:
+    """Validated ``(lo, hi, n)``."""
+    lo, hi = check_finite(lo, "lo"), check_finite(hi, "hi")
+    if not hi > lo:
+        raise ValidationError(f"grid bounds must satisfy hi > lo, got ({lo}, {hi})")
+    return lo, hi, check_int(n, "n", 2, 10**6)
+
+
+def _finite(g: Array) -> Array:
+    if not np.all(np.isfinite(g)):
+        raise ValidationError("the grid overflows: bounds or curvature are too extreme")
+    return g
 
 
 def uniform_grid(lo: float, hi: float, n: int) -> Array:
     """``n`` equally spaced points on ``[lo, hi]`` with exact endpoints."""
-    _check(lo, hi, n)
-    g = np.linspace(lo, hi, int(n), dtype=np.float64)
+    lo, hi, n = _check(lo, hi, n)
+    with np.errstate(all="ignore"):
+        g = np.linspace(lo, hi, n, dtype=np.float64)
     g[0], g[-1] = lo, hi
-    return g
+    return _finite(g)
 
 
 def exp_grid(lo: float, hi: float, n: int, curvature: float = 3.0) -> Array:
@@ -38,23 +47,23 @@ def exp_grid(lo: float, hi: float, n: int, curvature: float = 3.0) -> Array:
     ``x = lo + (hi - lo) * (exp(k u) - 1) / (exp(k) - 1)`` with ``u`` uniform on [0, 1].
     Curvature ``k -> 0`` recovers the uniform grid; negative ``k`` makes it dense near ``hi``.
     """
-    _check(lo, hi, n)
-    if not np.isfinite(curvature):
-        raise ValidationError(f"curvature must be finite, got {curvature}")
-    u = np.linspace(0.0, 1.0, int(n), dtype=np.float64)
-    if abs(curvature) < 1e-12:
-        g = lo + (hi - lo) * u
-    else:
-        g = lo + (hi - lo) * np.expm1(curvature * u) / np.expm1(curvature)
+    lo, hi, n = _check(lo, hi, n)
+    curvature = check_finite(curvature, "curvature")
+    u = np.linspace(0.0, 1.0, n, dtype=np.float64)
+    with np.errstate(all="ignore"):
+        if abs(curvature) < 1e-12:
+            g = lo + (hi - lo) * u
+        else:
+            g = lo + (hi - lo) * np.expm1(curvature * u) / np.expm1(curvature)
     g[0], g[-1] = lo, hi
-    return g
+    return _finite(g)
 
 
 def cartesian(*grids: npt.ArrayLike) -> Array:
     """Cartesian product of 1-D grids: rows ``(prod n_i, d)``, last grid varying fastest."""
     if not grids:
         raise ValidationError("need at least one grid")
-    arrs = [np.asarray(g, dtype=np.float64).ravel() for g in grids]
+    arrs = [check_array(g, "grid").ravel() for g in grids]
     if any(a.size == 0 for a in arrs):
         raise ValidationError("grids must be non-empty")
     mesh = np.meshgrid(*arrs, indexing="ij")

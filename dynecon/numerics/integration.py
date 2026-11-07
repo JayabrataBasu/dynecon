@@ -7,12 +7,11 @@ weighted sums over quadrature nodes.
 
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
+from dynecon.utils.validation import check_array, check_finite, check_int
 
 __all__ = [
     "gauss_chebyshev",
@@ -27,23 +26,36 @@ __all__ = [
 Array = npt.NDArray[np.float64]
 
 
-def _check_order(order: int) -> None:
-    if int(order) != order or order < 1:
-        raise ValidationError(f"order must be an integer >= 1, got {order}")
+MAX_ORDER = 5000  # beyond this a Gauss rule is neither needed nor cheap to build
+
+
+def _check_order(order: int, minimum: int = 1) -> int:
+    return check_int(order, "order", minimum, MAX_ORDER)
+
+
+def _check_interval(a: float, b: float) -> tuple[float, float]:
+    lo, hi = check_finite(a, "a"), check_finite(b, "b")
+    if not hi > lo:
+        raise ValidationError(f"need b > a, got ({a}, {b})")
+    return lo, hi
 
 
 def gauss_hermite_normal(order: int) -> tuple[Array, Array]:
     """Nodes and weights for ``E[f(X)]``, ``X ~ N(0, 1)`` (weights sum to one)."""
-    _check_order(order)
-    nodes, weights = np.polynomial.hermite.hermgauss(order)
-    return nodes * math.sqrt(2.0), weights / math.sqrt(math.pi)
+    from scipy.special import roots_hermitenorm
+
+    order = _check_order(order)
+    # probabilists' Hermite: the nodes of N(0, 1) directly; stable for large orders (numpy's
+    # hermgauss overflows to NaN from about order 400)
+    nodes, weights = roots_hermitenorm(order)
+    w = np.asarray(weights / weights.sum(), dtype=np.float64)
+    return np.asarray(nodes, dtype=np.float64), w
 
 
 def gauss_legendre(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, Array]:
     """Nodes and weights for the *average* of ``f`` over ``U(a, b)`` (weights sum to one)."""
-    _check_order(order)
-    if not b > a:
-        raise ValidationError(f"need b > a, got ({a}, {b})")
+    order = _check_order(order)
+    a, b = _check_interval(a, b)
     x, w = np.polynomial.legendre.leggauss(order)
     return 0.5 * (b - a) * x + 0.5 * (a + b), w / 2.0
 
@@ -51,9 +63,8 @@ def gauss_legendre(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, A
 def gauss_chebyshev(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, Array]:
     """Gauss-Chebyshev nodes and weights for ``E[f(X)]`` with ``X`` on ``[a, b]`` with the
     arcsine (Chebyshev) density ``1 / (pi sqrt((x - a)(b - x)))``; weights sum to one."""
-    _check_order(order)
-    if not b > a:
-        raise ValidationError(f"need b > a, got ({a}, {b})")
+    order = _check_order(order)
+    a, b = _check_interval(a, b)
     k = np.arange(order, 0, -1)
     x = np.cos(np.pi * (2 * k - 1) / (2 * order))  # ascending
     return 0.5 * (b - a) * x + 0.5 * (a + b), np.full(order, 1.0 / order)
@@ -61,10 +72,8 @@ def gauss_chebyshev(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, 
 
 def trapezoid_rule(order: int, a: float = 0.0, b: float = 1.0) -> tuple[Array, Array]:
     """Trapezoid nodes and weights for the *average* of ``f`` over ``U(a, b)`` (sum to one)."""
-    if int(order) != order or order < 2:
-        raise ValidationError(f"order must be an integer >= 2, got {order}")
-    if not b > a:
-        raise ValidationError(f"need b > a, got ({a}, {b})")
+    order = _check_order(order, 2)
+    a, b = _check_interval(a, b)
     w: Array = np.full(order, 1.0 / (order - 1), dtype=np.float64)
     w[[0, -1]] *= 0.5
     return np.asarray(np.linspace(a, b, order), dtype=np.float64), w
@@ -89,7 +98,7 @@ def mvnormal_nodes(
 ) -> tuple[Array, Array]:
     """Product Gauss-Hermite rule for ``X ~ N(mean, cov)``: nodes ``(prod orders, d)``, weights
     sum to one. A Cholesky factor of ``cov`` correlates the independent standard-normal nodes."""
-    mu = np.atleast_1d(np.asarray(mean, dtype=np.float64))
+    mu = np.atleast_1d(check_array(mean, "mean"))
     S = np.atleast_2d(np.asarray(cov, dtype=np.float64))
     d = mu.size
     if S.shape != (d, d) or not np.all(np.isfinite(S)) or not np.allclose(S, S.T):
@@ -99,7 +108,7 @@ def mvnormal_nodes(
     except np.linalg.LinAlgError as err:
         raise ValidationError("cov must be positive definite") from err
     ord_arr = np.atleast_1d(np.asarray(orders))
-    ns = [int(ord_arr[0])] * d if np.ndim(orders) == 0 else [int(o) for o in ord_arr]
+    ns = [_check_order(o) for o in (ord_arr if np.ndim(orders) else ord_arr.repeat(d))]
     if len(ns) != d:
         raise ValidationError("orders must be an int or have one entry per dimension")
     rules = [gauss_hermite_normal(n) for n in ns]
@@ -113,4 +122,8 @@ def lognormal_nodes(
     """Product rule for ``exp(X)`` with ``X ~ N(mean, cov)`` (``mean`` and ``cov`` are those of
     the underlying normal): nodes are ``exp`` of :func:`mvnormal_nodes`."""
     x, w = mvnormal_nodes(orders, mean, cov)
-    return np.exp(x), w
+    with np.errstate(over="ignore"):
+        nodes = np.exp(x)
+    if not np.all(np.isfinite(nodes)):
+        raise ValidationError("mean or cov is too large: exp(nodes) overflows")
+    return nodes, w

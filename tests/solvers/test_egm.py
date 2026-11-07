@@ -133,3 +133,15 @@ def test_nonconcave_endogenous_grid_rejected() -> None:
     )
     with pytest.raises(ModelSpecificationError, match="monotone"):
         ek.solve(m.compile(), method="egm")
+
+
+def test_unbounded_saving_warns() -> None:
+    from dynecon.core.errors import GridWarning
+
+    with pytest.warns(GridWarning, match="without bound"):
+        ek.solve(consumption_savings(beta=0.99, r=0.1, n_a=40, n_z=3).compile(), method="egm")
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", GridWarning)  # beta (1 + r) = 0.9888 < 1: no warning
+        ek.solve(consumption_savings(beta=0.96, r=0.03, n_a=40, n_z=3).compile(), method="egm")

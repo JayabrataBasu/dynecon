@@ -23,6 +23,7 @@ from dynecon.numerics.fixedpoint import fixed_point
 from dynecon.numerics.markov import stationary_distribution
 from dynecon.simulation.kernels import distribution_lottery_numba, distribution_lottery_numpy
 from dynecon.utils.jit import NUMBA_AVAILABLE
+from dynecon.utils.validation import check_array, check_finite
 
 TOP_MASS_WARN = 0.01  # mass on the last asset node above which the grid is called too small
 
@@ -193,10 +194,13 @@ def cdf(mass: Array) -> Array:
 
 def quantile(mass: Array, grid: Array, q: float) -> float:
     """Generalised inverse CDF: the smallest grid value with cumulative mass >= ``q``."""
-    if not 0.0 <= q <= 1.0:
+    if not 0.0 <= check_finite(q, "q") <= 1.0:
         raise ValidationError("q must lie in [0, 1]")
+    mass, grid = check_array(mass, "mass", ndim=1), check_array(grid, "grid", ndim=1)
     if mass.size == 0 or mass.shape != grid.shape:
         raise ValidationError("mass and grid must be non-empty arrays of the same shape")
+    if np.any(mass < 0.0) or not np.sum(mass) > 0.0:
+        raise ValidationError("mass must be non-negative with a positive sum")
     c = cdf(mass) / float(np.sum(mass))
     return float(grid[min(int(np.searchsorted(c, q - 1e-14, side="left")), grid.shape[0] - 1)])
 
@@ -217,11 +221,11 @@ def lorenz_curve(
     v, w = v[keep].ravel(), w[keep].ravel()
     order = np.argsort(v, kind="stable")
     v, w = v[order].ravel(), w[order].ravel()
-    total = float(np.sum(w * v))
-    if total <= 0.0:
+    if v.size == 0 or not v[-1] > 0.0:  # v is sorted: v[-1] is the maximum
         raise ValidationError("values must have a positive weighted sum")
+    v, w = v / v[-1], w / np.max(w)  # the curve does not depend on the scale of values or weights
     pop = np.concatenate([[0.0], np.cumsum(w) / np.sum(w)])
-    share = np.concatenate([[0.0], np.cumsum(w * v) / total])
+    share = np.concatenate([[0.0], np.cumsum(w * v) / np.sum(w * v)])
     return pop, share
 
 

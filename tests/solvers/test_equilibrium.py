@@ -66,3 +66,21 @@ def test_warm_start_shape_mismatch_ignored() -> None:
     assert sol.converged
     sol2 = ek.solve(model, method="vfi", initial=np.zeros((30, 3)))
     assert sol2.converged
+
+
+def test_elapsed_covers_the_whole_search() -> None:
+    def supply(r: float) -> float:
+        sol = ek.solve(factory(r))
+        return assets_supply(sol, stationary_distribution_young(sol))
+
+    target = 0.5 * (supply(0.0) + supply(0.03))
+    eq = solve_stationary_equilibrium(
+        factory,
+        "r",
+        (0.0, 0.03),
+        lambda p, sol, mu: (assets_supply(sol, mu) - target, {}),
+        tol=1e-6,
+    )
+    assert eq.household_solution is not None
+    assert len(eq.history["price"]) > 3
+    assert eq.elapsed > 2.0 * eq.household_solution.elapsed

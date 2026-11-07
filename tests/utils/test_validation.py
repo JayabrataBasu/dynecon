@@ -3,7 +3,13 @@ import pytest
 
 from dynecon.core.errors import ValidationError
 from dynecon.utils.provenance import collect_provenance
-from dynecon.utils.validation import check_array, check_increasing, check_stochastic_matrix
+from dynecon.utils.validation import (
+    check_array,
+    check_finite,
+    check_increasing,
+    check_int,
+    check_stochastic_matrix,
+)
 
 
 def test_check_array_messages_name_argument() -> None:
@@ -52,3 +58,16 @@ def test_provenance_does_not_import_optional_stacks() -> None:
         "assert 'jax' not in sys.modules and 'numba' not in sys.modules"
     )
     assert subprocess.run([sys.executable, "-c", code]).returncode == 0
+
+
+def test_check_int_and_check_finite() -> None:
+    assert check_int(5.0, "n", 2) == 5 and check_int(np.int64(3), "n") == 3
+    assert check_finite(2, "x", positive=True) == 2.0
+    for bad in (np.nan, np.inf, 2.5, "5", None, 1, [1, 2]):
+        with pytest.raises(ValidationError, match="n"):
+            check_int(bad, "n", 2)
+    for bad in (np.nan, np.inf, -np.inf, "1", None, [1.0, 2.0]):
+        with pytest.raises(ValidationError, match="x"):
+            check_finite(bad, "x")
+    with pytest.raises(ValidationError, match="x"):
+        check_finite(0.0, "x", positive=True)

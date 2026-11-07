@@ -8,6 +8,7 @@ identical convergence semantics (and warnings) across the library.
 
 from __future__ import annotations
 
+import math
 import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -17,6 +18,7 @@ import numpy.typing as npt
 
 from dynecon.config import config
 from dynecon.core.errors import ConvergenceError, ConvergenceWarning, DyneconError, ValidationError
+from dynecon.utils.validation import check_finite, check_int
 
 __all__ = ["FixedPointResult", "fixed_point"]
 
@@ -86,17 +88,29 @@ class _Anderson:
         return tx
 
 
-def _validate(tol: float, max_iter: int, norm: str, damping: float, anderson: int) -> None:
-    if not tol > 0.0:
-        raise ValidationError("tol must be strictly positive")
-    if max_iter < 1:
-        raise ValidationError("max_iter must be >= 1")
-    if not 0.0 < damping <= 1.0:
+def _validate(
+    tol: float, max_iter: int, norm: str, damping: float, anderson: int
+) -> tuple[float, int, int]:
+    """Validated ``(tol, max_iter, anderson)``."""
+    tol = check_finite(tol, "tol", positive=True)
+    max_iter = check_int(max_iter, "max_iter", 1)
+    anderson = check_int(anderson, "anderson", 0)
+    if not 0.0 < check_finite(damping, "damping") <= 1.0:
         raise ValidationError("damping must lie in (0, 1]")
-    if anderson < 0 or (anderson and damping != 1.0):
-        raise ValidationError("anderson must be >= 0 and needs damping == 1")
+    if anderson and damping != 1.0:
+        raise ValidationError("anderson needs damping == 1")
     if norm not in ("sup", "l1"):
         raise ValidationError("norm must be 'sup' or 'l1'")
+    return tol, max_iter, anderson
+
+
+def _initial(x0: Array, lower: float | None) -> tuple[Array, float | None]:
+    x = np.array(x0, dtype=np.float64, copy=True)
+    if x.size == 0:
+        raise ValidationError("x0 must not be empty")
+    if not np.all(np.isfinite(x)):
+        raise ValidationError("x0 must be finite")
+    return x, None if lower is None else check_finite(lower, "lower")
 
 
 def fixed_point(
@@ -119,13 +133,11 @@ def fixed_point(
     (Anderson acceleration; the memory is dropped whenever the residual grows, so the plain
     iteration is the fallback) and accelerated iterates below ``lower`` are rejected.
     Non-convergence emits :class:`ConvergenceWarning` (or raises :class:`ConvergenceError` when
-    ``config.strict_convergence``).
+    ``config.strict_convergence``). An operator that returns non-finite values raises
+    :class:`ConvergenceError` at once.
     """
-    _validate(tol, max_iter, norm, damping, anderson)
-
-    x = np.array(x0, dtype=np.float64, copy=True)
-    if x.size == 0:
-        raise ValidationError("x0 must not be empty")
+    tol, max_iter, anderson = _validate(tol, max_iter, norm, damping, anderson)
+    x, lower = _initial(x0, lower)
     history: list[float] = []
     residual = float("inf")
     converged = False
@@ -143,6 +155,8 @@ def fixed_point(
         if tx.shape != x.shape:
             raise ValidationError(f"{name}: operator returned shape {tx.shape}, expected {x.shape}")
         residual = _distance(tx, x, norm)
+        if acc is None and not math.isfinite(residual):
+            raise ConvergenceError(f"{name}: non-finite operator output at iteration {iterations}")
         history.append(residual)
         if residual < tol:
             x = tx

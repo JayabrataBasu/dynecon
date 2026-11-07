@@ -7,6 +7,7 @@ economic results.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy as np
@@ -14,7 +15,13 @@ import numpy.typing as npt
 
 from dynecon.core.errors import ValidationError
 
-__all__ = ["check_array", "check_increasing", "check_stochastic_matrix"]
+__all__ = [
+    "check_array",
+    "check_finite",
+    "check_increasing",
+    "check_int",
+    "check_stochastic_matrix",
+]
 
 
 def check_array(
@@ -40,6 +47,32 @@ def check_array(
     if finite and not np.all(np.isfinite(arr)):
         raise ValidationError(f"{name} contains non-finite values")
     return arr
+
+
+def _as_float(value: Any, name: str, what: str) -> float:
+    if isinstance(value, (str, bytes)):
+        raise ValidationError(f"{name} must be {what}, got {value!r}")
+    try:
+        return float(value)
+    except (TypeError, ValueError, OverflowError):
+        raise ValidationError(f"{name} must be {what}, got {value!r}") from None
+
+
+def check_int(value: Any, name: str, minimum: int = 1, maximum: int = 10**7) -> int:
+    """Return ``value`` as an ``int``; it must be a whole number in ``[minimum, maximum]``."""
+    v = _as_float(value, name, "an integer")
+    if not math.isfinite(v) or v != int(v) or not minimum <= v <= maximum:
+        raise ValidationError(f"{name} must be an integer in [{minimum}, {maximum}], got {value!r}")
+    return int(v)
+
+
+def check_finite(value: Any, name: str, *, positive: bool = False) -> float:
+    """Return ``value`` as a ``float``; it must be finite (and > 0 if ``positive``)."""
+    v = _as_float(value, name, "a real number")
+    if not math.isfinite(v) or (positive and v <= 0.0):
+        kind = "a positive finite number" if positive else "a finite number"
+        raise ValidationError(f"{name} must be {kind}, got {value!r}")
+    return v
 
 
 def check_increasing(x: npt.NDArray[np.float64], name: str, strict: bool = True) -> None:

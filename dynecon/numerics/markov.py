@@ -21,7 +21,7 @@ from dynecon.numerics._registry import register
 from dynecon.numerics.backends.markov_kernels import markov_paths_numba, markov_paths_numpy
 from dynecon.utils.jit import NUMBA_AVAILABLE
 from dynecon.utils.rng import as_generator
-from dynecon.utils.validation import check_stochastic_matrix
+from dynecon.utils.validation import check_int, check_stochastic_matrix
 
 __all__ = ["MarkovChain", "markov_paths", "simulate_markov", "stationary_distribution"]
 
@@ -83,12 +83,11 @@ def simulate_markov(
     backend: str | None = None,
 ) -> IntArray:
     """Simulate one chain of length ``n``; the initial state is drawn from the stationary law."""
-    if n < 1:
-        raise ValidationError("n must be >= 1")
+    n = check_int(n, "n", 1, 10**8)
     gen = as_generator(rng)
     Pm = check_stochastic_matrix(P, "P")
     s0 = (
-        int(init)
+        check_int(init, "init", 0, Pm.shape[0] - 1)
         if init is not None
         else int(gen.choice(Pm.shape[0], p=stationary_distribution(Pm)))
     )

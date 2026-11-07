@@ -30,6 +30,11 @@ def _mat(x: npt.ArrayLike, name: str, shape: tuple[int, int] | None = None) -> A
     return a
 
 
+def _require_finite(*arrays: Array) -> None:
+    if not all(np.isfinite(a).all() for a in arrays):
+        raise ValidationError("the solution is not finite: the problem is badly scaled")
+
+
 def solve_discrete_riccati(
     A: npt.ArrayLike,
     B: npt.ArrayLike,
@@ -56,7 +61,9 @@ def solve_discrete_riccati(
         P = solve_discrete_are(s * A, s * B, R, Q, s=Nm.T)
     except (np.linalg.LinAlgError, ValueError) as err:
         raise ValidationError(f"the Riccati equation has no stabilising solution: {err}") from err
-    return np.asarray(P, dtype=np.float64)
+    P = np.asarray(P, dtype=np.float64)
+    _require_finite(P)
+    return P
 
 
 class LQ:
@@ -104,13 +111,19 @@ class LQ:
         self.F: Array = np.zeros((self.k, self.n))
         self.policies: list[Array] = []
 
+    @staticmethod
+    def _policy(S: Array, rhs: Array) -> Array:
+        """Solve ``S F = rhs`` with ``S = Q + beta B'PB`` (singular if the control cost is zero)."""
+        try:
+            return np.asarray(np.linalg.solve(S, rhs), dtype=np.float64)
+        except np.linalg.LinAlgError as err:
+            raise ValidationError("Q + beta B'PB is singular: Q must be positive definite") from err
+
     def _step(self, P: Array, d: float) -> tuple[Array, Array, float]:
         """One Riccati step: next ``P``, the policy ``F`` for the current ``P``, and ``d``."""
         b = self.beta
         S = self.Q + b * self.B.T @ P @ self.B
-        F: Array = np.asarray(
-            np.linalg.solve(S, b * self.B.T @ P @ self.A + self.N), dtype=np.float64
-        )
+        F = self._policy(S, b * self.B.T @ P @ self.A + self.N)
         P_new: Array = np.asarray(
             self.R + b * self.A.T @ P @ self.A - (b * self.A.T @ P @ self.B + self.N.T) @ F,
             dtype=np.float64,
@@ -121,18 +134,15 @@ class LQ:
     def stationary_values(self) -> tuple[Array, Array, float]:
         """Infinite-horizon ``(P, F, d)``; also stored on the object."""
         P = solve_discrete_riccati(self.A, self.B, self.R, self.Q, self.N, self.beta)
-        F: Array = np.asarray(
-            np.linalg.solve(
-                self.Q + self.beta * self.B.T @ P @ self.B,
-                self.beta * self.B.T @ P @ self.A + self.N,
-            ),
-            dtype=np.float64,
+        F = self._policy(
+            self.Q + self.beta * self.B.T @ P @ self.B, self.beta * self.B.T @ P @ self.A + self.N
         )
         d = (
             self.beta * float(np.trace(P @ self.C @ self.C.T)) / (1.0 - self.beta)
             if self.beta < 1
             else 0.0
         )
+        _require_finite(F, np.asarray(d))
         self.P, self.F, self.d = P, F, d
         return P, F, d
 
@@ -144,6 +154,7 @@ class LQ:
         for _ in range(self.T):
             P, F, d = self._step(P, d)
             policies.append(F)
+        _require_finite(P, np.asarray(d), *policies)
         self.P, self.d, self.F = P, d, policies[-1]
         self.policies = policies[::-1]  # policies[t] is the policy applied at time t
 

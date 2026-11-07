@@ -18,6 +18,10 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
 - Scripts for real data (`scripts/real_scf_*.py`, `scripts/real_sw_*.py`): SCF wealth moments with a
   household bootstrap, and a Dynare linear-model reader that reproduces the Smets-Wouters (2007)
   posterior mode (log posterior -835.7 against Dynare's -836.1).
+- `dynecon.utils.validation.check_int` and `check_finite`: the shared checks behind the hardening above.
+- `tests/api/test_fuzz_contract.py`: property-based (Hypothesis) contract tests over 33 public routines,
+  deterministic in CI; set `DYNECON_FUZZ_EXAMPLES` to explore deeper (each routine was also run with 500, 1,500,
+  3,000 and 8,000 examples; every failure those runs found is fixed and has a regression test).
 
 ### Measured
 - HMC on the Smets-Wouters posterior (36 parameters, 2 chains x 300 draws, finite-difference gradients):
@@ -48,6 +52,34 @@ All notable changes are recorded here ([Keep a Changelog](https://keepachangelog
   silent NaN: non-finite Kalman system matrices, empty chains/series/start points (`stationary_distribution`,
   `quantile`, `fixed_point`, `metropolis`, `hmc`), negative or non-finite Lorenz/Gini weights, non-finite
   `exp_grid` curvature, non-finite bootstrap data, and bad `klein_solve` matrices.
+- Input hardening found by a property-based contract (every target must give a `DyneconError` or finite
+  output; 33 public routines fuzzed). Counts and options that were `nan`, `inf`, non-integer, a string or
+  absurdly large now raise `ValidationError` in `tauchen`, `rouwenhorst` (also `sigma_e=inf`; at most 5,000
+  states; overflowing grids refused), the quadrature rules (orders at most 5,000; infinite or non-finite
+  bounds and means refused; `lognormal_nodes` refuses overflow), `uniform_grid`, `exp_grid` and `cartesian`
+  (non-finite grids and overflow refused), `fixed_point` (options, `x0`), `metropolis`, `hmc`,
+  `simulate_markov` (`n`, `init`), `hp_filter`, `baxter_king`, `hamilton_filter` and `kalman_filter`
+  (also refuses a non-finite result instead of returning it).
+- `gauss_hermite_normal` is stable at high order (SciPy's Hermite nodes; NumPy's `hermgauss` returned NaN
+  from about order 400); results agree with the old ones to 4e-15 for orders up to 100. `hamilton_filter`
+  refuses a regression that overflows instead of returning it.
+- `fixed_point` raises `ConvergenceError` at once when the operator returns non-finite values (before: it
+  iterated to `max_iter` and returned NaN with a warning).
+- `hmc` validates the log density and the gradient shape (before: a raw broadcast error); `metropolis` and
+  `hmc` warn (`ConvergenceWarning`) when the chains move on a perfectly flat, i.e. improper, target;
+  `metropolis` refuses a log posterior of `+inf` (the chain would stick there).
+- `solve(method="egm")` warns (`GridWarning`) when beta times the marginal return is at least one at the
+  top of the grid in every shock state: the household saves without bound and the answer depends on the
+  grid ceiling.
+- `EquilibriumSolution.elapsed` is the time of the whole search (it was the last household solve's time).
+- `gini` and `lorenz_curve` no longer overflow at extreme magnitudes (the curve is scale free); `quantile`
+  validates `mass`, `grid` and `q` (an infinite grid value, zero or negative mass and a NaN `q` were accepted);
+  `split_rhat` and `ess` are computed on unit-scale draws (R-hat was `inf` for draws near 1e153).
+- `klein_solve` validates its inputs, raises `DeterminacyError` for a singular matrix pencil, for QZ
+  failures and for a non-finite solution (before: infinite eigenvalues returned as a solution, a raw
+  SciPy `ValueError`, or NaN for a nearly zero `B`).
+- `LQ` and `solve_discrete_riccati` raise `ValidationError` for a singular control cost and for results
+  that overflow (before: a raw `LinAlgError`, or NaN).
 
 ### Changed
 - Benchmark record re-measured on 0.2.0 (`benchmarks/results/20261105_JayabrataBasu.json`); the
