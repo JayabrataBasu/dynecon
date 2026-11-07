@@ -41,6 +41,7 @@ md/perturbation
 md/estimation
 md/experiments
 md/benchmarks
+md/profiling
 md/crosscheck
 md/quantecon_mapping
 md/known_limits
